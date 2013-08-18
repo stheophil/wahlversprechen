@@ -43,13 +43,13 @@ object Application extends Controller with Secured {
   }
 
   // Index page
-  private def CountPerResult(l: List[Statement]) : Map[Int, Int] = {
-    l.groupBy(_.result.id).map(p => (p._1, p._2.length))
+  private def CountPerRating(l: List[Statement]) : Map[Int, Int] = {
+    l.groupBy(_.rating.id).map(p => (p._1, p._2.length))
   }
   
   def index = Action { implicit request =>
     val stmts = Statement.allWithoutEntries()
-    val catresultmap = stmts.groupBy(_.category.name).map( p => (p._1, CountPerResult(p._2) ) ) + ("" -> CountPerResult(stmts))
+    val catresultmap = stmts.groupBy(_.category.name).map( p => (p._1, CountPerRating(p._2) ) ) + ("" -> CountPerRating(stmts))
     Ok( views.html.index(Statement.allWithoutEntries(), catresultmap, username(request) flatMap { User.load(_) } ) )
   }
   
@@ -63,7 +63,7 @@ object Application extends Controller with Secured {
      ((entry: Entry) => Some((entry.content.toString(), entry.stmt_id.get.toInt, entry.user.email)))
   )
 
-  private def viewResult(id: Long)(implicit request: Request[AnyContent]) : mvc.Result = { 
+  private def viewResult(id: Long)(implicit request: Request[AnyContent]) : Result = { 
     val optstmt = Statement.load(id)
     optstmt match {
       case Some(stmt) => Ok(views.html.detail(stmt, newEntryForm, username(request) flatMap { User.load(_) }))

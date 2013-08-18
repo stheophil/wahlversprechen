@@ -44,21 +44,21 @@ object InitialData {
       )
       
       Seq(
-        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(0), aentries.slice(0, 2), Result.PromiseKept),
-        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(0), aentries.slice(1, 3), Result.PromiseKept),
-        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(0), aentries, Result.PromiseBroken),
-        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(0), aentries.slice(0, 4), Result.Unrated),
-        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(1), List[Entry](), Result.Compromise),
-        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(1), List[Entry](), Result.PromiseBroken),
-        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(1), List[Entry](), Result.InTheWorks),
-        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(1), List[Entry](), Result.PromiseKept),
-        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(1), List[Entry](), Result.PromiseBroken),
-        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(2), List[Entry](), Result.PromiseKept),
-        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(2), List[Entry](), Result.Stalled),
-        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(3), List[Entry](), Result.Stalled),
-        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(3), List[Entry](), Result.PromiseKept),
-        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(3), List[Entry](), Result.PromiseKept),
-        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(3), List[Entry](), Result.PromiseKept)
+        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(0), aentries.slice(0, 2), Rating.PromiseKept),
+        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(0), aentries.slice(1, 3), Rating.PromiseKept),
+        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(0), aentries, Rating.PromiseBroken),
+        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(0), aentries.slice(0, 4), Rating.Unrated),
+        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(1), List[Entry](), Rating.Compromise),
+        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(1), List[Entry](), Rating.PromiseBroken),
+        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(1), List[Entry](), Rating.InTheWorks),
+        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(1), List[Entry](), Rating.PromiseKept),
+        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(1), List[Entry](), Rating.PromiseBroken),
+        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(2), List[Entry](), Rating.PromiseKept),
+        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(2), List[Entry](), Rating.Stalled),
+        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(3), List[Entry](), Rating.Stalled),
+        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(3), List[Entry](), Rating.PromiseKept),
+        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(3), List[Entry](), Rating.PromiseKept),
+        Statement(NotAssigned, "Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(3), List[Entry](), Rating.PromiseKept)
       ).foreach(Statement.create)
     }
     

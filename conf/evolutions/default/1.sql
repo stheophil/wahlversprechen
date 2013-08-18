@@ -21,7 +21,7 @@ CREATE TABLE statement (
     title varchar(255),
     category varchar(255) NOT NULL,
     FOREIGN KEY (category) REFERENCES category(name),
-    result integer NOT NULL,    
+    rating integer NOT NULL,    
     PRIMARY KEY (id)
 );
 

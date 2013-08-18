@@ -1,10 +1,10 @@
 package models
 
-object Result extends Enumeration {
-  type Result = Value
+object Rating extends Enumeration {
+  type Rating = Value
   val PromiseKept, Compromise, PromiseBroken, Stalled, InTheWorks, Unrated = Value
 };
-import Result._
+import Rating._
 
 object Role extends Enumeration {
   type Role = Value
@@ -20,7 +20,7 @@ import play.api.templates._
 case class Category(name: String, order: Long)
 case class User(email: String, name: String, password: String, role: Role)
 case class Entry(id: Pk[Long], stmt_id: Pk[Long], content: Html, date: Date, user: User)
-case class Statement(id: Pk[Long], title: String, category: Category, entries: List[Entry], result: Result)
+case class Statement(id: Pk[Long], title: String, category: Category, entries: List[Entry], rating: Rating)
 
 import anorm._
 import anorm.SqlParser._
@@ -137,12 +137,12 @@ object Statement {
 	  get[String]("title")  ~
 	  get[String]("category.name") ~
 	  get[Long]("category.ordering") ~
-	  get[Int]("result") map {
-	    case id~title~category_name~category_order~result => Statement(id, title, Category(category_name, category_order), List[Entry](), if(0<=result && result<Result.maxId) Result(result) else Unrated)
-	  } // Result(result) would throw java.util.NoSuchElementException
+	  get[Int]("rating") map {
+	    case id~title~category_name~category_order~rating => Statement(id, title, Category(category_name, category_order), List[Entry](), if(0<=rating && rating<Rating.maxId) Rating(rating) else Unrated)
+	  } // Rating(rating) would throw java.util.NoSuchElementException
   }
   
-  var query = """select id, title, result, name, ordering from statement join category on category.name=category"""
+  var query = """select id, title, rating, name, ordering from statement join category on category.name=category"""
 
   def allWithoutEntries(): List[Statement] = {
     DB.withConnection( { implicit c =>
@@ -157,7 +157,7 @@ object Statement {
           'id -> id
       ).as(stmt.singleOpt)
     } )
-    s map { stmt => Statement(stmt.id, stmt.title, stmt.category, Entry.loadByStatement(id), stmt.result) }    
+    s map { stmt => Statement(stmt.id, stmt.title, stmt.category, Entry.loadByStatement(id), stmt.rating) }    
   } 
   
   def create(stmt: Statement) : Pk[Long] = {
@@ -171,14 +171,14 @@ object Statement {
        SQL(
          """
            insert into statement values (
-             {id}, {title}, {category}, {result}
+             {id}, {title}, {category}, {rating}
            )
          """
        ).on(
          'id -> id,
          'title -> stmt.title,
          'category -> stmt.category.name,
-         'result -> stmt.result.id
+         'rating -> stmt.rating.id
        ).executeUpdate()
        Id(id)
      }
