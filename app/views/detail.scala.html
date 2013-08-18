@@ -1,0 +1,83 @@
+@(stmt: Statement, form: Form[Entry], user: Option[User])
+
+@import helper.twitterBootstrap._
+@main("Wahlversprechen #" + stmt.id){
+@userbar(user)
+<div class="container">
+	<div class="page-header">
+	  <h1>@stmt.title<br/><small>Wahlversprechen #@stmt.id / @stmt.category.name</small></h1>
+	</div>
+	
+	<blockquote><p>"Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."</p></blockquote>
+		
+	@(stmt.result match {
+		case Result.PromiseKept => { <p class="result"><b>Ergebnis:</b>&nbsp;Wir werten dieses Versprechen als <span class="label label-success">Gehalten</span>.</p> }
+		case Result.Compromise => { <p class="result"><b>Ergebnis:</b>&nbsp;Die Umsetzung dieses Versprechens werten wir als einen <span class="label label-warning">Kompromiss</span>.</p> }
+		case Result.PromiseBroken => { <p class="result"><b>Ergebnis:</b>&nbsp;Wir werten dieses Versprechen als <span class="label label-important">Gebrochen</span>.</p> }
+		case Result.Stalled => { <p class="result"><b>Ergebnis:</b>&nbsp;Die Umsetzung dieses Versprechens werten wir als <span class="label label-inverse">Blockiert</span>.</p> }
+		case Result.InTheWorks => { <p class="result"><b>Ergebnis:</b>&nbsp;Wir werten dieses Versprechen als <span class="label label-info">In Arbeit</span>.</p> }
+		case Result.Unrated => { <p class="result"><b>Ergebnis:</b>&nbsp;Dieses Versprechen ist nachwievor <span class="label">Unbewertet</span>.</p> }
+	})
+	
+	@if(user.isDefined && (user.get.role==Role.Editor || user.get.role==Role.Admin)) {
+		<div class="entry-new">
+		<form action="/addEntry" method="POST">
+		   	<textarea class="expand" name="content" style="width: 100%;" placeholder="Schreibe einen neuen Beitrag ..."></textarea>
+		    <span class="help-inline showonclick">(Formatierungen im <a href="http://daringfireball.net/projects/markdown/syntax#block">Markdown-Format</a> werden unterstützt.)<br/><br/></span>
+		    <input type="hidden" name="email" value='@user.get.email' >
+			<input type="hidden" name="stmt_id" value='@stmt.id' >
+		    <button type="submit" class="btn-primary btn showonclick">Abschicken</button>
+		    <button type="button" class="btn cancel showonclick">Abbrechen</button>
+		</form>
+		</div>
+	}
+	
+	@for(entry <- stmt.entries) {
+		<div class="entry">
+			<div class="entry-intro">
+			<p>Am @entry.date geschrieben von @entry.user.name
+			<span class="entry-buttons">
+			@if(user.isDefined && (user.get.role==Role.Editor || user.get.role==Role.Admin)) {
+				<i class="icon-remove"></i>
+			}
+			</span>
+			</p>
+			</div>
+			<div class="entry-content">
+			@entry.content
+			</div>
+		</div>
+	}
+	
+	<div class="comment-intro"> 
+		<p><i>Du bist anderer Meinung oder gibt es neue Entwicklungen, die dieser Bewertung widersprechen? Diskutier mit!</i></p>
+		<!--
+		<div id="pd_rating_holder_7012588"></div>
+		<script type="text/javascript">
+		PDRTJS_settings_7012588 = {
+		"id" : "7012588",
+		"unique_id" : "@stmt.id",
+		"title" : "@stmt.title",
+		"permalink" : "/view/@stmt.id"
+		};
+		</script>
+		<script type="text/javascript" src="http://i0.poll.fm/js/rating/rating.js"></script>
+		-->
+	</div>
+	<div id="disqus_thread"></div>
+	<script type="text/javascript">
+	  	/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+	        var disqus_shortname = 'wahlprogrammometer'; // required: replace example with your forum shortname
+			var disqus_identifier = @stmt.id;
+			var disqus_title = "#" + @stmt.id + ": " + "@stmt.title";
+	        /* * * DON'T EDIT BELOW THIS LINE * * */
+	        (function() {
+	            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+	            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+	            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+	        })();
+	    </script>
+	<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+	<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+}

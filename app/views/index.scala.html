@@ -1,0 +1,73 @@
+@(stmts: List[Statement], results: Map[String, Map[Int, Int]], user: Option[User])
+@import models.Result._
+ 
+@main("Wahlprogramm-o-meter"){
+	@userbar(user)
+    <div class="hero-unit">
+	  <h1>Wahlprogramm-o-meter</h1>
+	  <p>Diskutiere mit und stimme mit ab, wie sich die Koalition bis jetzt schlägt. Welche Vorhaben sind umgesetzt? Welche lassen auf sich warten?</p>
+	  <div class="progress" style="height: 150%">
+	  @defining( results("").foldLeft(0.0) { _ + _._2 } ) { sum  =>
+	  	<div class="bar bar-success" style="width: @{results("").getOrElse(PromiseKept.id, 0)/sum * 100.0}%;">&nbsp;</div>
+	  	<div class="bar bar-warning" style="width: @{results("").getOrElse(Compromise.id, 0)/sum * 100.0}%;">&nbsp;</div>
+	  	<div class="bar bar-danger" style="width: @{results("").getOrElse(PromiseBroken.id, 0)/sum * 100.0}%;">&nbsp;</div>
+	  }
+	  </div>
+	</div>
+
+	<div class="container">
+  	<div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" href="#collapseTop">
+        Zeige alle politischen Vorhaben der Regierung <i class="icon-chevron-right"></i>
+      </a>
+    </div>
+    <div id="collapseTop" class="accordion-body collapse">
+		<div class="accordion-inner">
+			@for( (c, list) <- stmts.groupBy( s => s.category ).toList.sortBy(_._1.order) ) {
+				<div class="accordion-heading" style="position: relative;">
+					<a class="accordion-toggle" data-toggle="collapse" href="#collapse@(c.order)">
+					<b>@c.order.&nbsp;@c.name</b>
+					</a>
+					<div class="progress" style="height: 10pt; width: 150pt; position: absolute; top:11pt; left: 250pt">
+						@defining( results(c.name).foldLeft(0.0) { _ + _._2 } ) { sum  =>		 
+						  	<div class="bar bar-success" style="width: @{results(c.name).getOrElse(PromiseKept.id, 0)/sum * 100.0}%;"></div>
+						  	<div class="bar bar-warning" style="width: @{results(c.name).getOrElse(Compromise.id, 0)/sum * 100.0}%;"></div>
+						  	<div class="bar bar-danger" style="width: @{results(c.name).getOrElse(PromiseBroken.id, 0)/sum * 100.0}%;"></div>
+					  	}
+					</div>
+				</div>
+				<div id="collapse@(c.order)" class="accordion-body collapse">
+					<div class="accordion-inner">
+					@for( s <- list ) {
+						<p><a class="item" href="/view/@s.id">@s.title</a>&nbsp;							
+							@s.result match {
+								case models.Result.PromiseKept => {<span class="badge badge-success">}
+								case models.Result.Compromise => {<span class="badge badge-warning">}
+								case models.Result.PromiseBroken => {<span class="badge badge-important">}
+								case _ => {<span class="badge badge-default">}
+							}
+							<a class="comment-count" data-disqus-identifier="@(s.id)" href="/view/@(s.id)#disqus_thread">&nbsp</a>
+							</span>
+							<i class="icon-chevron-right"></i>
+						</p>
+					}
+				</div>
+				</div>
+			}									
+		</div>
+	</div>
+
+	<script type="text/javascript">
+	/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+	var disqus_shortname = 'wahlprogrammometer'; // required: replace example with your forum shortname
+
+	/* * * DON'T EDIT BELOW THIS LINE * * */
+	(function () {
+	var s = document.createElement('script'); s.async = true;
+	s.type = 'text/javascript';
+	s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+	(document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+	}());
+	</script>
+	</div>
+}
