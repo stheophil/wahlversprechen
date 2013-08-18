@@ -4,51 +4,65 @@ object Rating extends Enumeration {
   type Rating = Value
   val PromiseKept, Compromise, PromiseBroken, Stalled, InTheWorks, Unrated = Value
 };
-import Rating._
 
 object Role extends Enumeration {
   type Role = Value
   val Admin, Editor, Unprivileged = Value
 };
+
 import Role._
+import Rating._
 
 import java.util.Date
 
 import anorm._
-import play.api.templates._
-
-case class Category(name: String, order: Long)
-case class User(email: String, name: String, password: String, role: Role)
-case class Entry(id: Pk[Long], stmt_id: Pk[Long], content: Html, date: Date, user: User)
-case class Statement(id: Pk[Long], title: String, category: Category, entries: List[Entry], rating: Rating)
-
-import anorm._
 import anorm.SqlParser._
+
 import play.api.db._
 import play.api.Play.current
+import play.api.templates._
+
+case class Category(id: Pk[Long], name: String, order: Long)
+case class User(id: Pk[Long], email: String, name: String, password: String, role: Role)
+case class Entry(id: Pk[Long], stmt_id: Pk[Long], content: String, date: Date, user: User)
+case class Statement(id: Pk[Long], title: String, category: Category, entries: List[Entry], rating: Rating)
+
 
 object Category {  
-	def create(cat: Category) : Category = {
+	def create(cat: Category) : Pk[Long] = {
 		DB.withConnection { implicit c =>
-	      SQL("insert into category values ({name}, {order})").on(
+      val id: Long = cat.id.getOrElse {
+         SQL("select next value for cat_id_seq").as(scalar[Long].single)
+       }
+
+	      SQL("insert into category values ({id}, {name}, {order})").on(
+          'id -> id,
 	        'name -> cat.name,
 	        'order -> cat.order
 	      ).executeUpdate()
+
+        Id(id)
 	    }
-		cat
 	} 
 }
 
 object User {  
   val user = {
+    get[Pk[Long]]("id") ~
 	  get[String]("email") ~ 
 	  get[String]("name") ~
 	  get[String]("password") ~
 	  get[Int]("role") map {
-	    case email~name~password~role => User(email, name, password, if(0<=role && role<Role.maxId) Role(role) else Unprivileged)
+	    case id~email~name~password~role => User(id, email, name, password, if(0<=role && role<Role.maxId) Role(role) else Unprivileged)
 	  }
   }
   
+  def load(id: Long) : Option[User] = {
+    DB.withConnection { implicit c =>
+      SQL("select * from user where id = {id}").on('id -> id).as(user.singleOpt)
+    }
+  }
+
   def load(email: String) : Option[User] = {
     DB.withConnection { implicit c =>
       SQL("select * from user where email = {email}").on('email -> email).as(user.singleOpt)
@@ -61,16 +75,21 @@ object User {
     }
   }
   
-  def create(user: User) : User = {
+  def create(user: User) : Pk[Long] = {
     DB.withConnection { implicit c =>
-      SQL("insert into user values ({email}, {name}, {password}, {role})").on(
+      val id: Long = user.id.getOrElse {
+         SQL("select next value for user_id_seq").as(scalar[Long].single)
+       }
+
+      SQL("insert into user values ({id}, {email}, {name}, {password}, {role})").on(
+        'id -> id,
         'email -> user.email,
         'name -> user.name,
         'password -> user.password,
         'role -> user.role.id
       ).executeUpdate()
 
-      user      
+      Id(id)
     }
   }
   
@@ -95,8 +114,8 @@ object Entry {
     get[Pk[Long]]("stmt_id") ~ 
     get[String]("content") ~
     get[Date]("date") ~
-    get[String]("email") map {
-      case id~stmt_id~content~date~email => Entry(id, stmt_id, Html(content), date, User.load(email).get)
+    get[Long]("user_id") map {
+      case id~stmt_id~content~date~user_id => Entry(id, stmt_id, content, date, User.load(user_id).get)
     }
   }
   
@@ -115,7 +134,7 @@ object Entry {
        SQL(
          """
            insert into entry values (
-             {id}, {stmt_id}, {content}, {date}, {user}
+             {id}, {stmt_id}, {content}, {date}, {user_id}
            )
          """
        ).on(
@@ -123,7 +142,7 @@ object Entry {
          'stmt_id -> stmt_id,
          'content -> e.content.toString,
          'date -> e.date,
-         'user -> e.user.email
+         'user_id -> e.user.id
        ).executeUpdate()
               
        Id(id)
@@ -135,14 +154,15 @@ object Statement {
   val stmt = {
 	  get[Pk[Long]]("id") ~ 
 	  get[String]("title")  ~
+    get[Pk[Long]]("category.id") ~
 	  get[String]("category.name") ~
 	  get[Long]("category.ordering") ~
 	  get[Int]("rating") map {
-	    case id~title~category_name~category_order~rating => Statement(id, title, Category(category_name, category_order), List[Entry](), if(0<=rating && rating<Rating.maxId) Rating(rating) else Unrated)
+	    case id~title~category_id~category_name~category_order~rating => Statement(id, title, Category(category_id, category_name, category_order), List[Entry](), if(0<=rating && rating<Rating.maxId) Rating(rating) else Unrated)
 	  } // Rating(rating) would throw java.util.NoSuchElementException
   }
   
-  var query = """select id, title, rating, name, ordering from statement join category on category.name=category"""
+  var query = """select statement.id, title, rating, category.id, category.name, category.ordering from statement join category on category.id=cat_id"""
 
   def allWithoutEntries(): List[Statement] = {
     DB.withConnection( { implicit c =>
@@ -153,7 +173,7 @@ object Statement {
   def load(id: Long) : Option[Statement] = {
     // TODO: Create stmt with entries in the first place
     val s = DB.withConnection( { implicit c => 
-      SQL(query + " where id = {id}").on(
+      SQL(query + " where statement.id = {id}").on(
           'id -> id
       ).as(stmt.singleOpt)
     } )
@@ -171,13 +191,13 @@ object Statement {
        SQL(
          """
            insert into statement values (
-             {id}, {title}, {category}, {rating}
+             {id}, {title}, {cat_id}, {rating}
            )
          """
        ).on(
          'id -> id,
          'title -> stmt.title,
-         'category -> stmt.category.name,
+         'cat_id -> stmt.category.id,
          'rating -> stmt.rating.id
        ).executeUpdate()
        Id(id)

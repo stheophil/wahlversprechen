@@ -58,9 +58,9 @@ object Application extends Controller with Secured {
     mapping(
       "content" -> text,
       "stmt_id" -> number,
-      "email" -> text
-    )((content, stmt_id, email) => Entry(anorm.NotAssigned, anorm.Id(stmt_id), Html(content), new java.util.Date(), User.load(email).get))
-     ((entry: Entry) => Some((entry.content.toString(), entry.stmt_id.get.toInt, entry.user.email)))
+      "user_id" -> number
+    )((content, stmt_id, user_id) => Entry(anorm.NotAssigned, anorm.Id(stmt_id), content, new java.util.Date(), User.load(user_id).get))
+     ((entry: Entry) => Some((entry.content.toString(), entry.stmt_id.get.toInt, entry.user.id.get.toInt)))
   )
 
   private def viewResult(id: Long)(implicit request: Request[AnyContent]) : Result = { 
