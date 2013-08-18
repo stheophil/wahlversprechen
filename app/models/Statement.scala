@@ -23,25 +23,23 @@ import play.api.Play.current
 import play.api.templates._
 
 case class Category(id: Pk[Long], name: String, order: Long)
-case class User(id: Pk[Long], email: String, name: String, password: String, role: Role)
+case class User(id: Pk[Long], email: String, name: String, password: String, salt: String, role: Role)
 case class Entry(id: Pk[Long], stmt_id: Pk[Long], content: String, date: Date, user: User)
 case class Statement(id: Pk[Long], title: String, category: Category, entries: List[Entry], rating: Rating)
 
 
 object Category {  
-	def create(cat: Category) : Pk[Long] = {
+	def create(name: String, order: Long) : Category = {
 		DB.withConnection { implicit c =>
-      val id: Long = cat.id.getOrElse {
-         SQL("select next value for cat_id_seq").as(scalar[Long].single)
-       }
-
-	      SQL("insert into category values ({id}, {name}, {order})").on(
+      val id: Long = SQL("select next value for cat_id_seq").as(scalar[Long].single)
+	  
+        SQL("insert into category values ({id}, {name}, {order})").on(
           'id -> id,
-	        'name -> cat.name,
-	        'order -> cat.order
+	        'name -> name,
+	        'order -> order
 	      ).executeUpdate()
 
-        Id(id)
+        Category(Id(id), name, order)
 	    }
 	} 
 }
@@ -52,8 +50,9 @@ object User {
 	  get[String]("email") ~ 
 	  get[String]("name") ~
 	  get[String]("password") ~
+    get[String]("salt") ~
 	  get[Int]("role") map {
-	    case id~email~name~password~role => User(id, email, name, password, if(0<=role && role<Role.maxId) Role(role) else Unprivileged)
+	    case id~email~name~password~salt~role => User(id, email, name, password, salt, if(0<=role && role<Role.maxId) Role(role) else Unprivileged)
 	  }
   }
   
@@ -74,36 +73,35 @@ object User {
       SQL("select * from user").as(user*)
     }
   }
-  
-  def create(user: User) : Pk[Long] = {
-    DB.withConnection { implicit c =>
-      val id: Long = user.id.getOrElse {
-         SQL("select next value for user_id_seq").as(scalar[Long].single)
-       }
 
-      SQL("insert into user values ({id}, {email}, {name}, {password}, {role})").on(
+  private def passwordhash(salt: String, password: String) : String = {
+     val md = java.security.MessageDigest.getInstance("SHA-1")
+     val hash = new sun.misc.BASE64Encoder().encode( md.digest( (salt + password).getBytes) )
+     hash
+  }
+  
+  def create(email: String, name: String, password: String, role: Role) : User = {
+    DB.withConnection { implicit c =>
+      val id: Long = SQL("select next value for user_id_seq").as(scalar[Long].single)
+      val salt = (for(i <- 1 to 20) yield util.Random.nextPrintableChar).mkString
+      val hash = passwordhash(salt, password)
+      SQL("insert into user values ({id}, {email}, {name}, {password}, {salt}, {role})").on(
         'id -> id,
-        'email -> user.email,
-        'name -> user.name,
-        'password -> user.password,
-        'role -> user.role.id
+        'email -> email,
+        'name -> name,
+        'password -> hash,
+        'salt -> salt,
+        'role -> role.id
       ).executeUpdate()
 
-      Id(id)
+      User(Id(id), email, name, hash, salt, role)
     }
   }
   
   def authenticate(email: String, password: String): Option[User] = {
     DB.withConnection { implicit connection =>
-      SQL(
-        """
-         select * from user where 
-         email = {email} and password = {password}
-        """
-      ).on(
-        'email -> email,
-        'password -> password
-      ).as(user.singleOpt)
+      val user = User.load(email)
+      user filter (u => u.password == passwordhash(u.salt, password))
     }
   }
 }  

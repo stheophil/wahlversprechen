@@ -1,6 +1,5 @@
 TODO:
 
-- logout/change password/import header bar
 - update/delete Entry
 - import site
 - statement "quote"
@@ -10,12 +9,10 @@ TODO:
 - HTTP Handler absichern
 
 http://spreadsheets.google.com/feeds/list/0AuS3i7YOiV-wdG4zU2V5bmU0SlhyQWhwRnZNdWVUVnc/od6/public/basic?alt=json
-
 http://spreadsheets.google.com/feeds/worksheets/0AuS3i7YOiV-wdG4zU2V5bmU0SlhyQWhwRnZNdWVUVnc/public/full
 https://spreadsheets.google.com/feeds/worksheets/0AuS3i7YOiV-wdG4zU2V5bmU0SlhyQWhwRnZNdWVUVnc/public/full
 
 https://spreadsheets.google.com/feeds/worksheets/key/public/basic?alt=json
-
 0AuS3i7YOiV-wdG4zU2V5bmU0SlhyQWhwRnZNdWVUVnc
 
 http://spreadsheets.google.com/feeds/worksheets/0AuS3i7YOiV-wdG4zU2V5bmU0SlhyQWhwRnZNdWVUVnc/public/basic

@@ -22,24 +22,17 @@ object InitialData {
     if(User.findAll.isEmpty) {
       var ausers = new collection.mutable.ArrayBuffer[User];
       Array(
-          User(NotAssigned, "sebastian@theophil.net", "Sebastian", "secret", Role.Admin),
-          User(NotAssigned, "test@test.net", "Tester", "secret", Role.Editor),
-          User(NotAssigned, "test2@test.net", "Tester2", "secret", Role.Editor)
-      ).foreach(u => {
-        val id = User.create(u)
-        ausers += User(id, u.email, u.name, u.password, u.role)
-      });
+          ("sebastian@theophil.net", "Sebastian", "secret", Role.Admin),
+          ("test@test.net", "Tester", "secret", Role.Editor),
+          ("test2@test.net", "Tester2", "secret", Role.Editor)
+      ).foreach(t =>
+        ausers += User.create(t._1, t._2, t._3, t._4)
+      );
       
       var acategories = new collection.mutable.ArrayBuffer[Category];
-      Array( 
-        Category(NotAssigned, "Wirtschaft", 1),
-        Category(NotAssigned, "Inneres", 2),
-        Category(NotAssigned, "Verteidigung", 3),
-        Category(NotAssigned, "Landwirtschaft", 4)
-      ).foreach(c => {
-        val id  = Category.create(c)
-        acategories += Category(id, c.name, c.order)
-      })
+      Array( ("Wirtschaft", 1), ("Inneres", 2), ("Verteidigung", 3), ("Landwirtschaft", 4) ).foreach(t => 
+        acategories += Category.create(t._1, t._2)
+      )
       
       val aentries = List(
     	  Entry(NotAssigned, NotAssigned, "<strong>This is a super important update.</strong>", date("2013-05-10"), ausers(0)),
