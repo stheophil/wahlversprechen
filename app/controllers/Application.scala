@@ -55,15 +55,15 @@ object Application extends Controller with Secured {
   
   // Entry page / entry editing  
   val newEntryForm = Form(
-    mapping(
-      "content" -> text,
-      "stmt_id" -> number,
-      "user_id" -> number
-    )((content, stmt_id, user_id) => Entry(anorm.NotAssigned, anorm.Id(stmt_id), content, new java.util.Date(), User.load(user_id).get))
-     ((entry: Entry) => Some((entry.content.toString(), entry.stmt_id.get.toInt, entry.user.id.get.toInt)))
+    tuple(
+      "content" -> text.verifying ("Kein Text eingegeben", c => !c.isEmpty),
+      "stmt_id" -> number.verifying ( id => Statement.load(id).isDefined ),
+      "user_id" -> number.verifying ("Ungültiger Autor", id => User.load(id).isDefined )
+    )
   )
-
-  private def viewResult(id: Long)(implicit request: Request[AnyContent]) : Result = { 
+  
+  def view(id: Long) = Action { implicit request => 
+    // TODO: Use newEntryForm to generate form
     val optstmt = Statement.load(id)
     optstmt match {
       case Some(stmt) => Ok(views.html.detail(stmt, newEntryForm, username(request) flatMap { User.load(_) }))
@@ -71,14 +71,21 @@ object Application extends Controller with Secured {
     }    
   }
   
-  def view(id: Long) = Action { implicit request => viewResult(id) }
-  
   def addEntry = Action { implicit request =>
     newEntryForm.bindFromRequest.fold(
-        formWithErrors => Redirect(routes.Application.index),
-        entry => {
-          Entry.create(entry.stmt_id.get, entry)
-          Redirect(routes.Application.view(entry.stmt_id.get))
+        formWithErrors => {
+          formWithErrors.error("stmt_id") match {
+            case Some(e) => Redirect(routes.Application.index).flashing("error" -> "Ungültige Anfrage")
+            case None => {
+              val stmt_id = formWithErrors("stmt_id").value.get
+              val stmt = Statement.load(Integer.parseInt(stmt_id)).get // both Options must be valid if stmt_id verified ok
+              Ok(views.html.detail(stmt, formWithErrors, username(request) flatMap { User.load(_) }))
+            }
+          }           
+        },
+        t => {
+          Entry.create(t._2, t._1, new java.util.Date(), t._3)
+          Redirect(routes.Application.view(t._2))
         }
     )
   }

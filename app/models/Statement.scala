@@ -22,10 +22,10 @@ import play.api.db._
 import play.api.Play.current
 import play.api.templates._
 
-case class Category(id: Pk[Long], name: String, order: Long)
-case class User(id: Pk[Long], email: String, name: String, password: String, salt: String, role: Role)
-case class Entry(id: Pk[Long], stmt_id: Pk[Long], content: String, date: Date, user: User)
-case class Statement(id: Pk[Long], title: String, category: Category, entries: List[Entry], rating: Rating)
+case class Category(id: Long, name: String, order: Long)
+case class User(id: Long, email: String, name: String, password: String, salt: String, role: Role)
+case class Entry(id: Long, stmt_id: Long, content: String, date: Date, user: User)
+case class Statement(id: Long, title: String, category: Category, entries: List[Entry], rating: Rating)
 
 
 object Category {  
@@ -39,14 +39,14 @@ object Category {
 	        'order -> order
 	      ).executeUpdate()
 
-        Category(Id(id), name, order)
+        Category(id, name, order)
 	    }
 	} 
 }
 
 object User {  
   val user = {
-    get[Pk[Long]]("id") ~
+    get[Long]("id") ~
 	  get[String]("email") ~ 
 	  get[String]("name") ~
 	  get[String]("password") ~
@@ -76,8 +76,7 @@ object User {
 
   private def passwordhash(salt: String, password: String) : String = {
      val md = java.security.MessageDigest.getInstance("SHA-1")
-     val hash = new sun.misc.BASE64Encoder().encode( md.digest( (salt + password).getBytes) )
-     hash
+     new sun.misc.BASE64Encoder().encode( md.digest( (salt + password).getBytes) )
   }
   
   def create(email: String, name: String, password: String, role: Role) : User = {
@@ -94,22 +93,21 @@ object User {
         'role -> role.id
       ).executeUpdate()
 
-      User(Id(id), email, name, hash, salt, role)
+      User(id, email, name, hash, salt, role)
     }
   }
   
   def authenticate(email: String, password: String): Option[User] = {
     DB.withConnection { implicit connection =>
-      val user = User.load(email)
-      user filter (u => u.password == passwordhash(u.salt, password))
+      User.load(email) filter (u => u.password == passwordhash(u.salt, password))
     }
   }
 }  
 
 object Entry {
   val entry = {
-    get[Pk[Long]]("id") ~
-    get[Pk[Long]]("stmt_id") ~ 
+    get[Long]("id") ~
+    get[Long]("stmt_id") ~ 
     get[String]("content") ~
     get[Date]("date") ~
     get[Long]("user_id") map {
@@ -123,11 +121,9 @@ object Entry {
     }
   }
   
-  def create(stmt_id: Long, e: Entry) : Pk[Long] = {
+  def create(stmt_id: Long, content: String, date: Date, user_id: Long) {
     DB.withTransaction { implicit c =>
-       val id: Long = e.id.getOrElse {
-         SQL("select next value for entry_id_seq").as(scalar[Long].single)
-       }
+       val id = SQL("select next value for entry_id_seq").as(scalar[Long].single)
        
        SQL(
          """
@@ -138,21 +134,19 @@ object Entry {
        ).on(
          'id -> id,
          'stmt_id -> stmt_id,
-         'content -> e.content.toString,
-         'date -> e.date,
-         'user_id -> e.user.id
+         'content -> content,
+         'date -> date,
+         'user_id -> user_id
        ).executeUpdate()
-              
-       Id(id)
      } 
   }
 }
 
 object Statement {  
   val stmt = {
-	  get[Pk[Long]]("id") ~ 
+	  get[Long]("id") ~ 
 	  get[String]("title")  ~
-    get[Pk[Long]]("category.id") ~
+    get[Long]("category.id") ~
 	  get[String]("category.name") ~
 	  get[Long]("category.ordering") ~
 	  get[Int]("rating") map {
@@ -178,13 +172,10 @@ object Statement {
     s map { stmt => Statement(stmt.id, stmt.title, stmt.category, Entry.loadByStatement(id), stmt.rating) }    
   } 
   
-  def create(stmt: Statement) : Pk[Long] = {
-    val id = DB.withTransaction { implicit c =>
+  def create(title: String, cat: Category, rating: Rating) : Statement = {
+    DB.withTransaction { implicit c =>
        // Get the project id
-       val id: Long = stmt.id.getOrElse {
-         SQL("select next value for stmt_id_seq").as(scalar[Long].single)
-       }
-       
+       val id: Long = SQL("select next value for stmt_id_seq").as(scalar[Long].single)       
        // Insert the project
        SQL(
          """
@@ -194,13 +185,12 @@ object Statement {
          """
        ).on(
          'id -> id,
-         'title -> stmt.title,
-         'cat_id -> stmt.category.id,
-         'rating -> stmt.rating.id
+         'title -> title,
+         'cat_id -> cat.id,
+         'rating -> rating.id
        ).executeUpdate()
-       Id(id)
+       
+       Statement(id, title, cat, List[Entry](), rating)
      }
-    if(id.isDefined) stmt.entries.foreach{ entry => Entry.create(id.get, entry) }
-    id
   }
 }

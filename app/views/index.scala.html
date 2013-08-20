@@ -1,8 +1,18 @@
-@(stmts: List[Statement], mapcatratingcount: Map[String, Map[Int, Int]], user: Option[User])
+@(stmts: List[Statement], mapcatratingcount: Map[String, Map[Int, Int]], user: Option[User])(implicit flash: Flash)
 @import models.Rating._
  
 @main("Wahlprogramm-o-meter"){
 	@userbar(user)
+
+
+	<div class="container">
+    @flash.get("error").map { message =>
+        <div class="alert alert-error">
+            @message
+        </div>
+    }
+    </div>
+    
     <div class="hero-unit">
 	  <h1>Wahlprogramm-o-meter</h1>
 	  <p>Diskutiere mit und stimme mit ab, wie sich die Koalition bis jetzt schlägt. Welche Vorhaben sind umgesetzt? Welche lassen auf sich warten?</p>
