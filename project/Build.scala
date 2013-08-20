@@ -11,7 +11,8 @@ object ApplicationBuild extends Build {
     // Add your project dependencies here,
     jdbc,
     anorm,
-    "com.google.gdata" % "core" % "1.47.1"
+    "com.google.gdata" % "core" % "1.47.1",
+    "postgresql" % "postgresql" % "9.1-901-1.jdbc4"
   )
 
 
