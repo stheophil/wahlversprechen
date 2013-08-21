@@ -38,7 +38,7 @@ CREATE TABLE entry (
 	content varchar(8192) NOT NULL,
 	date date NOT NULL,
 	user_id integer NOT NULL,
-	FOREIGN KEY (user_id) REFERENCES users(id),
+	FOREIGN KEY (user_id) REFERENCES users(id)
 );	
 
 # --- !Downs
@@ -52,5 +52,5 @@ DROP SEQUENCE stmt_id_seq;
 DROP TABLE category;
 DROP SEQUENCE cat_id_seq;
 
-DROP TABLE user;
+DROP TABLE users;
 DROP SEQUENCE user_id_seq;
