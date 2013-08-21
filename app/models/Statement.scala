@@ -58,19 +58,19 @@ object User {
   
   def load(id: Long) : Option[User] = {
     DB.withConnection { implicit c =>
-      SQL("select * from user where id = {id}").on('id -> id).as(user.singleOpt)
+      SQL("select * from users where id = {id}").on('id -> id).as(user.singleOpt)
     }
   }
 
   def load(email: String) : Option[User] = {
     DB.withConnection { implicit c =>
-      SQL("select * from user where email = {email}").on('email -> email).as(user.singleOpt)
+      SQL("select * from users where email = {email}").on('email -> email).as(user.singleOpt)
     }
   }
   
   def findAll() : List[User] = {
     DB.withConnection { implicit c =>
-      SQL("select * from user").as(user*)
+      SQL("select * from users").as(user*)
     }
   }
 
@@ -84,7 +84,7 @@ object User {
       val id: Long = SQL("select next value for user_id_seq").as(scalar[Long].single)
       val salt = (for(i <- 1 to 20) yield util.Random.nextPrintableChar).mkString
       val hash = passwordhash(salt, password)
-      SQL("insert into user values ({id}, {email}, {name}, {password}, {salt}, {role})").on(
+      SQL("insert into users values ({id}, {email}, {name}, {password}, {salt}, {role})").on(
         'id -> id,
         'email -> email,
         'name -> name,
