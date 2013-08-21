@@ -31,7 +31,7 @@ case class Statement(id: Long, title: String, category: Category, entries: List[
 object Category {  
 	def create(name: String, order: Long) : Category = {
 		DB.withConnection { implicit c =>
-      val id: Long = SQL("select next value for cat_id_seq").as(scalar[Long].single)
+      val id: Long = SQL("select nextval('cat_id_seq')").as(scalar[Long].single)
 	  
         SQL("insert into category values ({id}, {name}, {order})").on(
           'id -> id,
@@ -81,7 +81,7 @@ object User {
   
   def create(email: String, name: String, password: String, role: Role) : User = {
     DB.withConnection { implicit c =>
-      val id: Long = SQL("select next value for user_id_seq").as(scalar[Long].single)
+      val id: Long = SQL("select nextval('user_id_seq')").as(scalar[Long].single)
       val salt = (for(i <- 1 to 20) yield util.Random.nextPrintableChar).mkString
       val hash = passwordhash(salt, password)
       SQL("insert into users values ({id}, {email}, {name}, {password}, {salt}, {role})").on(
@@ -123,7 +123,7 @@ object Entry {
   
   def create(stmt_id: Long, content: String, date: Date, user_id: Long) {
     DB.withTransaction { implicit c =>
-       val id = SQL("select next value for entry_id_seq").as(scalar[Long].single)
+       val id = SQL("select nextval('entry_id_seq')").as(scalar[Long].single)
        
        SQL(
          """
@@ -175,7 +175,7 @@ object Statement {
   def create(title: String, cat: Category, rating: Rating) : Statement = {
     DB.withTransaction { implicit c =>
        // Get the project id
-       val id: Long = SQL("select next value for stmt_id_seq").as(scalar[Long].single)       
+       val id: Long = SQL("select nextval('stmt_id_seq')").as(scalar[Long].single)       
        // Insert the project
        SQL(
          """
