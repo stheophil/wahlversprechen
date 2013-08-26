@@ -1,15 +1,15 @@
 package controllers
 
 import play.api._
+import play.api.data._
 import play.api.templates._
 import play.api.mvc._
-import play.api.data._
 import play.api.data.Forms._
 
-import com.google.gdata.client.spreadsheet._;
-import com.google.gdata.data.spreadsheet._;
-import com.google.gdata.util._;
-import scala.collection.JavaConversions._;
+import com.google.gdata.client.spreadsheet._
+import com.google.gdata.data.spreadsheet._
+import com.google.gdata.util._
+import scala.collection.JavaConversions._
 
 import models._
 import views._
@@ -25,7 +25,7 @@ object Application extends Controller with Secured {
     })
   )
   
-  def login = Action { implicit request =>
+  def login = HTTPS { implicit request =>
     Ok(html.login(loginForm))
   }
 
@@ -71,7 +71,7 @@ object Application extends Controller with Secured {
     }    
   }
   
-  def addEntry = Action { implicit request =>
+  def addEntry = IsEditor { username => implicit request =>
     newEntryForm.bindFromRequest.fold(
         formWithErrors => {
           formWithErrors.error("stmt_id") match {
@@ -79,7 +79,7 @@ object Application extends Controller with Secured {
             case None => {
               val stmt_id = formWithErrors("stmt_id").value.get
               val stmt = Statement.load(Integer.parseInt(stmt_id)).get // both Options must be valid if stmt_id verified ok
-              Ok(views.html.detail(stmt, formWithErrors, username(request) flatMap { User.load(_) }))
+              Ok(views.html.detail(stmt, formWithErrors, User.load(username)))
             }
           }           
         },
@@ -90,7 +90,7 @@ object Application extends Controller with Secured {
     )
   }
 
-  def loadSpreadSheet(spreadsheet: String) = Action { implicit request =>      
+  def loadSpreadSheet(spreadsheet: String) = IsAdmin { username => implicit request =>      
     var categorymap = collection.mutable.Map.empty[String, anorm.Pk[Long]]
     var stmtlist = new collection.mutable.ListBuffer[(String, String, String)]
     var count = 0
@@ -156,4 +156,16 @@ trait Secured {
     }
   }
 
+  /** Called before every request to ensure that HTTPS is used. */
+  def HTTPS(f: => Request[AnyContent] => Result) = Action { request =>
+    import play.api.Play.current
+    if (Play.isDev 
+    || request.headers.get("x-forwarded-proto").isDefined
+    && request.headers.get("x-forwarded-proto").get.contains("https"))
+    {
+      f(request)
+    } else {
+      Results.Redirect("https://" + request.host + request.uri);
+    }
+  }  
 }
