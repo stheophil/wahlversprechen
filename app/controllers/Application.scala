@@ -50,15 +50,14 @@ object Application extends Controller with Secured {
   def index = Action { implicit request =>
     val stmts = Statement.allWithoutEntries()
     val catresultmap = stmts.groupBy(_.category.name).map( p => (p._1, CountPerRating(p._2) ) ) + ("" -> CountPerRating(stmts))
-    Ok( views.html.index(Statement.allWithoutEntries(), catresultmap, username(request) flatMap { User.load(_) } ) )
+    Ok( views.html.index(stmts, catresultmap, username(request) flatMap { User.load(_) } ) )
   }
   
   // Entry page / entry editing  
   val newEntryForm = Form(
     tuple(
       "content" -> text.verifying ("Kein Text eingegeben", c => !c.isEmpty),
-      "stmt_id" -> number.verifying ( id => Statement.load(id).isDefined ),
-      "user_id" -> number.verifying ("Ungültiger Autor", id => User.load(id).isDefined )
+      "stmt_id" -> number.verifying ( id => Statement.load(id).isDefined )
     )
   )
   
@@ -71,7 +70,7 @@ object Application extends Controller with Secured {
     }    
   }
   
-  def addEntry = IsEditor { username => implicit request =>
+  def addEntry = IsEditor { user => implicit request =>
     newEntryForm.bindFromRequest.fold(
         formWithErrors => {
           formWithErrors.error("stmt_id") match {
@@ -79,18 +78,18 @@ object Application extends Controller with Secured {
             case None => {
               val stmt_id = formWithErrors("stmt_id").value.get
               val stmt = Statement.load(Integer.parseInt(stmt_id)).get // both Options must be valid if stmt_id verified ok
-              Ok(views.html.detail(stmt, formWithErrors, User.load(username)))
+              Ok(views.html.detail(stmt, formWithErrors, Some(user)))
             }
           }           
         },
         t => {
-          Entry.create(t._2, t._1, new java.util.Date(), t._3)
+          Entry.create(t._2, t._1, new java.util.Date(), user.id)
           Redirect(routes.Application.view(t._2))
         }
     )
   }
 
-  def loadSpreadSheet(spreadsheet: String) = IsAdmin { username => implicit request =>      
+  def loadSpreadSheet(spreadsheet: String) = IsAdmin { user => implicit request =>      
     var categorymap = collection.mutable.Map.empty[String, anorm.Pk[Long]]
     var stmtlist = new collection.mutable.ListBuffer[(String, String, String)]
     var count = 0
@@ -138,19 +137,19 @@ trait Secured {
     Action(request => f(user)(request))
   }
 
-  def IsAdmin(f: => String => Request[AnyContent] => Result) = IsAuthenticated { user => request =>
-    val u = User.load(user)
+  def IsAdmin(f: => User => Request[AnyContent] => Result) = IsAuthenticated { username => request =>
+    val u = User.load(username)
     if(u.isDefined && u.get.role == Role.Admin) {
-      f(user)(request)
+      f(u.get)(request)
     } else {
       Results.Forbidden
     }
   }
 
-  def IsEditor(f: => String => Request[AnyContent] => Result) = IsAuthenticated { user => request =>
-    val u = User.load(user)
+  def IsEditor(f: => User => Request[AnyContent] => Result) = IsAuthenticated { username => request =>
+    val u = User.load(username)
     if(u.isDefined && (u.get.role == Role.Admin || u.get.role==Role.Editor)) { 
-      f(user)(request)
+      f(u.get)(request)
     } else {
       Results.Forbidden
     }

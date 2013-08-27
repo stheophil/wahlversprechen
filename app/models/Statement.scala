@@ -144,12 +144,12 @@ object Entry {
 
 object Statement {  
   val stmt = {
-	  get[Long]("id") ~ 
-	  get[String]("title")  ~
-    get[Long]("category.id") ~
+	  get[Long]("statement.id") ~ 
+	  get[String]("statement.title")  ~
+	  get[Long]("category.id") ~
 	  get[String]("category.name") ~
 	  get[Long]("category.ordering") ~
-	  get[Int]("rating") map {
+	  get[Int]("statement.rating") map {
 	    case id~title~category_id~category_name~category_order~rating => Statement(id, title, Category(category_id, category_name, category_order), List[Entry](), if(0<=rating && rating<Rating.maxId) Rating(rating) else Unrated)
 	  } // Rating(rating) would throw java.util.NoSuchElementException
   }

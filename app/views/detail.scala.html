@@ -1,4 +1,4 @@
-@(stmt: Statement, form: Form[(String, Int, Int)], user: Option[User])
+@(stmt: Statement, form: Form[(String, Int)], user: Option[User])
 
 @import helper.twitterBootstrap._
 @main("Wahlversprechen #" + stmt.id){
@@ -29,7 +29,6 @@
 		<form action="/addEntry" method="POST">
 		   	<textarea class="expand" name="content" style="width: 100%;" placeholder="Schreibe einen neuen Beitrag ...">@form("content").value.getOrElse("")</textarea>
 		    <span class="help-inline showonclick">(Formatierungen im <a href="http://daringfireball.net/projects/markdown/syntax#block">Markdown-Format</a> werden unterstützt.)<br/><br/></span>
-		    <input type="hidden" name="user_id" value='@user.get.id' >
 			<input type="hidden" name="stmt_id" value='@stmt.id' >
 		    <button type="submit" class="btn-primary btn showonclick">Abschicken</button>
 		    <button type="button" class="btn cancel showonclick">Abbrechen</button>
