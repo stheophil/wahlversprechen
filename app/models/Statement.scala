@@ -30,10 +30,10 @@ case class Statement(id: Long, title: String, category: Category, entries: List[
 object Category {
 	val category = {
 		get[Long]("id") ~
-			get[String]("name") ~
-			get[Long]("order") map {
-				case id ~ name ~ order => Category(id, name, order)
-			}
+		get[String]("name") ~
+		get[Long]("ordering") map {
+			case id ~ name ~ ordering => Category(id, name, ordering)
+		}
 	}
 
 	def create(name: String, order: Long): Category = {

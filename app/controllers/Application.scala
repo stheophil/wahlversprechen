@@ -112,7 +112,7 @@ object Application extends Controller with Secured {
 				val strCategory = custom.getValue("ressort")
 				if (strCategory == null) throw new ImportException("Fehlendes Ressort bei Wahlversprechen Nr. "+(nImported+1))
 
-				if (mapExistingCategories.contains(strCategory)) {
+				if (!mapExistingCategories.contains(strCategory)) {
 					mapNewCategories.getOrElseUpdate(
 						strCategory,
 						{
@@ -137,6 +137,7 @@ object Application extends Controller with Secured {
 			import play.api.Play.current
 			play.api.db.DB.withTransaction { c =>
 				mapNewCategories.foreach(t => {
+					Logger.info("Create category " + t._1 + " with order " + t._2)
 					val category = Category.create(c, t._1, t._2)
 					mapExistingCategories += (t._1 -> category)
 				})
@@ -144,6 +145,7 @@ object Application extends Controller with Secured {
 				// TODO insert tags, 
 				// TODO quote, source
 				cStatements.foreach(t => {
+					Logger.info("Create statement " + t._1 + " with category " + t._2)					
 					Statement.create(c, t._1, mapExistingCategories.get(t._2).get, Rating.Unrated)
 				})
 			}
