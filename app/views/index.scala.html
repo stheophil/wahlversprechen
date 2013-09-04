@@ -1,9 +1,8 @@
-@(stmts: List[Statement], mapcatratingcount: Map[String, Map[Int, Int]], user: Option[User])(implicit flash: Flash)
+@(stmtsByAuthor: List[(Author, List[Statement])], user: Option[User])(implicit flash: Flash)
 @import models.Rating._
  
 @main("Wahlprogramm-o-meter"){
 	@userbar(user)
-
 
 	<div class="container">
     @flash.get("error").map { message =>
@@ -16,13 +15,7 @@
     <div class="hero-unit">
 	  <h1>Wahlprogramm-o-meter</h1>
 	  <p>Diskutiere mit und stimme mit ab, wie sich die Koalition bis jetzt schlägt. Welche Vorhaben sind umgesetzt? Welche lassen auf sich warten?</p>
-	  <div class="progress" style="height: 150%">
-	  @defining( mapcatratingcount("").foldLeft(0.0) { _ + _._2 } ) { sum  =>
-	  	<div class="bar bar-success" style="width: @{mapcatratingcount("").getOrElse(PromiseKept.id, 0)/sum * 100.0}%;">&nbsp;</div>
-	  	<div class="bar bar-warning" style="width: @{mapcatratingcount("").getOrElse(Compromise.id, 0)/sum * 100.0}%;">&nbsp;</div>
-	  	<div class="bar bar-danger" style="width: @{mapcatratingcount("").getOrElse(PromiseBroken.id, 0)/sum * 100.0}%;">&nbsp;</div>
-	  }
-	  </div>
+	  @ratingprogressbar(stmtsByAuthor.head._2, "height: 150%")
 	</div>
 
 	<div class="container">
@@ -33,37 +26,61 @@
     </div>
     <div id="collapseTop" class="accordion-body collapse">
 		<div class="accordion-inner">
-			@for( (c, list) <- stmts.groupBy( s => s.category ).toList.sortBy(_._1.order) ) {
-				<div class="accordion-heading" style="position: relative;">
-					<a class="accordion-toggle" data-toggle="collapse" href="#collapse@(c.order)">
-					<b>@c.order.&nbsp;@c.name</b>
-					</a>
-					<div class="progress" style="height: 10pt; width: 150pt; position: absolute; top:11pt; left: 250pt">
-						@defining( mapcatratingcount(c.name).foldLeft(0.0) { _ + _._2 } ) { sum  =>		 
-						  	<div class="bar bar-success" style="width: @{mapcatratingcount(c.name).getOrElse(PromiseKept.id, 0)/sum * 100.0}%;"></div>
-						  	<div class="bar bar-warning" style="width: @{mapcatratingcount(c.name).getOrElse(Compromise.id, 0)/sum * 100.0}%;"></div>
-						  	<div class="bar bar-danger" style="width: @{mapcatratingcount(c.name).getOrElse(PromiseBroken.id, 0)/sum * 100.0}%;"></div>
-					  	}
+			<ul class="nav nav-tabs">
+			@for( (author, liststmtAll) <- stmtsByAuthor ) {
+				@if(author==stmtsByAuthor.head._1) {
+					<li class="active">
+				} else {
+					<li>
+				}
+			  	<a href="#@(author.name)" data-toggle="tab">@(author.name)</a></li>
+			}
+			</ul>
+			<div class="tab-content">  				
+			@for( (author, liststmtAll) <- stmtsByAuthor ) {
+				@if(author==stmtsByAuthor.head._1) {
+					<div class="tab-pane active" id="@(author.name)">
+				} else {
+					<div class="tab-pane" id="@(author.name)">
+				}
+				@for( (category, liststmtCategory) <- liststmtAll.groupBy( s => s.category ).toList.sortBy(_._1.order) ) {
+					<div class="accordion-heading" style="position: relative;">
+						<a class="accordion-toggle" data-toggle="collapse" href="#collapse_@(author.order)_@(category.order)">
+						<b>@category.order.&nbsp;@category.name</b>
+						</a>
+						@ratingprogressbar(liststmtCategory, "height: 10pt; width: 150pt; position: absolute; top:11pt; left: 250pt")
 					</div>
-				</div>
-				<div id="collapse@(c.order)" class="accordion-body collapse">
-					<div class="accordion-inner">
-					@for( s <- list ) {
-						<p><a class="item" href="/view/@s.id">@s.title</a>&nbsp;							
-							@s.rating match {
-								case models.Rating.PromiseKept => {<span class="badge badge-success">}
-								case models.Rating.Compromise => {<span class="badge badge-warning">}
-								case models.Rating.PromiseBroken => {<span class="badge badge-important">}
-								case _ => {<span class="badge badge-default">}
+					<div id="collapse_@(author.order)_@(category.order)" class="accordion-body collapse">
+						<div class="accordion-inner">
+						@for( stmt <- liststmtCategory ) {
+							<p>
+							@if(author.rated) {
+								<a class="item" href="/view/@stmt.id">@stmt.title</a>&nbsp;							
+								@stmt.rating match {
+									case Some(models.Rating.PromiseKept) => {<span class="badge badge-success">}
+									case Some(models.Rating.Compromise) => {<span class="badge badge-warning">}
+									case Some(models.Rating.PromiseBroken) => {<span class="badge badge-important">}
+									case _ => {<span class="badge badge-default">}
+								}
+								<a class="comment-count" data-disqus-identifier="@(stmt.id)" href="/view/@(stmt.id)#disqus_thread">&nbsp</a>
+								</span>
+								<i class="icon-chevron-right"></i>
+							} else {
+								@if(stmt.merged_id.isDefined) {
+									<a class="item" href="/view/@stmt.merged_id.get">@stmt.title</a>
+									<i class="icon-chevron-right"></i>
+								} else {
+									@stmt.title
+								}
 							}
-							<a class="comment-count" data-disqus-identifier="@(s.id)" href="/view/@(s.id)#disqus_thread">&nbsp</a>
-							</span>
-							<i class="icon-chevron-right"></i>
-						</p>
-					}
-				</div>
-				</div>
-			}									
+							</p>
+						}
+						</div>
+					</div>
+				}
+				</div>	
+			}
+			</div>								
 		</div>
 	</div>
 

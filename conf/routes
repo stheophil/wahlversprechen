@@ -7,7 +7,7 @@ GET     /                           controllers.Application.index
 
 # Detail page
 GET		/view/:id					controllers.Application.view(id: Long)
-GET		/import/:id					controllers.Application.loadSpreadSheet(id: String)
+POST	/import						controllers.Application.loadSpreadSheet
 
 POST 	/addEntry					controllers.Application.addEntry
 

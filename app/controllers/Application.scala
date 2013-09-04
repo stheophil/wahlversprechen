@@ -12,6 +12,7 @@ import com.google.gdata.util._
 import scala.collection.JavaConversions._
 
 import models._
+import models.Rating._
 import views._
 
 object Application extends Controller with Secured {
@@ -39,14 +40,9 @@ object Application extends Controller with Secured {
 	}
 
 	// Index page
-	private def CountPerRating(l: List[Statement]): Map[Int, Int] = {
-		l.groupBy(_.rating.id).map(p => (p._1, p._2.length))
-	}
-
 	def index = Action { implicit request =>
-		val stmts = Statement.allWithoutEntries()
-		val catresultmap = stmts.groupBy(_.category.name).map(p => (p._1, CountPerRating(p._2))) + ("" -> CountPerRating(stmts))
-		Ok(views.html.index(stmts, catresultmap, username(request) flatMap { User.load(_) }))
+		val liststmt = Statement.allWithoutEntries().toList.sortBy(_._1.order)
+		Ok(views.html.index(liststmt, username(request) flatMap { User.load(_) }))
 	}
 
 	// Entry page / entry editing  
@@ -75,92 +71,107 @@ object Application extends Controller with Secured {
 					}
 				}
 			},
-			t => {
-				Entry.create(t._2, t._1, new java.util.Date(), user.id)
-				Redirect(routes.Application.view(t._2))
-			})
-	}
-
-	class ImportException(message: String) extends java.lang.Exception(message)
+			{ case (content, stmt_id) => {
+				Entry.create(stmt_id, content, new java.util.Date(), user.id)
+				Redirect(routes.Application.view(stmt_id))
+			}}
+		)
+	}	
 	
-	def loadSpreadSheet(spreadsheet: String) = IsAdmin { user => implicit request =>
-		try {
-			val service = new SpreadsheetService("import");
+	val importForm = Form(
+		tuple(
+			"author" -> text.verifying("Unbekannter Autor", author => Author.load(author).isDefined),
+			"spreadsheet" -> text))
 
-			// Define the URL to request.  This should never change.
-			val WORKSHEET_FEED_URL = new java.net.URL(
-				"http://spreadsheets.google.com/feeds/worksheets/"+spreadsheet+"/public/values");
+	def loadSpreadSheet = IsAdmin { user => implicit request =>
+		class ImportException(message: String) extends java.lang.Exception(message)
+		case class ImportRow(title: String, category: String, quote: Option[String], quote_source: Option[String], tags: Option[String], merged_id: Option[Long])
 
-			val worksheet = service.getFeed(WORKSHEET_FEED_URL, classOf[WorksheetFeed]).getEntries().get(0);
-			val listFeed = service.getFeed(worksheet.getListFeedUrl(), classOf[ListFeed]);
+		importForm.bindFromRequest.fold(
+			formWithErrors => Redirect(routes.Application.index).flashing("error" -> "Ungültige Anfrage"),
+			{	case (author_name, spreadsheet) => {
 
-			// Iterate through each row, printing its cell values.
-			var mapExistingCategories = collection.mutable.Map.empty[String, Category]
-			mapExistingCategories ++= (for(c <- Category.loadAll()) yield (c.name, c))
-			
-			var mapNewCategories = collection.mutable.Map.empty[String, Long] // new category name -> order
-			var nCategoryOrder = mapExistingCategories.values.maxBy(_.order).order
+				try {
+					val author = Author.load(author_name).get
+					val service = new SpreadsheetService("import");
 
-			var setTags = collection.mutable.Set.empty[String]
+					// Define the URL to request.  This should never change.
+					val WORKSHEET_FEED_URL = new java.net.URL(
+						"http://spreadsheets.google.com/feeds/worksheets/"+spreadsheet+"/public/values");
 
-			var nImported = 0
-			var cStatements = collection.mutable.ArrayBuffer.empty[(String, String, Option[String], Option[String])] // Titel, Ressort, Zitat, Quelle
+					val worksheet = service.getFeed(WORKSHEET_FEED_URL, classOf[WorksheetFeed]).getEntries().get(0);
+					val listFeed = service.getFeed(worksheet.getListFeedUrl(), classOf[ListFeed]);
 
-			for (row <- listFeed.getEntries()) {
-				val custom = row.getCustomElements()
+					var cRows = collection.mutable.ArrayBuffer.empty[ImportRow]
+					for (feedrow <- listFeed.getEntries()) {
+						val custom = feedrow.getCustomElements()
 
-				val strCategory = custom.getValue("ressort")
-				if (strCategory == null) throw new ImportException("Fehlendes Ressort bei Wahlversprechen Nr. "+(nImported+1))
+						val strCategory = custom.getValue("ressort")
+						if (strCategory == null) throw new ImportException("Fehlendes Ressort bei Wahlversprechen Nr. "+(cRows.length+1))
 
-				if (!mapExistingCategories.contains(strCategory)) {
-					mapNewCategories.getOrElseUpdate(
-						strCategory,
-						{
-							nCategoryOrder = nCategoryOrder + 1
-							nCategoryOrder
+						val strTitle = custom.getValue("titel")
+						if (strTitle == null) throw new ImportException("Fehlender Titel bei Wahlversprechen Nr. "+(cRows.length+1))
+
+						val strQuote = if (custom.getValue("zitat") == null) None else Some(custom.getValue("zitat"))
+						val strSource = if (custom.getValue("quelle") == null) None else Some(custom.getValue("quelle"))
+						val strTags = if (custom.getValue("tags") == null) None else Some(custom.getValue("tags"))
+						val merged_id = if (author.rated || custom.getValue("merged") == null) None else {
+							try {
+								Some( java.lang.Long.parseLong( custom.getValue("merged"), 10 ) )
+							} catch {
+								case e : NumberFormatException => None
+							}
 						}
-					)
+						Logger.info("Found statement " + strTitle)
+						cRows += new ImportRow(strTitle, strCategory, strQuote, strSource, strTags, merged_id)
+					}
+
+					Logger.info("Found " + cRows.length + " statements. Begin import.")
+
+					import play.api.Play.current
+					play.api.db.DB.withTransaction { c =>
+
+						var mapcategory = collection.mutable.Map.empty[String, Category]
+						mapcategory ++= (for(c <- Category.loadAll(c)) yield (c.name, c))
+						var nCategoryOrder = mapcategory.values.maxBy(_.order).order
+
+						var maptag = collection.mutable.Map.empty[String, Tag]
+						maptag ++= (for( t <- Tag.loadAll(c) ) yield (t.name, t))
+
+						cRows.foreach(importrow => {
+							Logger.info("Create statement " + importrow.title + " with category " + importrow.category)					
+
+							val category = mapcategory.getOrElseUpdate(
+								importrow.category,
+								{
+									nCategoryOrder = nCategoryOrder + 1
+									Logger.info("Create category " + importrow.category + " with order " + nCategoryOrder)
+									Category.create(c, importrow.category, nCategoryOrder)
+								}
+							)
+
+							val stmt = Statement.create(c, importrow.title, author, category, importrow.quote, importrow.quote_source, if(author.rated) Some(Rating.Unrated) else None, importrow.merged_id)
+							importrow.tags.foreach( 
+									_.split(',').foreach( tagname => {
+										val tag = maptag.getOrElseUpdate(tagname, { Tag.create(c, tagname) })
+										Tag.add(c, stmt, tag)
+									})
+							)
+						})
+					}
+
+					Redirect(routes.Application.index).flashing("success" -> (cRows.length+" Wahlversprechen erfolgreich importiert."))
+				} catch {
+					case e: ImportException => {
+						Redirect(routes.Application.index).flashing("error" -> e.getMessage())
+					}
+					case e: Exception => {
+						Logger.error(e.toString)
+						Logger.error(e.getStackTraceString)
+						Redirect(routes.Application.index).flashing("error" -> "Beim Importieren ist ein Fehler aufgetreten.")
+					}
 				}
-
-				val strTitle = custom.getValue("titel")
-				if (strTitle == null) throw new ImportException("Fehlender Titel bei Wahlversprechen Nr. "+(nImported+1))
-
-				val strQuote = if (custom.getValue("zitat") == null) None else Some(custom.getValue("zitat"))
-				val strSource = if (custom.getValue("quelle") == null) None else Some(custom.getValue("quelle"))
-				cStatements += ( (strTitle, strCategory, strQuote, strSource) )
-
-				if (custom.getValue("tags") != null) custom.getValue("tags").split(',').foreach(setTags += _)
-
-				nImported = nImported + 1
-			}
-
-			import play.api.Play.current
-			play.api.db.DB.withTransaction { c =>
-				mapNewCategories.foreach(t => {
-					Logger.info("Create category " + t._1 + " with order " + t._2)
-					val category = Category.create(c, t._1, t._2)
-					mapExistingCategories += (t._1 -> category)
-				})
-
-				// TODO insert tags, 
-				// TODO quote, source
-				cStatements.foreach(t => {
-					Logger.info("Create statement " + t._1 + " with category " + t._2)					
-					Statement.create(c, t._1, mapExistingCategories.get(t._2).get, Rating.Unrated)
-				})
-			}
-
-			Redirect(routes.Application.index).flashing("success" -> (nImported+" Wahlversprechen erfolgreich importiert."))
-		} catch {
-			case e: ImportException => {
-				Redirect(routes.Application.index).flashing("error" -> e.getMessage())
-			}
-			case e: Exception => {
-				Logger.error(e.toString)
-				Logger.error(e.getStackTraceString)
-				Redirect(routes.Application.index).flashing("error" -> "Beim Importieren ist ein Fehler aufgetreten.")
-			}
-		}
+			}}) // bindFromRequest
 	}
 	
 	def loader_io = Action {

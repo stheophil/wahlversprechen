@@ -1,0 +1,20 @@
+@(l: List[Statement], style: String)
+
+<div class="progress" style="@style">
+@if(l.head.author.rated) {
+	@defining( l.groupBy(_.rating.get).map { case (r, liststmt) => (r, liststmt.length) } ) { mapratingcount => 
+		@defining( mapratingcount.foldLeft(0.0) { _ + _._2 } ) { sum  =>
+	  	  <div class="bar bar-success" style="width: @{mapratingcount.getOrElse(models.Rating.PromiseKept, 0)/sum * 100.0}%;">&nbsp;</div>
+	  	  <div class="bar bar-warning" style="width: @{mapratingcount.getOrElse(models.Rating.Compromise, 0)/sum * 100.0}%;">&nbsp;</div>
+	  	  <div class="bar bar-danger" style="width: @{mapratingcount.getOrElse(models.Rating.PromiseBroken, 0)/sum * 100.0}%;">&nbsp;</div>
+	 	}
+	}
+} else {
+	@defining( l.groupBy(_.merged_id.isDefined).map { case (r, liststmt) => (r, liststmt.length) } ) { mapratingcount => 
+		@defining( mapratingcount.foldLeft(0.0) { _ + _._2 } ) { sum  =>
+	  	  <div class="bar bar-success" style="width: @{mapratingcount.getOrElse(true, 0)/sum * 100.0}%;">&nbsp;</div>	  	  
+	  	  <div class="bar bar-danger" style="width: @{mapratingcount.getOrElse(false, 0)/sum * 100.0}%;">&nbsp;</div>
+	 	}
+	}
+}
+</div>

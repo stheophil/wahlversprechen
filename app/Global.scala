@@ -33,27 +33,40 @@ object InitialData {
       Array( ("Wirtschaft", 1), ("Inneres", 2), ("Verteidigung", 3), ("Landwirtschaft", 4) ).foreach(t => 
         acategories += Category.create(t._1, t._2)
       )
-                
+       
+      var aauthors = new collection.mutable.ArrayBuffer[Author];
+      Array( ("Koalition", 1, true), ("CDU", 2, false), ("FDP", 3, false) ).foreach( { case (name, order, rated) => { 
+        aauthors += Author.create(name, order, rated)
+      }}) 
+
+      val longlorem = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata"
       var astmt = new collection.mutable.ArrayBuffer[Statement];
       Array(
-        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(0), Rating.PromiseKept),
-        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(0), Rating.PromiseKept),
-        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(0), Rating.PromiseBroken),
-        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(0), Rating.Unrated),
-        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(1), Rating.Compromise),
-        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(1), Rating.PromiseBroken),
-        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(1), Rating.InTheWorks),
-        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(1), Rating.PromiseKept),
-        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(1), Rating.PromiseBroken),
-        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(2), Rating.PromiseKept),
-        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(2), Rating.Stalled),
-        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(3), Rating.Stalled),
-        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(3), Rating.PromiseKept),
-        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(3), Rating.PromiseKept),
-        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd", acategories(3), Rating.PromiseKept)
-      ).foreach(t => 
-        astmt += Statement.create(t._1, t._2, t._3)
-      )
+        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd 1", acategories(0), Rating.PromiseKept),
+        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd 2", acategories(0), Rating.PromiseKept),
+        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd 3", acategories(0), Rating.PromiseBroken),
+        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd 4", acategories(0), Rating.Unrated),
+        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd 5", acategories(1), Rating.Compromise),
+        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd 6", acategories(1), Rating.PromiseBroken),
+        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd 7", acategories(1), Rating.InTheWorks),
+        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd 8", acategories(1), Rating.PromiseKept),
+        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd 9", acategories(1), Rating.PromiseBroken),
+        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd 10", acategories(2), Rating.PromiseKept),
+        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd 11", acategories(2), Rating.Stalled),
+        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd 12", acategories(3), Rating.Stalled),
+        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd 13", acategories(3), Rating.PromiseKept),
+        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd 14", acategories(3), Rating.PromiseKept),
+        ("Lorem ipsum dfhdk djhfd kdkjhdfk jd dd 15", acategories(3), Rating.PromiseKept)
+      ).foreach( { case (title, category, rating) => {
+        astmt += Statement.create(title, aauthors(0), category, Some(longlorem), Some("S. 22, Koalitionsvertrag"), Some(rating), None)
+        if((astmt.last.id % 2)==0) {
+          astmt += Statement.create(title, aauthors(1), category, Some(longlorem), Some("S. 22, Wahlprogramm"), None, Some(astmt.last.id))
+          astmt += Statement.create(title, aauthors(2), category, Some(longlorem), Some("S. 22, Wahlprogramm"), None, None)
+        } else {
+          astmt += Statement.create(title, aauthors(2), category, Some(longlorem), Some("S. 22, Wahlprogramm"), None, Some(astmt.last.id))
+          astmt += Statement.create(title, aauthors(1), category, Some(longlorem), Some("S. 22, Wahlprogramm"), None, None)
+        }
+      }})
 
       val aentries = List(
         ("<strong>This is a super important update.</strong>", date("2013-05-10"), ausers(0)),

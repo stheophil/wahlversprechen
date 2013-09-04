@@ -21,3 +21,9 @@ dist
 .DS_Store
 
 .cache
+
+conf/generated.keystore
+
+*.sublime-project
+
+*.sublime-workspace

@@ -9,6 +9,22 @@ CREATE TABLE category (
     PRIMARY KEY(id)
 );
 
+CREATE SEQUENCE author_id_seq;
+CREATE TABLE author (
+	id integer DEFAULT nextval('author_id_seq'),
+    name varchar(255) UNIQUE NOT NULL,
+    ordering integer NOT NULL,
+    rated boolean NOT NULL,
+    PRIMARY KEY(id)
+);
+
+CREATE SEQUENCE tag_id_seq;
+CREATE TABLE tag (
+	id integer DEFAULT nextval('tag_id_seq'),
+    name varchar(255) UNIQUE NOT NULL,
+    PRIMARY KEY(id)
+);
+
 CREATE SEQUENCE user_id_seq;
 CREATE TABLE users (
 	id integer DEFAULT nextval('user_id_seq'),
@@ -24,9 +40,15 @@ CREATE SEQUENCE stmt_id_seq;
 CREATE TABLE statement (
 	id integer DEFAULT nextval('stmt_id_seq'),
     title varchar(255) NOT NULL,
+    author_id integer NOT NULL,
+    FOREIGN KEY (author_id) REFERENCES author(id),
     cat_id integer NOT NULL,
     FOREIGN KEY (cat_id) REFERENCES category(id),
-    rating integer NOT NULL,
+    quote varchar(8096),
+    quote_src varchar(1024),
+    rating integer,
+    merged_id integer,
+    FOREIGN KEY (merged_id) REFERENCES statement(id) ON UPDATE SET NULL,
     PRIMARY KEY (id)
 );
 
@@ -41,10 +63,28 @@ CREATE TABLE entry (
 	FOREIGN KEY (user_id) REFERENCES users(id)
 );	
 
+
+CREATE TABLE statement_tags (
+	tag_id integer NOT NULL,
+    FOREIGN KEY (tag_id) REFERENCES tag(id),
+    stmt_id integer NOT NULL,
+    FOREIGN KEY (stmt_id) REFERENCES statement(id),
+    PRIMARY KEY(tag_id, stmt_id)
+);
+
+
 # --- !Downs
  
 DROP TABLE entry;
 DROP SEQUENCE entry_id_seq;
+
+DROP TABLE statement_tags;
+
+DROP TABLE users;
+DROP SEQUENCE user_id_seq;
+
+DROP TABLE tag;
+DROP SEQUENCE tag_id_seq;
 
 DROP TABLE statement;
 DROP SEQUENCE stmt_id_seq;
@@ -52,5 +92,5 @@ DROP SEQUENCE stmt_id_seq;
 DROP TABLE category;
 DROP SEQUENCE cat_id_seq;
 
-DROP TABLE users;
-DROP SEQUENCE user_id_seq;
+DROP TABLE author;
+DROP SEQUENCE author_id_seq;

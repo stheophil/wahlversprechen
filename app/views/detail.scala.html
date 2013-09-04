@@ -11,12 +11,13 @@
 	<blockquote><p>"Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."</p></blockquote>
 		
 	@(stmt.rating match {
-		case Rating.PromiseKept => { <p class="rating"><b>Ergebnis:</b>&nbsp;Wir werten dieses Versprechen als <span class="label label-success">Gehalten</span>.</p> }
-		case Rating.Compromise => { <p class="rating"><b>Ergebnis:</b>&nbsp;Die Umsetzung dieses Versprechens werten wir als einen <span class="label label-warning">Kompromiss</span>.</p> }
-		case Rating.PromiseBroken => { <p class="rating"><b>Ergebnis:</b>&nbsp;Wir werten dieses Versprechen als <span class="label label-important">Gebrochen</span>.</p> }
-		case Rating.Stalled => { <p class="rating"><b>Ergebnis:</b>&nbsp;Die Umsetzung dieses Versprechens werten wir als <span class="label label-inverse">Blockiert</span>.</p> }
-		case Rating.InTheWorks => { <p class="rating"><b>Ergebnis:</b>&nbsp;Wir werten dieses Versprechen als <span class="label label-info">In Arbeit</span>.</p> }
-		case Rating.Unrated => { <p class="rating"><b>Ergebnis:</b>&nbsp;Dieses Versprechen ist nachwievor <span class="label">Unbewertet</span>.</p> }
+		case Some(Rating.PromiseKept) => { <p class="rating"><b>Ergebnis:</b>&nbsp;Wir werten dieses Versprechen als <span class="label label-success">Gehalten</span>.</p> }
+		case Some(Rating.Compromise) => { <p class="rating"><b>Ergebnis:</b>&nbsp;Die Umsetzung dieses Versprechens werten wir als einen <span class="label label-warning">Kompromiss</span>.</p> }
+		case Some(Rating.PromiseBroken) => { <p class="rating"><b>Ergebnis:</b>&nbsp;Wir werten dieses Versprechen als <span class="label label-important">Gebrochen</span>.</p> }
+		case Some(Rating.Stalled) => { <p class="rating"><b>Ergebnis:</b>&nbsp;Die Umsetzung dieses Versprechens werten wir als <span class="label label-inverse">Blockiert</span>.</p> }
+		case Some(Rating.InTheWorks) => { <p class="rating"><b>Ergebnis:</b>&nbsp;Wir werten dieses Versprechen als <span class="label label-info">In Arbeit</span>.</p> }
+		case Some(Rating.Unrated) => { <p class="rating"><b>Ergebnis:</b>&nbsp;Dieses Versprechen ist nachwievor <span class="label">Unbewertet</span>.</p> }
+		case _ => {}
 	})
 	
 	@if(user.isDefined && (user.get.role==Role.Editor || user.get.role==Role.Admin)) {
