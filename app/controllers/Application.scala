@@ -113,15 +113,15 @@ object Application extends Controller with Secured {
 			for (feedrow <- listFeed.getEntries()) {
 				val custom = feedrow.getCustomElements()
 
-				val strCategory = custom.getValue("ressort")
+				val strCategory = custom.getValue("ressort").trim
 				if (strCategory == null) throw new ImportException("Fehlendes Ressort bei Wahlversprechen Nr. "+(cRows.length+1))
 
-				val strTitle = custom.getValue("titel")
+				val strTitle = custom.getValue("titel").trim
 				if (strTitle == null) throw new ImportException("Fehlender Titel bei Wahlversprechen Nr. "+(cRows.length+1))
 
-				val strQuote = if (custom.getValue("zitat") == null) None else Some(custom.getValue("zitat"))
-				val strSource = if (custom.getValue("quelle") == null) None else Some(custom.getValue("quelle"))
-				val strTags = if (custom.getValue("tags") == null) None else Some(custom.getValue("tags"))
+				val strQuote = if (custom.getValue("zitat") == null) None else Some(custom.getValue("zitat").trim)
+				val strSource = if (custom.getValue("quelle") == null) None else Some(custom.getValue("quelle").trim)
+				val strTags = if (custom.getValue("tags") == null) None else Some(custom.getValue("tags").trim)
 				val merged_id = if (author.rated || custom.getValue("merged") == null) None else {
 					try {
 						Some( java.lang.Long.parseLong( custom.getValue("merged"), 10 ) )
@@ -160,7 +160,8 @@ object Application extends Controller with Secured {
 					val stmt = Statement.create(c, importrow.title, author, category, importrow.quote, importrow.quote_source, if(author.rated) Some(Rating.Unrated) else None, importrow.merged_id)
 					importrow.tags.foreach( 
 							_.split(',').foreach( tagname => {
-								val tag = maptag.getOrElseUpdate(tagname, { Tag.create(c, tagname) })
+								val trimmed = tagname.trim
+								val tag = maptag.getOrElseUpdate(trimmed, { Tag.create(c, trimmed) })
 								Tag.add(c, stmt, tag)
 							})
 					)
