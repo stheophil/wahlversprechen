@@ -118,10 +118,10 @@ object Tag {
 
 	def loadByStatement(stmt_id: Long): List[Tag] = {
 		DB.withConnection { implicit c =>
-			SQL("""select statement_tags.tag_id, tag.name from statement_tags 
-				join tag on statement_tags.tag_id=tag.id 
-				where statement_tags.stmt_id = {stmt_id} 
-				order by tag.name""").on('stmt_id -> stmt_id).as(tag*)
+			SQL("""select id, name from tag 
+			join statement_tags on statement_tags.tag_id=id 
+			where statement_tags.stmt_id = 1 
+			order by tag.name""").on('stmt_id -> stmt_id).as(tag*)
 		}
 	}
 
