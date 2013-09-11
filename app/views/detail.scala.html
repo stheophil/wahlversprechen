@@ -5,10 +5,23 @@
 @userbar(user)
 <div class="container">
 	<div class="page-header">
-	  <h1>@stmt.title<br/><small>Wahlversprechen #@stmt.id / @stmt.category.name</small></h1>
+	  <h1>@stmt.title<br/><small>@stmt.category.name</small></h1>
+	  	
+		<div class="tags">
+		@for(tag <- stmt.tags) {
+			<span class="label label-info">@tag.name</span>
+		}
+		</div>
+
 	</div>
-	
-	<blockquote><p>"Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."</p></blockquote>
+
+	@if(stmt.quote.isDefined) {
+		<blockquote><p>@stmt.quote</p><br/>
+		@if(stmt.quote_src.isDefined) {
+			<small>Quelle: @stmt.quote_src</small>
+		}
+		</blockquote>
+	}
 		
 	@(stmt.rating match {
 		case Some(Rating.PromiseKept) => { <p class="rating"><b>Ergebnis:</b>&nbsp;Wir werten dieses Versprechen als <span class="label label-success">Gehalten</span>.</p> }
@@ -19,7 +32,7 @@
 		case Some(Rating.Unrated) => { <p class="rating"><b>Ergebnis:</b>&nbsp;Dieses Versprechen ist nachwievor <span class="label">Unbewertet</span>.</p> }
 		case _ => {}
 	})
-	
+
 	@if(user.isDefined && (user.get.role==Role.Editor || user.get.role==Role.Admin)) {
 		<div class="entry-new">
 		 @form.errors.map { error =>
