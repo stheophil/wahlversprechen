@@ -94,7 +94,7 @@ object Application extends Controller with Secured {
 				try {
 					val author = Author.load(author_name).get
 					val service = new SpreadsheetService("import");
-
+						
 					// Define the URL to request.  This should never change.
 					val WORKSHEET_FEED_URL = new java.net.URL(
 						"http://spreadsheets.google.com/feeds/worksheets/"+spreadsheet+"/public/values");

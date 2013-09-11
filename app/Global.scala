@@ -28,16 +28,17 @@ object InitialData {
       ).foreach(t =>
         ausers += User.create(t._1, t._2, t._3, t._4)
       );
-      
+
+      var aauthors = new collection.mutable.ArrayBuffer[Author];
+      Array( ("Koalition", 1, true), ("CDU", 2, false), ("FDP", 3, false) ).foreach( { case (name, order, rated) => { 
+        aauthors += Author.create(name, order, rated)
+      }}) 
+      /*
       var acategories = new collection.mutable.ArrayBuffer[Category];
       Array( ("Wirtschaft", 1), ("Inneres", 2), ("Verteidigung", 3), ("Landwirtschaft", 4) ).foreach(t => 
         acategories += Category.create(t._1, t._2)
       )
        
-      var aauthors = new collection.mutable.ArrayBuffer[Author];
-      Array( ("Koalition", 1, true), ("CDU", 2, false), ("FDP", 3, false) ).foreach( { case (name, order, rated) => { 
-        aauthors += Author.create(name, order, rated)
-      }}) 
 
       val longlorem = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata"
       var astmt = new collection.mutable.ArrayBuffer[Statement];
@@ -86,6 +87,7 @@ object InitialData {
       addEntries( astmt(1), aentries.slice(1, 3) )
       addEntries( astmt(2), aentries )
       addEntries( astmt(3), aentries.slice(0, 4) )
+      */
     }    
   }
   
