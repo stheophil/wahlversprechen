@@ -23,7 +23,7 @@ import play.api.Play.current
 import play.api.templates._
 
 case class Category(id: Long, name: String, order: Long)
-case class Author(id: Long, name: String, order: Long, rated: Boolean)
+case class Author(id: Long, name: String, order: Long, rated: Boolean, color: String, background: String)
 case class Tag(id: Long, name: String)
 case class User(id: Long, email: String, name: String, password: String, salt: String, role: Role)
 case class Entry(id: Long, stmt_id: Long, content: String, date: Date, user: User)
@@ -63,25 +63,29 @@ object Author {
 		get[Long]("id") ~
 		get[String]("name") ~
 		get[Long]("ordering") ~
-		get[Boolean]("rated") map {
-			case id ~ name ~ ordering ~ rated => Author(id, name, ordering, rated)
+		get[Boolean]("rated") ~
+		get[String]("color") ~
+		get[String]("background") map {
+			case id ~ name ~ ordering ~ rated ~ color ~ background => Author(id, name, ordering, rated, color, background)
 		}
 	}
 
-	def create(name: String, order: Long, rated: Boolean): Author = {
-		DB.withConnection { implicit c => create(c, name, order, rated) }
+	def create(name: String, order: Long, rated: Boolean, color: String, background: String): Author = {
+		DB.withConnection { implicit c => create(c, name, order, rated, color, background) }
 	}
 
-	def create(implicit connection: java.sql.Connection, name: String, order: Long, rated: Boolean): Author = {
+	def create(implicit connection: java.sql.Connection, name: String, order: Long, rated: Boolean, color: String, background: String): Author = {
 		val id: Long = SQL("select nextval('author_id_seq')").as(scalar[Long].single)
 
-		SQL("insert into author values ({id}, {name}, {order}, {rated})").on(
+		SQL("insert into author values ({id}, {name}, {order}, {rated}, {color}, {background})").on(
 			'id -> id,
 			'name -> name,
 			'order -> order,
-			'rated -> rated).executeUpdate()
+			'rated -> rated,
+			'color -> color,
+			'background -> background).executeUpdate()
 
-		Author(id, name, order, rated)
+		Author(id, name, order, rated, color, background)
 	}
 
 	def load(name : String): Option[Author] = {
@@ -90,9 +94,15 @@ object Author {
 		}
 	}
 
+	def loadRated(): Option[Author] = {
+		DB.withConnection { implicit c =>
+			SQL("select * from author where rated = TRUE order by ordering asc limit 1").as(author.singleOpt)
+		}
+	}
+
 	def loadAll(): List[Author] = {
 		DB.withConnection { implicit c =>
-			SQL("select * from author order by ordering").as(author*)
+			SQL("select * from author order by ordering asc").as(author*)
 		}
 	}
 }
@@ -125,15 +135,21 @@ object Tag {
 		}
 	}
 
+	def load(name: String): Option[Tag] = {
+		DB.withConnection { implicit c =>
+			SQL("select id, name from tag where tag.name={name}").on('name -> name).as(tag.singleOpt)
+		}
+	}
+
+	def loadAll(implicit connection: java.sql.Connection): List[Tag] = {
+			SQL("select id, name from tag").as(tag*)
+	}
+
 	def add(implicit connection: java.sql.Connection, stmt: Statement, tag: Tag) {
 			SQL("insert into statement_tags values ({tag_id}, {stmt_id})").on(
 				'tag_id -> tag.id,
 				'stmt_id -> stmt.id
 			).executeUpdate
-	}
-
-	def loadAll(implicit connection: java.sql.Connection): List[Tag] = {
-			SQL("select id, name from tag").as(tag*)
 	}
 }
 
@@ -244,13 +260,16 @@ object Statement {
 			get[String]("author.name") ~
 			get[Long]("author.ordering") ~
 			get[Boolean]("author.rated") ~
+			get[String]("author.color") ~
+			get[String]("author.background") ~
 			get[Long]("category.id") ~
 			get[String]("category.name") ~
 			get[Long]("category.ordering")  map {
-				case id ~ title ~ quote ~ quote_src ~ rating ~ merged_id ~ author_id ~ author_name ~ author_order ~ author_rated ~ 
-				 category_id ~ category_name ~ category_order => 
+				case id ~ title ~ quote ~ quote_src ~ rating ~ merged_id ~ 
+					author_id ~ author_name ~ author_order ~ author_rated ~ author_color ~ author_background ~ 
+				 	category_id ~ category_name ~ category_order => 
 				Statement(id, title, 
-					Author(author_id, author_name, author_order, author_rated),
+					Author(author_id, author_name, author_order, author_rated, author_color, author_background),
 					Category(category_id, category_name, category_order),
 					quote, quote_src,
 					List[Entry](), 
@@ -263,27 +282,80 @@ object Statement {
 
 	var query = """select statement.id, title, rating, merged_id, quote, quote_src, 
 		category.id, category.name, category.ordering,
-		author.id, author.name, author.ordering, author.rated
+		author.id, author.name, author.ordering, author.rated, author.color, author.background
 		from statement 
 		join category on category.id=cat_id
 		join author on author.id=author_id"""
 
 	def allWithoutEntries(): Map[Author, List[Statement]] = {
 		DB.withConnection({ implicit c =>
-			SQL(query+" order by author.ordering ASC, category.ordering ASC").as(stmt *)
+			SQL(query+" order by author.ordering ASC, category.ordering ASC").as(stmt*)
 		}).groupBy( _.author )
 	}
 
+	def byEntryDate(author: Author, olimit: Option[Int]) : List[Statement] = {
+		val query = "select stmt_id, max(date) as latest from entry group by stmt_id order by latest desc"
+		DB.withConnection({ implicit c =>
+			olimit match {
+				case Some(limit) => {
+					SQL(query + " limit {limit}").on('limit -> limit).as(stmt*)
+				}
+				case None => SQL(query).as(stmt*)
+			}
+		})
+	}
+
+	def byTag(author: Author, tag: Tag, olimit: Option[Int]) : List[Statement] = {
+		val queryWithTag = query + " join statement_tags on statement_tags.stmt_id = statement.id " +
+			"where statement_tags.tag_id = {tag_id} and author.id = {author_id} " +
+			"order by category.ordering ASC"
+
+		DB.withConnection({ implicit c =>
+			olimit match {
+				case Some(limit) => SQL(queryWithTag + " limit {limit}").on('tag_id -> tag.id, 'author_id -> author.id, 'limit -> limit).as(stmt*)
+				case None => SQL(queryWithTag).on('tag_id -> tag.id, 'author_id -> author.id).as(stmt*)
+			}
+		})
+	}
+
+	def loadEntriesTags(stmt: Statement) : Statement = {
+		Statement(stmt.id, stmt.title, stmt.author, stmt.category, stmt.quote, stmt.quote_src, 
+				Entry.loadByStatement(stmt.id), Tag.loadByStatement(stmt.id), stmt.rating, stmt.merged_id)
+	}
+	
 	def load(id: Long): Option[Statement] = {
 		// TODO: Create stmt with entries in the first place
-		val s = DB.withConnection({ implicit c =>
-			SQL(query+" where statement.id = {id}").on(
-				'id -> id).as(stmt.singleOpt)
+		DB.withConnection({ implicit c =>
+			SQL(query+" where statement.id = {id}").on('id -> id).as(stmt.singleOpt)
 		})
-		s map { stmt => 
-			Statement(stmt.id, stmt.title, stmt.author, stmt.category, stmt.quote, stmt.quote_src, 
-				Entry.loadByStatement(id), Tag.loadByStatement(id), stmt.rating, stmt.merged_id) 
+	}
+
+	def loadAll(id: Long): List[Statement] = {
+		// TODO: Create stmt with entries in the first place
+		DB.withConnection({ implicit c =>
+			SQL(query+" where statement.id = {id} or statement.merged_id = {id} ").on('id -> id).as(stmt*)
+		})
+	}
+
+	def countRatings(author: Author) : (Int, Map[Rating,Int]) = {
+		val ratingCount = {
+			get[Option[Int]]("rating") ~
+			get[Long]("rating_count") map {
+				case rating ~ count  => {
+					( {if(rating.isDefined && 0 <= rating.get && rating.get < Rating.maxId) Rating(rating.get) else Unrated} -> count.toInt )
+				}
+			}
 		}
+
+		DB.withConnection({ implicit c => 
+			( 				
+				SQL("select COUNT(*) from statement where author_id = {id}").on('id -> author.id).as(scalar[Long].single).toInt,
+				SQL("select rating, COUNT(rating) as rating_count from statement where author_id = {id} group by rating").
+					on('id -> author.id).
+					as(ratingCount*).
+					toMap[Rating, Int]
+			)
+		})
 	}
 
 	def create(title: String, author: Author, cat: Category, quote: Option[String], quote_src: Option[String], rating: Option[Rating], merged_id: Option[Long]): Statement = {

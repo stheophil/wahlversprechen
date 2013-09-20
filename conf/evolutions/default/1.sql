@@ -8,6 +8,7 @@ CREATE TABLE category (
     ordering integer NOT NULL,
     PRIMARY KEY(id)
 );
+CREATE INDEX cat_asc_index ON category (ordering ASC);
 
 CREATE SEQUENCE author_id_seq;
 CREATE TABLE author (
@@ -15,8 +16,11 @@ CREATE TABLE author (
     name varchar(255) UNIQUE NOT NULL,
     ordering integer NOT NULL,
     rated boolean NOT NULL,
+    color varchar(30) NOT NULL,
+    background varchar(30) NOT NULL,
     PRIMARY KEY(id)
 );
+CREATE INDEX author_asc_index ON author (ordering ASC);
 
 CREATE SEQUENCE tag_id_seq;
 CREATE TABLE tag (
@@ -52,17 +56,20 @@ CREATE TABLE statement (
     PRIMARY KEY (id)
 );
 
+CREATE INDEX stmt_merged_index ON statement (merged_id );
+CREATE INDEX stmt_cat_author_index ON statement (cat_id, author_id);
+
 CREATE SEQUENCE entry_id_seq;
 CREATE TABLE entry (
 	id integer DEFAULT nextval('entry_id_seq'),
 	stmt_id integer NOT NULL,
 	FOREIGN KEY (stmt_id) REFERENCES statement(id),
 	content varchar(8192) NOT NULL,
-	date date NOT NULL,
+	date timestamp NOT NULL,
 	user_id integer NOT NULL,
 	FOREIGN KEY (user_id) REFERENCES users(id)
 );	
-
+CREATE INDEX entry_stmt_date_index ON entry (stmt_id, date DESC);
 
 CREATE TABLE statement_tags (
 	tag_id integer NOT NULL,
@@ -75,6 +82,7 @@ CREATE TABLE statement_tags (
 
 # --- !Downs
  
+DROP INDEX entry_stmt_date_index;
 DROP TABLE entry;
 DROP SEQUENCE entry_id_seq;
 
@@ -86,11 +94,16 @@ DROP SEQUENCE user_id_seq;
 DROP TABLE tag;
 DROP SEQUENCE tag_id_seq;
 
+DROP INDEX stmt_cat_author_index;
+DROP INDEX stmt_merged_index;
+
 DROP TABLE statement;
 DROP SEQUENCE stmt_id_seq;
 
+DROP INDEX cat_asc_index;
 DROP TABLE category;
 DROP SEQUENCE cat_id_seq;
 
+DROP INDEX author_asc_index;
 DROP TABLE author;
 DROP SEQUENCE author_id_seq;

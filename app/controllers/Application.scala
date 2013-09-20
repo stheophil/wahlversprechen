@@ -41,8 +41,23 @@ object Application extends Controller with Secured {
 
 	// Index page
 	def index = Action { implicit request =>
-		val liststmt = Statement.allWithoutEntries().toList.sortBy(_._1.order)
-		Ok(views.html.index(liststmt, username(request) flatMap { User.load(_) }))
+		val optuser = username(request) flatMap { User.load(_) }
+
+		val optauthor = Author.loadRated
+		val opttag = Tag.load("Wichtig")
+		(optauthor, opttag) match {
+			case (Some(author), Some(tag)) => {
+				val statistics = Statement.countRatings(author)
+				Ok(views.html.index(
+					statistics._1, statistics._2, 
+					Statement.byEntryDate(author, Some(5)).map( Statement.loadEntriesTags(_) ), 
+					Statement.byTag(author, tag, Some(5)).map( Statement.loadEntriesTags(_) ), 
+					optuser
+				))
+			}
+			case _ => 
+				Ok(views.html.index(1, Map.empty[Rating, Int], List.empty[Statement], List.empty[Statement], optuser))
+		}
 	}
 
 	// Entry page / entry editing  
@@ -52,10 +67,21 @@ object Application extends Controller with Secured {
 			"stmt_id" -> number.verifying(id => Statement.load(id).isDefined)))
 
 	def view(id: Long) = Action { implicit request =>
-		val optstmt = Statement.load(id)
-		optstmt match {
-			case Some(stmt) => Ok(views.html.detail(stmt, newEntryForm, username(request) flatMap { User.load(_) }))
-			case None => NotFound
+		internalView(id, newEntryForm, username(request) flatMap { User.load(_) })
+	}
+
+	private def internalView(id: Long, form: Form[(String, Int)], user: Option[User])(implicit request: Request[AnyContent]) : play.api.mvc.Result = { 
+		val liststmt = Statement.loadAll(id)
+		liststmt.find(_.id == id) match {
+			case Some(stmt) => 
+				Ok(views.html.detail(
+					Statement.loadEntriesTags(stmt), 
+					liststmt.map(_.author).distinct, 
+					form, 
+					user
+				))
+			case None => 
+				NotFound
 		}
 	}
 
@@ -66,8 +92,7 @@ object Application extends Controller with Secured {
 					case Some(e) => Redirect(routes.Application.index).flashing("error" -> "Ungültige Anfrage")
 					case None => {
 						val stmt_id = formWithErrors("stmt_id").value.get
-						val stmt = Statement.load(Integer.parseInt(stmt_id)).get // both Options must be valid if stmt_id verified ok
-						Ok(views.html.detail(stmt, formWithErrors, Some(user)))
+						internalView(Integer.parseInt(stmt_id), formWithErrors, Some(user))
 					}
 				}
 			},
@@ -84,12 +109,12 @@ object Application extends Controller with Secured {
 			"spreadsheet" -> text))
 
 	def viewImportForm  = IsAdmin { user => implicit request =>
-		Ok(html.importview(importForm))
+		Ok(html.importview(importForm, user))
 	}
 
 	def importStatements = IsAdmin { user => implicit request =>
 		importForm.bindFromRequest.fold(
-			formWithErrors => BadRequest(html.importview(formWithErrors)),
+			formWithErrors => BadRequest(html.importview(formWithErrors, user)),
 			{ case (author_name, spreadsheet) => loadSpreadSheet(author_name, spreadsheet) }
 		) // bindFromRequest
 	}
@@ -159,9 +184,8 @@ object Application extends Controller with Secured {
 
 					val stmt = Statement.create(c, importrow.title, author, category, importrow.quote, importrow.quote_source, if(author.rated) Some(Rating.Unrated) else None, importrow.merged_id)
 					importrow.tags.foreach( 
-							_.split(',').foreach( tagname => {
-								val trimmed = tagname.trim
-								val tag = maptag.getOrElseUpdate(trimmed, { Tag.create(c, trimmed) })
+							_.split(',').map(_.trim).distinct.foreach( tagname => {
+								val tag = maptag.getOrElseUpdate(tagname, { Tag.create(c, tagname) })
 								Tag.add(c, stmt, tag)
 							})
 					)

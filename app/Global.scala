@@ -30,9 +30,10 @@ object InitialData {
       );
 
       var aauthors = new collection.mutable.ArrayBuffer[Author];
-      Array( ("Koalition", 1, true), ("CDU", 2, false), ("FDP", 3, false) ).foreach( { case (name, order, rated) => { 
-        aauthors += Author.create(name, order, rated)
-      }}) 
+      Array( ("Koalitionsvertrag", 1, true, "#ffffff", "#999999"), ("CDU", 2, false, "#ffffff", "#000000"), ("FDP", 3, false, "#444", "#FFE500") ).foreach( 
+        { case (name, order, rated, color, background) => { 
+          aauthors += Author.create(name, order, rated, color, background)
+        }}) 
       /*
       var acategories = new collection.mutable.ArrayBuffer[Category];
       Array( ("Wirtschaft", 1), ("Inneres", 2), ("Verteidigung", 3), ("Landwirtschaft", 4) ).foreach(t => 

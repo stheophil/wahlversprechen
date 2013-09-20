@@ -1,36 +1,34 @@
-@(form: Form[(String,String)])(implicit flash: Flash)
+@(form: Form[(String,String)], user: User)(implicit flash: Flash)
 
-@main("Wahlprogramm-o-meter"){
-    <div class="container">
-        @helper.form(routes.Application.importStatements) {
-            
-            <h1>Importiere aus Google Spreadsheet</h1>
-            
-            @form.globalError.map { error =>
-                <div class="alert alert-error">
-                    @error.message
-                </div>
-            }
-
-            @flash.get("error").map { message =>
-                <div class="alert alert-error">
-                    @message
-                </div>
-            }
-            
-            <p>           
-            <select name="author">
-            @for(author <- Author.loadAll) {
-               <option>@author.name</option> 
-            }
-            </select>            
-            </p>
-            <p>
-                <input name="spreadsheet" id="spreadsheet" placeholder="Google Spreadsheet Key">
-            </p>
-            <p>
-                <button type="submit" id="loginbutton" class="btn btn-primary">Importieren</button>
-            </p>            
+@main("Importiere Daten", Some(user)){
+    @helper.form(routes.Application.importStatements) {
+        
+        <h1>Importiere aus Google Spreadsheet</h1>
+        
+        @form.globalError.map { error =>
+            <div class="alert alert-error">
+                @error.message
+            </div>
         }
-    </div>
+
+        @flash.get("error").map { message =>
+            <div class="alert alert-error">
+                @message
+            </div>
+        }
+        
+        <p>           
+        <select name="author">
+        @for(author <- Author.loadAll) {
+           <option>@author.name</option> 
+        }
+        </select>            
+        </p>
+        <p>
+            <input name="spreadsheet" id="spreadsheet" placeholder="Google Spreadsheet Key">
+        </p>
+        <p>
+            <button type="submit" id="loginbutton" class="btn btn-primary">Importieren</button>
+        </p>            
+    }
 }

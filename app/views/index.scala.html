@@ -1,104 +1,57 @@
-@(stmtsByAuthor: List[(Author, List[Statement])], user: Option[User])(implicit flash: Flash)
+@(cStatement: Int, mapRating: Map[models.Rating.Rating, Int], stmtsRecent: List[Statement], stmtsImportant: List[Statement], user: Option[User])(implicit flash: Flash)
 @import models.Rating._
  
-@main("Wahlprogramm-o-meter"){
-	@userbar(user)
-
-	<div class="container">
-    @flash.get("error").map { message =>
-        <div class="alert alert-error">
-            @message
-        </div>
-    }
+@main("Wahlversprechen", user){
+@flash.get("error").map { message =>
+    <div class="alert alert-error">
+        @message
     </div>
-    
-    <div class="hero-unit">
-	  <h1>Wahlprogramm-o-meter</h1>
-	  @if(stmtsByAuthor.isEmpty) {
-	  	<p>Hier gibt es noch nichts zu sehen. Sie müssen zuerst einige Wahlversprechen importieren.</p>
-	  } else { 
-	  	<p>Diskutiere mit und stimme mit ab, wie sich die Koalition bis jetzt schlägt. Welche Vorhaben sind umgesetzt? Welche lassen auf sich warten?</p>
-	  	@ratingprogressbar( stmtsByAuthor.head._2, "height: 150%")
-	  }
-	</div>
+}
 
-	<div class="container">
-  	<div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" href="#collapseTop">
-        Zeige alle politischen Vorhaben der Regierung <i class="icon-chevron-right"></i>
-      </a>
-    </div>
-    <div id="collapseTop" class="accordion-body collapse">
-		<div class="accordion-inner">
-			<ul class="nav nav-tabs">
-			@for( (author, liststmtAll) <- stmtsByAuthor ) {
-				@if(author==stmtsByAuthor.head._1) {
-					<li class="active">
-				} else {
-					<li>
-				}
-			  	<a href="#@(author.name)" data-toggle="tab">@(author.name)</a></li>
-			}
-			</ul>
-			<div class="tab-content">  				
-			@for( (author, liststmtAll) <- stmtsByAuthor ) {
-				@if(author==stmtsByAuthor.head._1) {
-					<div class="tab-pane active" id="@(author.name)">
-				} else {
-					<div class="tab-pane" id="@(author.name)">
-				}
-				@for( (category, liststmtCategory) <- liststmtAll.groupBy( s => s.category ).toList.sortBy(_._1.order) ) {
-					<div class="accordion-heading" style="position: relative;">
-						<a class="accordion-toggle" data-toggle="collapse" href="#collapse_@(author.order)_@(category.order)">
-						<b>@category.order.&nbsp;@category.name</b>
-						</a>
-						@ratingprogressbar(liststmtCategory, "height: 10pt; width: 150pt; position: absolute; top:11pt; left: 250pt")
-					</div>
-					<div id="collapse_@(author.order)_@(category.order)" class="accordion-body collapse">
-						<div class="accordion-inner">
-						@for( stmt <- liststmtCategory ) {
-							<p>
-							@if(author.rated) {
-								<a class="item" href="/view/@stmt.id">@stmt.title</a>&nbsp;							
-								@stmt.rating match {
-									case Some(models.Rating.PromiseKept) => {<span class="badge badge-success">}
-									case Some(models.Rating.Compromise) => {<span class="badge badge-warning">}
-									case Some(models.Rating.PromiseBroken) => {<span class="badge badge-important">}
-									case _ => {<span class="badge badge-default">}
-								}
-								<a class="comment-count" data-disqus-identifier="@(stmt.id)" href="/view/@(stmt.id)#disqus_thread">&nbsp</a>
-								</span>
-								<i class="icon-chevron-right"></i>
-							} else {
-								@if(stmt.merged_id.isDefined) {
-									<a class="item" href="/view/@stmt.merged_id.get">@stmt.title</a>
-									<i class="icon-chevron-right"></i>
-								} else {
-									@stmt.title
-								}
-							}
-							</p>
-						}
-						</div>
-					</div>
-				}
-				</div>	
-			}
-			</div>								
-		</div>
-	</div>
+<div class="row">
+	<div class="col-sm-12 col-md-8">
+	<h1>wahlversprechen.de</h1>
+	<p class="lead">Versprochen gebrochen oder verlässliche Regierungsarbeit? wahlversprechen.de dokumentiert alle Wahlversprechen der Regierungsparteien. Wieviele wurden bereits umgesetzt, endeten in einem Kompromiss oder scheiterten komplett und wieviele sind noch offen: </p>
 
-	<script type="text/javascript">
-	/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
-	var disqus_shortname = 'wahlprogrammometer'; // required: replace example with your forum shortname
-
-	/* * * DON'T EDIT BELOW THIS LINE * * */
-	(function () {
-	var s = document.createElement('script'); s.async = true;
-	s.type = 'text/javascript';
-	s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
-	(document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
-	}());
-	</script>
+	@ratingprogressbar(cStatement, mapRating, "titleprogress", "titleprogress-glyph")	
 	</div>
+  	<div class="col-md-4 visible-md visible-lg">
+  	<img src="@routes.Assets.at("img/reichstag2.jpg")" alt="Kuppel des Berliner Reichstags" class="img-thumbnail" style="margin: auto">
+  	</div>
+</div>
+      
+
+<div class="row" style="margin-top: 30px">
+<div class="col-sm-6 col-sm-offset-3">
+  <p class="lead">Such einfach nach einem Thema, das Dich interessiert. Versuche doch einmal "Europa", "Kita" oder "Steuern":</p>
+  <form class="input-group">
+    <input type="text" class="form-control">
+    <span class="input-group-btn">
+      <button class="btn btn-default" type="button"><span class="glyphicon glyphicon-search"></span></button>
+    </span>
+  </form>
+</div>
+</div>
+
+<div class="row">
+	<div class="col-sm-6">
+  	@itemlist("Zuletzt aktualisierte Wahlversprechen:", "#", stmtsRecent)
+	</div>
+	<div class="col-sm-6">
+  	@itemlist("Die wichtigsten Wahlversprechen:", "#", stmtsImportant)
+	</div>
+</div>
+
+<script type="text/javascript">
+/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+var disqus_shortname = '@Formatter.disqus_shortname'; // required: replace example with your forum shortname
+
+/* * * DON'T EDIT BELOW THIS LINE * * */
+(function () {
+var s = document.createElement('script'); s.async = true;
+s.type = 'text/javascript';
+s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+(document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+}());
+</script>
 }

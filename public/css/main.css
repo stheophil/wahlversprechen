@@ -1,0 +1,181 @@
+/* Bootstrap Overloads */
+body { padding-top: 70px; }
+h1 { 
+  color: #515295; 
+  font-size: 50px;
+}
+h2 { color: #515295; }
+h2 a { color: #515295; }
+
+.page-header {
+	margin-top: 0px;	
+}
+
+.page-header h1 {
+	margin-top: 0px;	
+}
+
+.navbar {
+  min-height: 30px;
+}
+
+.navbar-form {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+@media(min-width: 768px) {
+  .navbar-nav > li > a {
+    padding-top: 12px;
+    padding-bottom: 10px;
+  }
+}
+
+.navbar-brand {
+  padding: 10px 10px;
+}
+
+.navbar .form-control {
+  padding: inherit;
+  height: 26px;
+}
+
+.nav-list .form-control {
+  padding: 5px;
+  margin-top: 10px;
+  height: 26px;
+  min-width: 200px;
+}
+
+.navbar .btn {
+  padding-top: 2px;
+  padding-right: 6px;
+  padding-bottom: 2px;
+  padding-left: 6px;
+}
+
+/* Custom CSS */
+
+/* Index Page */
+.titleprogress {
+	height: 30px;
+}
+.titleprogress-glyph {
+	font-size: 16px; 
+	line-height: 30px;
+	vertical-align: middle;
+}
+
+.nav-list li {
+	margin-top: 0px;
+	margin-bottom: 10px;		
+}
+
+@media (max-width: 991px) {
+	.nav-list li {		
+		display: inline-block;
+		vertical-align: top;
+		padding-left: 15px;
+		padding-right: 15px;
+	}
+}
+
+.nav-header {
+	font-weight: bold;
+	color: #999999;
+
+	margin-top: 15px;
+	margin-bottom: 10px;
+}
+
+/* itemlist */ 
+.item-list {
+	 position: relative;
+}
+
+.item-list-glyph-wrapper {
+	 position: absolute; 
+	 height: 100%; 
+	 width: 25px;
+	 font-size: 20px;
+}
+
+.item-list-content {
+	padding-left: 28px;
+}
+
+.item-list-content p {
+	margin-top: 10px;
+	font-style: italic;
+}
+
+.item-list-content h4 {
+	margin-bottom: 5px;
+}
+
+.item-list-content small {
+	color: grey;
+}
+
+/* Detail Page */
+.rating-row {
+	vertical-align:middle;
+	line-height: 33px; /* page-header h2 line-height */
+}
+
+.entry-intro {
+	color: grey;
+	font-size: 16px;	
+	float: right;
+}
+
+.entry-content h1 {
+	font-size: 24px; 
+	line-height: 28px; 
+	margin-top: 0px;
+	margin-bottom: 10px;
+}
+
+.entry-content h1 small {
+	font-size: 12px; 
+	line-height: 16px; 
+	margin-top: 0px;
+	margin-bottom: 10px;
+}
+
+.entry-content h2 {
+	font-size: 20px; 
+	line-height: 24px; 
+	margin-top: 0px;
+	margin-bottom: 8px;
+}
+
+.entry-content h3, .entry-content h4,  .entry-content h5 {
+	font-size: 16px; 
+	font-weight: bold;
+	line-height: 22px; 
+	margin-top: 0px;
+	margin-bottom: 8px;
+}
+
+.entry-content p, .entry-content ul, .entry-content ol, .entry-content li {
+	font-size: 16px; 
+	line-height: 22px; 
+	margin-top: 0px;
+	margin-bottom: 10px;
+}
+
+/* Maybe User Configurable */ 
+
+.label-koalition {
+  background-color: #999999;
+}
+
+.label-fdp {
+  background-color: #FFE500;
+  color: #444;
+}
+
+.label-cdu {
+  background-color: #000000;
+}
