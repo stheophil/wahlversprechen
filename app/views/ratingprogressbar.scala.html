@@ -2,15 +2,21 @@
 
 <div class="progress @progressclass">
 	<div class="progress-bar progress-bar-success" style="width: @{mapRating.getOrElse(models.Rating.PromiseKept, 0) / cStatement * 100.0}%">
-		<span class="glyphicon glyphicon-thumbs-up @glyphiconclass"></span>
-		<span class="sr-only" href="#content">Versprechen Gehalten @{mapRating.getOrElse(models.Rating.PromiseKept, 0)/cStatement * 100.0}%</span>
+		<span class="glyphicon @Formatter.glyph(models.Rating.PromiseKept) @glyphiconclass"></span>
+		<span class="sr-only" href="#content">@{Formatter.name(models.Rating.PromiseKept)}
+			@{mapRating.getOrElse(models.Rating.PromiseKept, 0)/cStatement * 100.0}%
+		</span>
 	</div>
-	<div class="progress-bar progress-bar-warning" style="width: @{mapRating.getOrElse(models.Rating.Compromise, 0)/cStatement * 100.0}%">
-		<span class="glyphicon glyphicon-adjust @glyphiconclass"></span>
-		<span class="sr-only" href="#content">Kompromiss @{mapRating.getOrElse(models.Rating.Compromise, 0)/cStatement * 100.0}%</span>
+	<div class="progress-bar progress-bar-warning" style="width: @{mapRating.getOrElse(models.Rating.Compromise, 0)/cStatement * 100.0}%">	
+		<span class="glyphicon @Formatter.glyph(models.Rating.Compromise) @glyphiconclass"></span>
+		<span class="sr-only" href="#content">@{Formatter.name(models.Rating.Compromise)} @{mapRating.getOrElse(models.Rating.Compromise, 0)/cStatement * 100.0}%</span>
 	</div>
 	<div class="progress-bar progress-bar-danger" style="width: @{mapRating.getOrElse(models.Rating.PromiseBroken, 0)/cStatement * 100.0}%">
-		<span class="glyphicon glyphicon-thumbs-down @glyphiconclass"></span>
-		<span class="sr-only" href="#content">Versprechen Gebrochen @{mapRating.getOrElse(models.Rating.PromiseKept, 0)/cStatement * 100.0}%</span>
+		<span class="glyphicon @Formatter.glyph(models.Rating.PromiseBroken) @glyphiconclass"></span>
+		<span class="sr-only" href="#content">@{Formatter.name(models.Rating.PromiseBroken)} @{mapRating.getOrElse(models.Rating.PromiseKept, 0)/cStatement * 100.0}%</span>
+	</div>
+	<div class="progress-bar" style="background-color: @{Formatter.color(models.Rating.Unrated)}; width: @{mapRating.getOrElse(models.Rating.Unrated, 0)/cStatement * 100.0}%">
+		<span class="glyphicon @Formatter.glyph(models.Rating.Unrated) @glyphiconclass"></span>
+		<span class="sr-only" href="#content">@{Formatter.name(models.Rating.Unrated)} @{mapRating.getOrElse(models.Rating.Unrated, 0)/cStatement * 100.0}%</span>
 	</div>
 </div>

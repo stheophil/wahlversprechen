@@ -17,7 +17,7 @@ object Formatter {
 			case PromiseBroken => "glyph-icon-thumbs-down"
 			case Stalled => "glyph-icon-time"
 			case InTheWorks => "glyph-icon-cog"
-			case Unrated => "glyphicon-unchecked"
+			case Unrated => "glyphicon-question-sign"
 		}
 	}
 
@@ -28,7 +28,7 @@ object Formatter {
 			case PromiseBroken => "#d9534f"
 			case Stalled => "#d9984f"
 			case InTheWorks => "#5bc0de"
-			case Unrated => "#999999"
+			case Unrated => "#aaaaaa"
 		}
 	}
 
