@@ -4,6 +4,9 @@
 
 # Home page
 GET     /                           controllers.Application.index
+GET		/aktuell					controllers.Application.recent
+GET		/top						controllers.Application.top
+GET		/alle						controllers.Application.all
 
 # Detail page
 GET		/view/:id					controllers.Application.view(id: Long)

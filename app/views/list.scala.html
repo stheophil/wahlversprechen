@@ -1,0 +1,81 @@
+@(title: String, stmtsByAuthor: Map[Author, List[Statement]], user: Option[User])(implicit flash: Flash)
+ 
+@main(title, user){
+@flash.get("error").map { message =>
+    <div class="alert alert-error">
+        @message
+    </div>
+}
+<ul class="nav nav-tabs">
+@for( (author, liststmtAll) <- stmtsByAuthor ) {
+	@if(author==stmtsByAuthor.head._1) {
+		<li class="active">
+	} else {
+		<li>
+	}
+  	<a href="#@(author.name)" data-toggle="tab">@(author.name)</a></li>
+}
+</ul>
+<div class="tab-content">  				
+@for( (author, liststmtAll) <- stmtsByAuthor ) {
+	@if(author==stmtsByAuthor.head._1) {
+	<div class="tab-pane active" id="@(author.name)">
+	} else {
+	<div class="tab-pane" id="@(author.name)">
+	}
+			
+	@for(stmt <- liststmtAll) {
+	  <div class="full-list">    
+	    <div class="full-list-glyph-wrapper">
+	      @if(stmt.rating.isDefined) {
+	        <span class="glyphicon @Formatter.glyph(stmt.rating.get)" style="color: @Formatter.color(stmt.rating.get);"></span>
+	      }
+	    </div>
+	    <div class="full-list-content">
+	      <h4><a href="/view/@stmt.id">@(stmt.title)</a></h4>
+	      <div>
+	        <small class="pull-left">
+	          <a class="comment-count" data-disqus-identifier="@(stmt.id)" href="/view/@(stmt.id)#disqus_thread"></a>&nbsp;<a href="/view/@(stmt.id)"><span class="glyphicon glyphicon-comment"></span></a>
+	        </small> 
+	         <small class="pull-left" style="margin-left:15px">@if(!stmt.entries.isEmpty) { Aktualisiert am @Formatter.format(stmt.entries.head.date) }</small>
+	         <small class="pull-left" style="margin-left:45px">
+	         	@for(t <- stmt.tags) {
+	         		<span class="tag">@t.name</span> 
+	         	}
+	         </small>
+	         <div style="clear: both;"></div>
+	      </div>
+	      <div class="row">
+		  <div class="col-sm-8">
+	      @if(stmt.quote.isDefined) { 
+	      	<small>
+	      	<blockquote>
+	        @Formatter.transformBodyToHTML(stmt.quote.get)
+	        </blockquote>
+	        </small>
+	      }
+	      </div>
+	      <div class="col-sm-4"></div>
+	      </div>
+	    </div>    
+	  </div>
+	}
+	
+	</div>	
+}
+</div>
+
+<script type="text/javascript">
+/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+var disqus_shortname = '@Formatter.disqus_shortname'; // required: replace example with your forum shortname
+
+/* * * DON'T EDIT BELOW THIS LINE * * */
+(function () {
+var s = document.createElement('script'); s.async = true;
+s.type = 'text/javascript';
+s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+(document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+}());
+</script>
+
+}

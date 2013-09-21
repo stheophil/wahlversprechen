@@ -88,32 +88,57 @@ h2 a { color: #515295; }
 	margin-bottom: 10px;
 }
 
+/* List page */
+.smallprogress {
+	height: 10pt; 
+	width: 150pt; 
+	position: absolute; 
+	top:11pt; 
+	left: 250pt
+}
+
+.invisible {
+	display: none;
+}
+
 /* itemlist */ 
-.item-list {
+.item-list, .full-list {
 	 position: relative;
 }
 
-.item-list-glyph-wrapper {
+.item-list-glyph-wrapper, .full-list-glyph-wrapper {
 	 position: absolute; 
 	 height: 100%; 
 	 width: 25px;
 	 font-size: 20px;
 }
 
-.item-list-content {
+.item-list-content, .full-list-content {
 	padding-left: 28px;
 }
 
-.item-list-content p {
+.item-list-content p, .full-list-content p  {
 	margin-top: 10px;
 }
 
-.item-list-content h4 {
+.item-list-content h4, .full-list-content h4 {
 	margin-bottom: 5px;
 }
 
-.item-list-content small {
+.item-list-content small, .full-list-content small {
 	color: grey;
+}
+
+.full-list-content blockquote {
+	padding: 0px 10px;
+	margin: 0px 0px 10px;
+}
+
+.full-list-content blockquote p {
+	font-size: 14px;
+}
+
+.tag {
 }
 
 .item-list-body {

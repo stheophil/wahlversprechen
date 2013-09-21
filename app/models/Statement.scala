@@ -287,13 +287,13 @@ object Statement {
 		join category on category.id=cat_id
 		join author on author.id=author_id"""
 
-	def allWithoutEntries(): Map[Author, List[Statement]] = {
+	def all(): Map[Author, List[Statement]] = {
 		DB.withConnection({ implicit c =>
 			SQL(query+" order by author.ordering ASC, category.ordering ASC").as(stmt*)
-		}).groupBy( _.author )
+		}).map( Statement.loadEntriesTags(_) ).groupBy( _.author )
 	}
 
-	def byEntryDate(author: Author, olimit: Option[Int]) : List[Statement] = {
+	def byEntryDate(oauthor: Option[Author], olimit: Option[Int]) : List[Statement] = {
 		val queryLatest = """select statement.id, title, rating, merged_id, quote, quote_src, 
 		category.id, category.name, category.ordering,
 		author.id, author.name, author.ordering, author.rated, author.color, author.background,
@@ -301,31 +301,34 @@ object Statement {
 		from statement 
 		join category on category.id=cat_id
 		join author on author.id=author_id
-		join entry on entry.stmt_id=statement.id
-		group by statement.id, category.id, author.id order by latest DESC
-		LIMIT {limit}
-		"""
+		join entry on entry.stmt_id=statement.id """ +
+		(if(oauthor.isDefined) " where author.id = {author_id} " else "") +
+		"group by statement.id, category.id, author.id order by latest DESC " +
+		(if(olimit.isDefined) "limit {limit}" else "")
 
-		DB.withConnection({ implicit c =>
-			olimit match {
-				case Some(limit) => {
-					SQL(queryLatest).on('limit -> limit).as(stmt*)
-				}
-				case None => SQL(queryLatest).on('limit -> "ALL").as(stmt*)
-			}
+		DB.withConnection({ implicit c =>			
+			var params = collection.mutable.ListBuffer[(Any, anorm.ParameterValue[_])]()
+			if(olimit.isDefined)  params += ('limit -> olimit.get)
+			if(oauthor.isDefined) params += ('author_id -> oauthor.get.id)
+
+			SQL(queryLatest).on(params:_*).as(stmt*)
 		})
 	}
 
-	def byTag(author: Author, tag: Tag, olimit: Option[Int]) : List[Statement] = {
+	def byTag(tag: Tag, oauthor: Option[Author], olimit: Option[Int]) : List[Statement] = {
 		val queryWithTag = query + " join statement_tags on statement_tags.stmt_id = statement.id " +
-			"where statement_tags.tag_id = {tag_id} and author.id = {author_id} " +
-			"order by category.ordering ASC"
+			"where statement_tags.tag_id = {tag_id} " +
+			(if(oauthor.isDefined) "and author.id = {author_id} " else "") +
+			"order by category.ordering ASC " +
+			(if(olimit.isDefined) "limit {limit}" else "")
 
 		DB.withConnection({ implicit c =>
-			olimit match {
-				case Some(limit) => SQL(queryWithTag + " limit {limit}").on('tag_id -> tag.id, 'author_id -> author.id, 'limit -> limit).as(stmt*)
-				case None => SQL(queryWithTag).on('tag_id -> tag.id, 'author_id -> author.id).as(stmt*)
-			}
+			var params = collection.mutable.ListBuffer[(Any, anorm.ParameterValue[_])]()
+			params += ('tag_id -> tag.id)
+			if(olimit.isDefined)  params += ('limit -> olimit.get)
+			if(oauthor.isDefined) params += ('author_id -> oauthor.get.id)			
+
+			SQL(queryWithTag).on(params:_*).as(stmt*)
 		})
 	}
 
