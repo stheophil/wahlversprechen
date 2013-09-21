@@ -130,7 +130,7 @@ object Tag {
 		DB.withConnection { implicit c =>
 			SQL("""select id, name from tag 
 			join statement_tags on statement_tags.tag_id=id 
-			where statement_tags.stmt_id = 1 
+			where statement_tags.stmt_id = {stmt_id} 
 			order by tag.name""").on('stmt_id -> stmt_id).as(tag*)
 		}
 	}

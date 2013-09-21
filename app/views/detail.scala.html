@@ -26,7 +26,7 @@
     <div class="row">
       <div class="col-md-9 col-sm-12">  
       @if(stmt.quote.isDefined) {
-			<blockquote class="lead">@Formatter.transformToHTML(stmt.quote.get)<br/>
+			<blockquote class="lead entry-quote">@Formatter.transformToHTML(stmt.quote.get)<br/>
 			@if(stmt.quote_src.isDefined) {
 				<small>@Formatter.transformToHTML(stmt.quote_src.get)</small>
 			}
@@ -37,7 +37,7 @@
         <ul class="nav nav-list hidden-print">
         <li><div class="nav-header">Stichwörter</div>
         	@for(t <- stmt.tags) {
-        		<span class='label label-primary'>t.name</span>
+        		<span class='label label-primary'>@t.name</span>
         	}
         </li>
         <li><div class="nav-header">Sharing</div>
@@ -82,7 +82,8 @@
 	      }
 	      </div>
 	      <small>Von @entry.user.name am @Formatter.format(entry.date)</small>
-	      @Formatter.markdownToHTML(entry.content)
+	      @Formatter.transformToHTML(entry.content)
+	      </div>
 	      <div class="entry-intro col-md-3"></div>
 	    </div>
 	}

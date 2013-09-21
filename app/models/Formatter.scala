@@ -50,7 +50,7 @@ object Formatter {
 		new java.text.SimpleDateFormat("dd. MMM yyyy 'um' HH:mm", lang.toLocale).format(date)
 	}
 
-	object FilterHeadlineFromMarkdown extends Decorator {		
+	private object FilterHeadlineFromMarkdown extends Decorator {		
 	    override def allowVerbatimXml():Boolean = false		    
 	    override def decorateImg(alt:String, src:String, title:Option[String]):String = ""		    
 	    override def decorateRuler():String = ""		    
@@ -59,14 +59,14 @@ object Formatter {
 	    override def decorateCodeBlockOpen():String = "<div 'display: none'>"
 	    override def decorateCodeBlockClose():String = "<div 'display: none'>"
 	}
-	object markdownToHTMLWithoutHeadlines extends Transformer {
+	private object markdownToHTMLWithoutHeadlines extends Transformer {
 		 override def deco() : Decorator = FilterHeadlineFromMarkdown
 	}
 
-	object FilterXMLFromMarkdown extends Decorator {		
+	private object FilterXMLFromMarkdown extends Decorator {		
 	    override def allowVerbatimXml():Boolean = false		    
 	}
-	object markdownToHTML extends Transformer {
+	private object markdownToHTML extends Transformer {
 		 override def deco() : Decorator = FilterXMLFromMarkdown
 	}
 
