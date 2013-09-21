@@ -170,7 +170,8 @@ textarea.expand {
 	margin-bottom: 10px;
 }
 
-.entry-content h1 small {
+.entry-content small {
+	color: grey;
 	font-size: 12px; 
 	line-height: 16px; 
 	margin-top: 0px;
