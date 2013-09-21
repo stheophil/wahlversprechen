@@ -15,12 +15,15 @@
         <small class="pull-left" style="margin-left:15px">
           <a class="comment-count" data-disqus-identifier="@(stmt.id)" href="/view/@(stmt.id)#disqus_thread"></a>&nbsp;<a href="/view/@(stmt.id)"><span class="glyphicon glyphicon-comment"></span></a>
         </small> 
-        <small class="pull-right">@if(!stmt.entries.isEmpty) { Aktualisiert um @Formatter.format(stmt.entries.head.date) }</small> 
+        <small class="pull-right">@if(!stmt.entries.isEmpty) { Aktualisiert am @Formatter.format(stmt.entries.head.date) }</small> 
         <div style="clear: both;"></div>
       </div>
+      <div class="item-list-body">
       @if(!stmt.entries.isEmpty) { 
         @Formatter.transformBodyToHTML(stmt.entries.head.content)
       }
+      <span class="read-more"><a href="/view/@(stmt.id)">Weiter...</a></span>
+      </div>
     </div>    
   </div>
 }

@@ -106,7 +106,6 @@ h2 a { color: #515295; }
 
 .item-list-content p {
 	margin-top: 10px;
-	font-style: italic;
 }
 
 .item-list-content h4 {
@@ -117,6 +116,29 @@ h2 a { color: #515295; }
 	color: grey;
 }
 
+.item-list-body {
+	max-height: 80px;
+	overflow: hidden;
+	position: relative;
+}
+
+.item-list-body .read-more { 
+	display: none;
+	position: absolute; 
+	bottom: 0; right: 0;
+	width: 100%; 
+	text-align: right; 
+	margin: 0; 
+	padding-top: 30px; 
+	
+	/* "transparent" only works here because == rgba(0,0,0,0) */ 
+	background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, transparent),color-stop(1, white));
+	background-image: -webkit-linear-gradient(top, transparent, white);
+    background-image: -moz-linear-gradient(top, transparent, white);
+    background-image: -ms-linear-gradient(top, transparent, white);
+    background-image: -o-linear-gradient(top, transparent, white);
+}
+
 /* Detail Page */
 .rating-row {
 	vertical-align:middle;
@@ -125,6 +147,14 @@ h2 a { color: #515295; }
 
 .entry-quote p {
 	font-size: inherit;
+}
+
+textarea.expand {
+	height: 40px;
+}
+
+.showonclick {
+	display: none;
 }
 
 .entry-intro {

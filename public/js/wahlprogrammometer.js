@@ -1,30 +1,37 @@
 
 $(document).ready(function() {  
-	var textexpand = $('textarea.expand');
-	if(textexpand) {
-		var height = textexpand.height();
+	$('textarea.expand').each( function( i ) {		
+		var height = $(this).height();
 		var targetheight = "200px"; // TODO
-		var showonclick = textexpand.parents("form").children(".showonclick");
+		var showonclick = $(this).parents("form").children(".showonclick");
 
-		textexpand.click(function() {
-			textexpand.animate({height: targetheight}, 500);
+		$(this).click(function() {
+			$(this).animate({height: targetheight}, 500);
 			showonclick.fadeIn()
 		});
 
 		var Collapse = function() {
-			textexpand.animate({height: height + "px"}, 500);
+			$(this).animate({height: height + "px"}, 500);
 			showonclick.fadeOut();
 		};
 
-		textexpand.focusout(function() {
-			if(textexpand.val()=="") {
+		$(this).focusout(function() {
+			if($(this).val()=="") {
 				Collapse();
 			}	
 		})
 
-		textexpand.parents("form").children(".cancel").click(function() {
-			textexpand.val("");
+		$(this).parents("form").children(".cancel").click(function() {
+			$(this).val("");
 			Collapse();
 		});
-	}
+	});
+
+	$('.read-more').each( function(i) {
+		var height = $(this).parent().css("height");
+		var maxheight = $(this).parent().css("max-height");
+		if(height==maxheight) {
+			$(this).show();
+		}
+	});
 });
