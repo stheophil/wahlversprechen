@@ -294,13 +294,24 @@ object Statement {
 	}
 
 	def byEntryDate(author: Author, olimit: Option[Int]) : List[Statement] = {
-		val query = "select stmt_id, max(date) as latest from entry group by stmt_id order by latest desc"
+		val queryLatest = """select statement.id, title, rating, merged_id, quote, quote_src, 
+		category.id, category.name, category.ordering,
+		author.id, author.name, author.ordering, author.rated, author.color, author.background,
+		max(date) as latest 
+		from statement 
+		join category on category.id=cat_id
+		join author on author.id=author_id
+		join entry on entry.stmt_id=statement.id
+		group by statement.id, category.id, author.id order by latest DESC
+		LIMIT {limit}
+		"""
+
 		DB.withConnection({ implicit c =>
 			olimit match {
 				case Some(limit) => {
-					SQL(query + " limit {limit}").on('limit -> limit).as(stmt*)
+					SQL(queryLatest).on('limit -> limit).as(stmt*)
 				}
-				case None => SQL(query).as(stmt*)
+				case None => SQL(queryLatest).on('limit -> "ALL").as(stmt*)
 			}
 		})
 	}
