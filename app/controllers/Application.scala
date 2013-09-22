@@ -44,7 +44,7 @@ object Application extends Controller with Secured {
 		val optuser = username(request) flatMap { User.load(_) }
 
 		val optauthor = Author.loadRated
-		val opttag = Tag.load("Wichtig")
+		val opttag = Tag.load("10-Punkteprogramm")
 		(optauthor, opttag) match {
 			case (Some(author), Some(tag)) => {
 				val statistics = Statement.countRatings(author)
@@ -66,7 +66,7 @@ object Application extends Controller with Secured {
 	}
 
 	def top = Action { implicit request =>  
-		val mapstmtByAuthor = (Tag.load("Wichtig") match {
+		val mapstmtByAuthor = (Tag.load("10-Punkteprogramm") match {
 			case Some(tag) => Statement.byTag(tag, None, None).map( Statement.loadEntriesTags(_) )
 			case None => List.empty[Statement]
 		}).groupBy(_.author)
