@@ -4,6 +4,8 @@
 
 # Home page
 GET     /                           controllers.Application.index
+GET     /cached                     controllers.Application.indexCached
+
 GET		/aktuell					controllers.Application.recent
 GET		/top						controllers.Application.top
 GET		/alle						controllers.Application.all

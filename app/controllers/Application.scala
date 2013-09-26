@@ -1,10 +1,12 @@
 package controllers
 
 import play.api._
+import play.api.cache._
 import play.api.data._
 import play.api.templates._
 import play.api.mvc._
 import play.api.data.Forms._
+import play.api.Play.current
 
 import com.google.gdata.client.spreadsheet._
 import com.google.gdata.data.spreadsheet._
@@ -59,6 +61,24 @@ object Application extends Controller with Secured {
 				Ok(views.html.index(1, Map.empty[Rating, Int], List.empty[Statement], List.empty[Statement], optuser))
 		}	
 	}
+
+	def indexCached = Cached("index") { Action { implicit request =>
+		val optauthor = Author.loadRated
+		val opttag = Tag.load("10-Punkteprogramm")
+		(optauthor, opttag) match {
+			case (Some(author), Some(tag)) => {
+				val statistics = Statement.countRatings(author)
+				Ok(views.html.index(
+					statistics._1, statistics._2, 
+					Statement.byEntryDate(Some(author), Some(5)), 
+					Statement.byTag(tag, Some(author), Some(5)), 
+					None
+				))
+			}
+			case _ => 
+				Ok(views.html.index(1, Map.empty[Rating, Int], List.empty[Statement], List.empty[Statement], None))
+		}	
+	} }
 
 	def recent = Action { implicit request => 		
 		val mapstmtByAuthor = Statement.byEntryDate(None, None).groupBy(_.author)
