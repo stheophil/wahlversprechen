@@ -225,7 +225,7 @@ object Application extends Controller with Secured {
 	}
 	
 	def loader_io = Action {
-		Ok("loaderio-1d023df4783a421bb574cfc64791a5c4")
+		Ok("loaderio-a8c18c9612671703651ea5e79d55623e")
 	}
 }
 
