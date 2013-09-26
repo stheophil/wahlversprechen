@@ -52,8 +52,8 @@ object Application extends Controller with Secured {
 				val statistics = Statement.countRatings(author)
 				Ok(views.html.index(
 					statistics._1, statistics._2, 
-					Statement.byEntryDate(Some(author), Some(5)), 
-					Statement.byTag(tag, Some(author), Some(5)), 
+					Statement.byEntryDate(None, Some(5)), 
+					Statement.byTag(tag, None, Some(5)), 
 					optuser
 				))
 			}
@@ -70,8 +70,8 @@ object Application extends Controller with Secured {
 				val statistics = Statement.countRatings(author)
 				Ok(views.html.index(
 					statistics._1, statistics._2, 
-					Statement.byEntryDate(Some(author), Some(5)), 
-					Statement.byTag(tag, Some(author), Some(5)), 
+					Statement.byEntryDate(None, Some(5)), 
+					Statement.byTag(tag, None, Some(5)), 
 					None
 				))
 			}
