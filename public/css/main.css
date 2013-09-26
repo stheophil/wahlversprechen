@@ -157,11 +157,15 @@ h2 a { color: #515295; }
 	padding-top: 30px; 
 	
 	/* "transparent" only works here because == rgba(0,0,0,0) */ 
-	background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, transparent),color-stop(1, white));
-	background-image: -webkit-linear-gradient(top, transparent, white);
-    background-image: -moz-linear-gradient(top, transparent, white);
-    background-image: -ms-linear-gradient(top, transparent, white);
-    background-image: -o-linear-gradient(top, transparent, white);
+	background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, rgba(255,255,255,0)),color-stop(1, white));
+	background-image: -webkit-linear-gradient(top, rgba(255,255,255,0), white);
+
+    background-image: -moz-linear-gradient(top, rgba(255,255,255,0), white);
+    
+    background-image: -ms-linear-gradient(top, rgba(255,255,255,0), white);
+    background-image: -o-linear-gradient(top, rgba(255,255,255,0), white);
+
+    background-image: linear-gradient(rgba(255,255,255,0), white);
 }
 
 /* Detail Page */
@@ -225,17 +229,6 @@ textarea.expand {
 	margin-bottom: 10px;
 }
 
-/* Maybe User Configurable */ 
-
-.label-koalition {
-  background-color: #999999;
-}
-
-.label-fdp {
-  background-color: #FFE500;
-  color: #444;
-}
-
-.label-cdu {
-  background-color: #000000;
+.entry-content img {
+	max-width: 100%;
 }
