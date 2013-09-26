@@ -50,24 +50,24 @@ object Application extends Controller with Secured {
 				val statistics = Statement.countRatings(author)
 				Ok(views.html.index(
 					statistics._1, statistics._2, 
-					Statement.byEntryDate(Some(author), Some(5)).map( Statement.loadEntriesTags(_) ), 
-					Statement.byTag(tag, Some(author), Some(5)).map( Statement.loadEntriesTags(_) ), 
+					Statement.byEntryDate(Some(author), Some(5)), 
+					Statement.byTag(tag, Some(author), Some(5)), 
 					optuser
 				))
 			}
 			case _ => 
 				Ok(views.html.index(1, Map.empty[Rating, Int], List.empty[Statement], List.empty[Statement], optuser))
-		}
+		}	
 	}
 
 	def recent = Action { implicit request => 		
-		val mapstmtByAuthor = Statement.byEntryDate(None, None).map( Statement.loadEntriesTags(_) ).groupBy(_.author)
+		val mapstmtByAuthor = Statement.byEntryDate(None, None).groupBy(_.author)
 		Ok(views.html.list("Alle Wahlversprechen nach letzter Aktualisierung", mapstmtByAuthor, username(request) flatMap { User.load(_) }))
 	}
 
 	def top = Action { implicit request =>  
 		val mapstmtByAuthor = (Tag.load("10-Punkteprogramm") match {
-			case Some(tag) => Statement.byTag(tag, None, None).map( Statement.loadEntriesTags(_) )
+			case Some(tag) => Statement.byTag(tag, None, None)
 			case None => List.empty[Statement]
 		}).groupBy(_.author)
 		Ok(views.html.listByCategory("Die wichtigsten Wahlversprechen nach Ressorts", mapstmtByAuthor, username(request) flatMap { User.load(_) }))

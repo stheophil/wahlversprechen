@@ -27,7 +27,12 @@ case class Author(id: Long, name: String, order: Long, rated: Boolean, color: St
 case class Tag(id: Long, name: String)
 case class User(id: Long, email: String, name: String, password: String, salt: String, role: Role)
 case class Entry(id: Long, stmt_id: Long, content: String, date: Date, user: User)
-case class Statement(id: Long, title: String, author: Author, category: Category, quote: Option[String], quote_src: Option[String], entries: List[Entry], tags: List[Tag], rating: Option[Rating], merged_id: Option[Long])
+case class Statement(id: Long, title: String, author: Author, category: Category, 
+	quote: Option[String], quote_src: Option[String], 
+	entries: List[Entry], latestEntry: Option[Date], 
+	tags: List[Tag], 
+	rating: Option[Rating], rated: Option[Date], 
+	merged_id: Option[Long])
 
 object Category {
 	val category = {
@@ -233,17 +238,16 @@ object Entry {
 		DB.withTransaction { implicit c =>
 			val id = SQL("select nextval('entry_id_seq')").as(scalar[Long].single)
 
-			SQL(
-				"""
-           insert into entry values (
-             {id}, {stmt_id}, {content}, {date}, {user_id}
-           )
-         """).on(
+			SQL("insert into entry values ({id}, {stmt_id}, {content}, {date}, {user_id})").on(
 					'id -> id,
 					'stmt_id -> stmt_id,
 					'content -> content,
 					'date -> date,
 					'user_id -> user_id).executeUpdate()
+
+         	SQL("update statement set latestEntry = {date} where id = {stmt_id}").on(					
+					'date -> date,
+					'stmt_id -> stmt_id).executeUpdate()
 		}
 	}
 }
@@ -256,6 +260,8 @@ object Statement {
 			get[Option[String]]("statement.quote_src") ~
 			get[Option[Int]]("statement.rating") ~
 			get[Option[Long]]("statement.merged_id") ~
+			get[Option[Date]]("statement.latestEntry") ~
+			get[Option[Date]]("statement.rated") ~
 			get[Long]("author.id") ~
 			get[String]("author.name") ~
 			get[Long]("author.ordering") ~
@@ -265,22 +271,24 @@ object Statement {
 			get[Long]("category.id") ~
 			get[String]("category.name") ~
 			get[Long]("category.ordering")  map {
-				case id ~ title ~ quote ~ quote_src ~ rating ~ merged_id ~ 
+				case id ~ title ~ quote ~ quote_src ~ rating ~ merged_id ~ latestEntry ~ rated ~
 					author_id ~ author_name ~ author_order ~ author_rated ~ author_color ~ author_background ~ 
 				 	category_id ~ category_name ~ category_order => 
 				Statement(id, title, 
 					Author(author_id, author_name, author_order, author_rated, author_color, author_background),
 					Category(category_id, category_name, category_order),
-					quote, quote_src,
+					quote, quote_src, 
 					List[Entry](), 
+					latestEntry,
 					List[Tag](),
 					rating map { r => if (0 <= r && r < Rating.maxId) Rating(r) else Unrated },
+					rated,
 					merged_id
 				)
 			} // Rating(rating) would throw java.util.NoSuchElementException
 	}
 
-	var query = """select statement.id, title, rating, merged_id, quote, quote_src, 
+	var query = """select statement.id, title, latestEntry, rating, statement.rated, merged_id, quote, quote_src, 
 		category.id, category.name, category.ordering,
 		author.id, author.name, author.ordering, author.rated, author.color, author.background
 		from statement 
@@ -289,21 +297,20 @@ object Statement {
 
 	def all(): Map[Author, List[Statement]] = {
 		DB.withConnection({ implicit c =>
-			SQL(query+" order by author.ordering ASC, category.ordering ASC").as(stmt*)
-		}).map( Statement.loadEntriesTags(_) ).groupBy( _.author )
+			SQL(query+" order by author.ordering ASC, category.ordering ASC, statement.id ASC").as(stmt*)
+		}).groupBy( _.author )
 	}
 
 	def byEntryDate(oauthor: Option[Author], olimit: Option[Int]) : List[Statement] = {
-		val queryLatest = """select statement.id, title, rating, merged_id, quote, quote_src, 
+		val queryLatest = """select statement.id, title, latestEntry, rating, statement.rated, merged_id, quote, quote_src, 
 		category.id, category.name, category.ordering,
-		author.id, author.name, author.ordering, author.rated, author.color, author.background,
-		max(date) as latest 
+		author.id, author.name, author.ordering, author.rated, author.color, author.background
 		from statement 
 		join category on category.id=cat_id
-		join author on author.id=author_id
-		join entry on entry.stmt_id=statement.id """ +
-		(if(oauthor.isDefined) " where author.id = {author_id} " else "") +
-		"group by statement.id, category.id, author.id order by latest DESC " +
+		join author on author.id=author_id """ +
+		"where latestEntry IS NOT NULL "
+		(if(oauthor.isDefined) " and author.id = {author_id} " else "") +
+		"order by latestEntry DESC " +
 		(if(olimit.isDefined) "limit {limit}" else "")
 
 		DB.withConnection({ implicit c =>			
@@ -319,7 +326,7 @@ object Statement {
 		val queryWithTag = query + " join statement_tags on statement_tags.stmt_id = statement.id " +
 			"where statement_tags.tag_id = {tag_id} " +
 			(if(oauthor.isDefined) "and author.id = {author_id} " else "") +
-			"order by category.ordering ASC " +
+			"order by category.ordering ASC, statement.id ASC " +
 			(if(olimit.isDefined) "limit {limit}" else "")
 
 		DB.withConnection({ implicit c =>
@@ -334,7 +341,7 @@ object Statement {
 
 	def loadEntriesTags(stmt: Statement) : Statement = {
 		Statement(stmt.id, stmt.title, stmt.author, stmt.category, stmt.quote, stmt.quote_src, 
-				Entry.loadByStatement(stmt.id), Tag.loadByStatement(stmt.id), stmt.rating, stmt.merged_id)
+				Entry.loadByStatement(stmt.id), stmt.latestEntry, Tag.loadByStatement(stmt.id), stmt.rating, stmt.rated, stmt.merged_id)
 	}
 	
 	def load(id: Long): Option[Statement] = {
@@ -383,8 +390,9 @@ object Statement {
 
 		// Get the project id
 		val id: Long = SQL("select nextval('stmt_id_seq')").as(scalar[Long].single)
+		val rated = rating map { r => new Date() };
 		// Insert the project
-		SQL("insert into statement values ({id}, {title}, {author_id}, {cat_id}, {quote}, {quote_src}, {rating}, {merged_id})").on(
+		SQL("insert into statement values ({id}, {title}, {author_id}, {cat_id}, {quote}, {quote_src}, NULL, {rating}, {rated}, {merged_id})").on(
 				'id -> id,
 				'title -> title,
 				'author_id -> author.id,
@@ -392,8 +400,9 @@ object Statement {
 				'quote -> quote,
 				'quote_src -> quote_src, 
 				'rating -> { rating map { _.id } },
+				'rated -> rated,
 				'merged_id -> merged_id).executeUpdate()
 
-		Statement(id, title, author, cat, quote, quote_src, List[Entry](), List[Tag](), rating, merged_id)
+		Statement(id, title, author, cat, quote, quote_src, List[Entry](), None, List[Tag](), rating, rated, merged_id)
 	}
 }

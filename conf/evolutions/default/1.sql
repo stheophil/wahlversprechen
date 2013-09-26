@@ -50,7 +50,9 @@ CREATE TABLE statement (
     FOREIGN KEY (cat_id) REFERENCES category(id),
     quote varchar(8096),
     quote_src varchar(1024),
+    latestEntry timestamp, 
     rating integer,
+    rated timestamp,
     merged_id integer,
     FOREIGN KEY (merged_id) REFERENCES statement(id) ON UPDATE SET NULL,
     PRIMARY KEY (id)
