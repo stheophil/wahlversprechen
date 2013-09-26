@@ -31,7 +31,7 @@
           </ul>
 
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="#">Feedback</a></li>
+            <li><a href="http://blog.@(Formatter.url)/feedback">Feedback</a></li>
 
             @if(user.isDefined && (user.get.role==Role.Editor || user.get.role==Role.Admin)) {
                 <li><a href="#">Einstellungen</a></li>
@@ -57,11 +57,11 @@
 
       <footer>
         <ul class="list-inline text-center">        
-        <li><a href="#">Über uns</a></li>        
-        <li><a href="#">Blog</a></li>
-        <li><a href="#">@@wahlversprechen</a></li>
-        <li><a href="#">Impressum</a></li>
-        <li><a href="#">Datenschutzerklärung</a></li>
+        <li><a href="http://blog.@(Formatter.url)/about">Über uns</a></li>        
+        <li><a href="http://blog.@(Formatter.url)">Blog</a></li>
+        <li><a href="http://twitter.com/@(Formatter.twitter)">@@@(Formatter.twitter)</a></li>
+        <li><a href="http://blog.@(Formatter.url)/impressum">Impressum</a></li>
+        <li><a href="http://blog.@(Formatter.url)/impressum#datenschutz">Datenschutzerklärung</a></li>
         <li><a href="/login">Login</a></li>
         </ul>
       </footer>

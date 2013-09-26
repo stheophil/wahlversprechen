@@ -43,7 +43,9 @@ object Formatter {
 		}
 	}
 
-	def url : String = "http://wahlversprechen.de"
+	def url : String = Play.configuration.getString("url").get
+	def twitter : String = Play.configuration.getString("twitter").get
+	def mail : String = Play.configuration.getString("mail").get
 	def disqus_shortname : String = Play.configuration.getString("disqus.shortname").get
 
 	def format(date: Date)(implicit lang: play.api.i18n.Lang) : String = {
