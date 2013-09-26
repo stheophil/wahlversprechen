@@ -296,6 +296,7 @@ object Statement {
 		join author on author.id=author_id"""
 
 	val queryOrdering = " order by author.ordering ASC, category.ordering ASC, statement.id ASC"
+	
 	def all(): Map[Author, List[Statement]] = {
 		DB.withConnection({ implicit c =>
 			SQL(query+queryOrdering).as(stmt*)
@@ -307,7 +308,7 @@ object Statement {
 		join statement_tags on statement_tags.stmt_id=statement.id 
 		join tag on statement_tags.tag_id = tag.id
 		where LOWER(title) like {query} or LOWER(category.name) like {query} or LOWER(quote) like {query} or LOWER(tag.name) like {query}
-		group by statement.id""" + queryOrdering;
+		group by statement.id, category.id, author.id""" + queryOrdering;
 
 		val queryString = "%" + searchQuery.toLowerCase + "%"
 		DB.withConnection({ implicit c =>
