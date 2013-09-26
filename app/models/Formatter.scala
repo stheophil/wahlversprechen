@@ -47,7 +47,7 @@ object Formatter {
 	def disqus_shortname : String = Play.configuration.getString("disqus.shortname").get
 
 	def format(date: Date)(implicit lang: play.api.i18n.Lang) : String = {
-		new java.text.SimpleDateFormat("dd.MM.yy 'um' HH:mm", lang.toLocale).format(date)
+		new java.text.SimpleDateFormat("dd.MM.yy", lang.toLocale).format(date)
 	}
 
 	private object FilterHeadlineFromMarkdown extends Decorator {		
