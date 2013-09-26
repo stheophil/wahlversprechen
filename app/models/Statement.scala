@@ -288,16 +288,30 @@ object Statement {
 			} // Rating(rating) would throw java.util.NoSuchElementException
 	}
 
-	var query = """select statement.id, title, latestEntry, rating, statement.rated, merged_id, quote, quote_src, 
+	val query = """select statement.id, title, latestEntry, rating, statement.rated, merged_id, quote, quote_src, 
 		category.id, category.name, category.ordering,
 		author.id, author.name, author.ordering, author.rated, author.color, author.background
 		from statement 
 		join category on category.id=cat_id
 		join author on author.id=author_id"""
 
+	val queryOrdering = " order by author.ordering ASC, category.ordering ASC, statement.id ASC"
 	def all(): Map[Author, List[Statement]] = {
 		DB.withConnection({ implicit c =>
-			SQL(query+" order by author.ordering ASC, category.ordering ASC, statement.id ASC").as(stmt*)
+			SQL(query+queryOrdering).as(stmt*)
+		}).groupBy( _.author )
+	}
+
+	def find(searchQuery: String) : Map[Author, List[Statement]] =  {
+		val queryLike = query + """ 
+		join statement_tags on statement_tags.stmt_id=statement.id 
+		join tag on statement_tags.tag_id = tag.id
+		where LOWER(title) like {query} or LOWER(category.name) like {query} or LOWER(quote) like {query} or LOWER(tag.name) like {query}
+		group by statement.id""" + queryOrdering;
+
+		val queryString = "%" + searchQuery.toLowerCase + "%"
+		DB.withConnection({ implicit c =>
+			SQL(queryLike).on('query -> queryString).as(stmt*)
 		}).groupBy( _.author )
 	}
 

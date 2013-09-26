@@ -98,6 +98,11 @@ object Application extends Controller with Secured {
 		Ok(views.html.listByCategory("Alle Wahlversprechen nach Ressorts", mapstmtByAuthor, username(request) flatMap { User.load(_) }))
 	}
 
+	def search(query: String) = Action { implicit request => 
+		val mapstmtByAuthor = Statement.find(query)
+		Ok(views.html.listByCategory("Suchergebnisse", mapstmtByAuthor, username(request) flatMap { User.load(_) }))
+	}
+
 	// Entry page / entry editing  
 	val newEntryForm = Form(
 		tuple(

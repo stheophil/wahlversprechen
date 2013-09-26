@@ -6,6 +6,8 @@
 GET     /                           controllers.Application.index
 GET     /cached                     controllers.Application.indexCached
 
+GET     /search                     controllers.Application.search(query: String)
+
 GET		/aktuell					controllers.Application.recent
 GET		/top						controllers.Application.top
 GET		/alle						controllers.Application.all
