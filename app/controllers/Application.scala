@@ -40,41 +40,19 @@ object Application extends Controller with Secured {
 	def index = Action { implicit request =>
 		val optuser = user(request)
 
-		val optauthor = Author.loadRated
-		val opttag = Tag.load("10-Punkteprogramm")
-		(optauthor, opttag) match {
-			case (Some(author), Some(tag)) => {
-				val statistics = Statement.countRatings(author)
-				Ok(views.html.index(
-					statistics._1, statistics._2, 
-					Statement.byEntryDate(None, Some(5)), 
-					Statement.byTag(tag, None, Some(5)), 
-					optuser
-				))
-			}
-			case _ => 
-				Ok(views.html.index(1, Map.empty[Rating, Int], List.empty[Statement], List.empty[Statement], optuser))
-		}	
+		val statistics = ( Author.loadRated match {
+			case Some(author) => Statement.countRatings(author)
+			case None => (1, Map.empty[Rating, Int])
+		})
+
+		val stmtByTag = ( Tag.load("10-Punkteprogramm") match {
+			case Some(tag) => Statement.byTag(tag, None, Some(5))
+			case None => List.empty[Statement]
+		})
+
+		Ok(views.html.index(statistics._1, statistics._2, Statement.byEntryDate(None, Some(5)), stmtByTag, user(request)))
 	}
-
-	def indexCached = Cached("index") { Action { implicit request =>
-		val optauthor = Author.loadRated
-		val opttag = Tag.load("10-Punkteprogramm")
-		(optauthor, opttag) match {
-			case (Some(author), Some(tag)) => {
-				val statistics = Statement.countRatings(author)
-				Ok(views.html.index(
-					statistics._1, statistics._2, 
-					Statement.byEntryDate(None, Some(5)), 
-					Statement.byTag(tag, None, Some(5)), 
-					None
-				))
-			}
-			case _ => 
-				Ok(views.html.index(1, Map.empty[Rating, Int], List.empty[Statement], List.empty[Statement], None))
-		}	
-	} }
-
+	
 	def recent = Action { implicit request => 		
 		val mapstmtByAuthor = Statement.byEntryDate(None, None).groupBy(_.author)
 		Ok(views.html.list("Alle Wahlversprechen nach letzter Aktualisierung", mapstmtByAuthor, user(request)))

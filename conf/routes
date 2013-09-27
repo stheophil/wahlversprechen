@@ -4,7 +4,6 @@
 
 # Home page
 GET     /                           controllers.Application.index
-GET     /cached                     controllers.Application.indexCached
 
 GET     /search                     controllers.Application.search(query: String)
 
@@ -15,6 +14,8 @@ GET		/alle						controllers.Application.all
 # Detail page
 GET		/view/:id					controllers.SingleStatement.view(id: Long)
 POST 	/addEntry					controllers.SingleStatement.addEntry
+
+# Admin
 
 GET		/import						controllers.Admin.viewImportForm
 POST	/import						controllers.Admin.importStatements
