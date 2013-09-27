@@ -253,15 +253,24 @@ object Entry {
 }
 
 object Statement {
+	/* Invariants:
+		1. Statement with rated Author
+			always has rating and no merged_id
+		2. Statement with non-rated Author
+			may have either rating or merged_id
+			in case data is inconsistent, merged_id has precedence
+	*/
 	val stmt = {
 			get[Long]("statement.id") ~
 			get[String]("statement.title") ~
 			get[Option[String]]("statement.quote") ~
 			get[Option[String]]("statement.quote_src") ~
-			get[Option[Int]]("statement.rating") ~
-			get[Option[Long]]("statement.merged_id") ~
 			get[Option[Date]]("statement.latestEntry") ~
+			get[Option[Int]]("statement.rating") ~
 			get[Option[Date]]("statement.rated") ~
+			get[Option[Long]]("statement.merged_id") ~
+			get[Option[Int]]("merged_rating") ~
+			get[Option[Date]]("merged_rated") ~
 			get[Long]("author.id") ~
 			get[String]("author.name") ~
 			get[Long]("author.ordering") ~
@@ -271,7 +280,7 @@ object Statement {
 			get[Long]("category.id") ~
 			get[String]("category.name") ~
 			get[Long]("category.ordering")  map {
-				case id ~ title ~ quote ~ quote_src ~ rating ~ merged_id ~ latestEntry ~ rated ~
+				case id ~ title ~ quote ~ quote_src ~ latestEntry ~ rating ~ rated ~ merged_id  ~ merged_rating ~ merged_rated ~ 
 					author_id ~ author_name ~ author_order ~ author_rated ~ author_color ~ author_background ~ 
 				 	category_id ~ category_name ~ category_order => 
 				Statement(id, title, 
@@ -281,19 +290,21 @@ object Statement {
 					List[Entry](), 
 					latestEntry,
 					List[Tag](),
-					rating map { r => if (0 <= r && r < Rating.maxId) Rating(r) else Unrated },
-					rated,
+					(if(merged_id.isDefined) merged_rating else rating) map { r => if (0 <= r && r < Rating.maxId) Rating(r) else Unrated },
+					(if(merged_id.isDefined) merged_rated else rated),
 					merged_id
 				)
 			} // Rating(rating) would throw java.util.NoSuchElementException
 	}
 
-	val query = """select statement.id, title, latestEntry, rating, statement.rated, merged_id, quote, quote_src, 
+	val query = """SELECT statement.id, statement.title, statement.quote, statement.quote_src, statement.latestEntry, 
+		statement.rating, statement.rated, statement.merged_id, statement2.rating as merged_rating, statement2.rated as merged_rated,
 		category.id, category.name, category.ordering,
 		author.id, author.name, author.ordering, author.rated, author.color, author.background
 		from statement 
-		join category on category.id=cat_id
-		join author on author.id=author_id"""
+		join category on category.id=statement.cat_id
+		join author on author.id=statement.author_id
+		left join statement statement2 on statement2.id = statement.merged_id"""
 
 	val queryOrdering = " order by author.ordering ASC, category.ordering ASC, statement.id ASC"
 	
@@ -307,8 +318,9 @@ object Statement {
 		val queryLike = query + """ 
 		join statement_tags on statement_tags.stmt_id=statement.id 
 		join tag on statement_tags.tag_id = tag.id
-		where LOWER(title) like {query} or LOWER(category.name) like {query} or LOWER(quote) like {query} or LOWER(tag.name) like {query}
-		group by statement.id, category.id, author.id""" + queryOrdering;
+		where LOWER(statement.title) like {query} or LOWER(category.name) like {query} or LOWER(statement.quote) like {query} or 
+		LOWER(tag.name) like {query}
+		group by statement.id, category.id, author.id, statement2.id""" + queryOrdering;
 
 		val queryString = "%" + searchQuery.toLowerCase + "%"
 		DB.withConnection({ implicit c =>
@@ -317,15 +329,10 @@ object Statement {
 	}
 
 	def byEntryDate(oauthor: Option[Author], olimit: Option[Int]) : List[Statement] = {
-		val queryLatest = """select statement.id, title, latestEntry, rating, statement.rated, merged_id, quote, quote_src, 
-		category.id, category.name, category.ordering,
-		author.id, author.name, author.ordering, author.rated, author.color, author.background
-		from statement 
-		join category on category.id=cat_id
-		join author on author.id=author_id """ +
-		"where latestEntry IS NOT NULL "
+		val queryLatest = query +
+		" where statement.latestEntry IS NOT NULL "
 		(if(oauthor.isDefined) " and author.id = {author_id} " else "") +
-		"order by latestEntry DESC " +
+		"order by statement.latestEntry DESC " +
 		(if(olimit.isDefined) "limit {limit}" else "")
 
 		DB.withConnection({ implicit c =>			
