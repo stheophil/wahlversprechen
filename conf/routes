@@ -13,17 +13,16 @@ GET		/top						controllers.Application.top
 GET		/alle						controllers.Application.all
 
 # Detail page
-GET		/view/:id					controllers.Application.view(id: Long)
+GET		/view/:id					controllers.SingleStatement.view(id: Long)
+POST 	/addEntry					controllers.SingleStatement.addEntry
 
-GET		/import						controllers.Application.viewImportForm
-POST	/import						controllers.Application.importStatements
-
-POST 	/addEntry					controllers.Application.addEntry
+GET		/import						controllers.Admin.viewImportForm
+POST	/import						controllers.Admin.importStatements
 
 # Authentication
-GET     /login                              controllers.Application.login
-POST    /login                              controllers.Application.authenticate
-GET     /logout                             controllers.Application.logout
+GET     /login                      controllers.Application.login
+POST    /login                      controllers.Application.authenticate
+GET     /logout                     controllers.Application.logout
 
 # Load Test
 GET /loaderio-a8c18c9612671703651ea5e79d55623e/	controllers.Application.loader_io

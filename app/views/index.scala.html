@@ -3,7 +3,7 @@
  
 @main("Wahlversprechen", user){
 @flash.get("error").map { message =>
-    <div class="alert alert-error">
+    <div class="alert alert-danger">
         @message
     </div>
 }

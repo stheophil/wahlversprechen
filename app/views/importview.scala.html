@@ -1,18 +1,18 @@
 @(form: Form[(String,String)], user: User)(implicit flash: Flash)
 
 @main("Importiere Daten", Some(user)){
-    @helper.form(routes.Application.importStatements) {
+    @helper.form(routes.Admin.importStatements) {
         
         <h1>Importiere aus Google Spreadsheet</h1>
         
         @form.globalError.map { error =>
-            <div class="alert alert-error">
+            <div class="alert alert-danger">
                 @error.message
             </div>
         }
 
         @flash.get("error").map { message =>
-            <div class="alert alert-error">
+            <div class="alert alert-danger">
                 @message
             </div>
         }
