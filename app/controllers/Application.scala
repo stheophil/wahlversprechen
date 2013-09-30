@@ -71,6 +71,14 @@ object Application extends Controller with Secured {
 		Ok(views.html.listByCategory("Alle Wahlversprechen nach Ressorts", mapstmtByAuthor, user(request)))
 	}
 
+	def tag(tag: String) = Action { implicit request =>
+		val mapstmtByAuthor = (Tag.load(tag) match {
+			case Some(tag) => Statement.byTag(tag, None, None)
+			case None => List.empty[Statement]
+		}).groupBy(_.author)
+		Ok(views.html.list("Wahlversprechen mit Tag '"+tag+"'", mapstmtByAuthor, user(request)))		
+	}
+
 	def search(query: String) = Action { implicit request => 
 		val mapstmtByAuthor = Statement.find(query)
 		Ok(views.html.listByCategory("Suchergebnisse", mapstmtByAuthor, user(request) ))

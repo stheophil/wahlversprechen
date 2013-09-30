@@ -9,7 +9,7 @@ import play.api.mvc._
 
 import views._
 
-object SingleStatement extends Controller with Secured {
+object DetailViewController extends Controller with Secured {
 	// Entry page / entry editing  
 	val newEntryForm = Form(
 		tuple(
@@ -48,7 +48,7 @@ object SingleStatement extends Controller with Secured {
 			},
 			{ case (content, stmt_id) => {
 				Entry.create(stmt_id, content, new java.util.Date(), user.id)
-				Redirect(routes.SingleStatement.view(stmt_id))
+				Redirect(routes.DetailViewController.view(stmt_id))
 			}}
 		)
 	}	

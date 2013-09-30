@@ -71,6 +71,12 @@ h2 a { color: #515295; }
 	margin-bottom: 10px;		
 }
 
+.nav-list li a {
+	position: inherit;
+	display: inline;
+	padding: inherit;
+}
+
 @media (max-width: 991px) {
 	.nav-list li {		
 		display: inline-block;

@@ -10,10 +10,11 @@ GET     /search                     controllers.Application.search(query: String
 GET		/aktuell					controllers.Application.recent
 GET		/top						controllers.Application.top
 GET		/alle						controllers.Application.all
+GET		/tag/:tag					controllers.Application.tag(tag: String)
 
 # Detail page
-GET		/view/:id					controllers.SingleStatement.view(id: Long)
-POST 	/addEntry					controllers.SingleStatement.addEntry
+GET		/view/:id					controllers.DetailViewController.view(id: Long)
+POST 	/addEntry					controllers.DetailViewController.addEntry
 
 # Admin
 
