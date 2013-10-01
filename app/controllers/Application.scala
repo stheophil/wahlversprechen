@@ -45,12 +45,9 @@ object Application extends Controller with Secured {
 			case None => (1, Map.empty[Rating, Int])
 		})
 
-		val stmtByTag = ( Tag.load("10-Punkteprogramm") match {
-			case Some(tag) => Statement.byTag(tag, None, Some(5))
-			case None => List.empty[Statement]
-		})
-
-		Ok(views.html.index(statistics._1, statistics._2, Statement.byEntryDate(None, Some(5)), stmtByTag, user(request)))
+		// TODO: Use first author again
+		// TODO: Define important tags in database
+		Ok(views.html.index(statistics._1, statistics._2, Statement.byEntryDate(None, Some(5)), Statement.byTag("10-Punkteprogramm", None, Some(5)), user(request)))
 	}
 	
 	def recent = Action { implicit request => 		
@@ -59,24 +56,29 @@ object Application extends Controller with Secured {
 	}
 
 	def top = Action { implicit request =>  
-		val mapstmtByAuthor = (Tag.load("10-Punkteprogramm") match {
-			case Some(tag) => Statement.byTag(tag, None, None)
-			case None => List.empty[Statement]
-		}).groupBy(_.author)
-		Ok(views.html.listByCategory("Die wichtigsten Wahlversprechen nach Ressorts", mapstmtByAuthor, user(request)))
+		// TODO: Define important tags in database
+		Ok(views.html.listByCategory("Die wichtigsten Wahlversprechen nach Ressorts", Statement.byTag("10-Punkteprogramm", None, None).groupBy(_.author), user(request)))
 	}
 
 	def all = Action { implicit request => 
-		val mapstmtByAuthor = Statement.all()
-		Ok(views.html.listByCategory("Alle Wahlversprechen nach Ressorts", mapstmtByAuthor, user(request)))
+		Ok(views.html.listByCategory("Alle Wahlversprechen nach Ressorts", Statement.all(), user(request)))
 	}
 
 	def tag(tag: String) = Action { implicit request =>
-		val mapstmtByAuthor = (Tag.load(tag) match {
-			case Some(tag) => Statement.byTag(tag, None, None)
-			case None => List.empty[Statement]
-		}).groupBy(_.author)
-		Ok(views.html.list("Wahlversprechen mit Tag '"+tag+"'", mapstmtByAuthor, user(request)))		
+		Ok(views.html.list("Wahlversprechen mit Tag '"+tag+"'", Statement.byTag(tag, None, None).groupBy(_.author), user(request)))		
+	}
+
+	def category(category: String) = Action { implicit request => 
+		Ok(views.html.list("Wahlversprechen aus dem Ressort '"+category+"'", Statement.byCategory(category, None, None).groupBy(_.author), user(request)))		
+	}
+
+	def rating(ratingId: Int) = Action { implicit request => 
+		if(0<= ratingId && ratingId < Rating.maxId ) {
+			val rating = Rating(ratingId)
+			Ok(views.html.listByCategory("Wahlversprechen mit Bewertung '"+Formatter.name(rating)+"'", Statement.byRating(rating, None, None).groupBy(_.author), user(request)))		
+		} else {
+			NotFound
+		}
 	}
 
 	def search(query: String) = Action { implicit request => 

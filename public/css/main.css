@@ -7,6 +7,15 @@ h1 {
 h2 { color: #515295; }
 h2 a { color: #515295; }
 
+small a {
+	color: inherit;
+}
+
+small a:hover {
+	color: inherit;
+	text-decoration: underline;
+}
+
 .page-header {
 	margin-top: 0px;	
 }

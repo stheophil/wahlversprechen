@@ -11,7 +11,7 @@
     <div class="item-list-content">
       <h4><a href="/view/@stmt.id">@(stmt.title)</a></h4>
       <div>
-        <small class="pull-left">@stmt.category.name</small> 
+        <small class="pull-left"><a href="/category/@stmt.category.name">@stmt.category.name</a></small> 
         <small class="pull-left" style="margin-left:15px">
           <a class="comment-count" data-disqus-identifier="@(stmt.id)" href="/view/@(stmt.id)#disqus_thread"></a>&nbsp;<a href="/view/@(stmt.id)"><span class="glyphicon glyphicon-comment"></span></a>
         </small> 
