@@ -347,15 +347,14 @@ object Statement {
 	def byTag(tag: String, oauthor: Option[Author], olimit: Option[Int]) : List[Statement] = {
 		val queryWithTag = query + 
 			" join statement_tags on statement_tags.stmt_id = statement.id " +
-			" join tag on statement_tags.tag_id = tag.id "
-			" where tag.name = {tag_name} " +
-			(if(oauthor.isDefined) "and author.id = {author_id} " else "") +
-			"order by category.ordering ASC, statement.id ASC " +
+			" join tag on statement_tags.tag_id = tag.id and tag.name = {tagname} " +
+			(if(oauthor.isDefined) "where author.id = {author_id} " else "") +
+			" order by category.ordering ASC, statement.id ASC " +
 			(if(olimit.isDefined) "limit {limit}" else "")
 
 		DB.withConnection({ implicit c =>
 			var params = collection.mutable.ListBuffer[(Any, anorm.ParameterValue[_])]()
-			params += ('tag_name -> tag)
+			params += ('tagname -> tag)
 			if(olimit.isDefined)  params += ('limit -> olimit.get)
 			if(oauthor.isDefined) params += ('author_id -> oauthor.get.id)			
 
