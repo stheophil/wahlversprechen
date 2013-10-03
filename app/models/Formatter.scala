@@ -12,11 +12,11 @@ object Formatter {
 
 	def glyph(rating: Rating) : String = {
 		rating match {
-			case PromiseKept => "glyph-icon-thumbs-up"
-			case Compromise => "glyph-icon-adjust"
-			case PromiseBroken => "glyph-icon-thumbs-down"
-			case Stalled => "glyph-icon-time"
-			case InTheWorks => "glyph-icon-cog"
+			case PromiseKept => "glyphicon-thumbs-up"
+			case Compromise => "glyphicon-adjust"
+			case PromiseBroken => "glyphicon-thumbs-down"
+			case Stalled => "glyphicon-time"
+			case InTheWorks => "glyphicon-cog"
 			case Unrated => "glyphicon-question-sign"
 		}
 	}

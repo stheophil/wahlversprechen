@@ -16,6 +16,11 @@ object DetailViewController extends Controller with Secured {
 			"content" -> text.verifying("Kein Text eingegeben", c => !c.isEmpty),
 			"stmt_id" -> number.verifying(id => Statement.load(id).isDefined)))
 
+	val ratingForm = Form(
+		tuple(
+			"rating" -> number,
+			"stmt_id" -> number.verifying(id => Statement.load(id).isDefined)))
+
 	def view(id: Long) = Action { implicit request =>
 		internalView(id, newEntryForm, user(request))
 	}
@@ -48,6 +53,24 @@ object DetailViewController extends Controller with Secured {
 			},
 			{ case (content, stmt_id) => {
 				Entry.create(stmt_id, content, new java.util.Date(), user.id)
+				Redirect(routes.DetailViewController.view(stmt_id))
+			}}
+		)
+	}	
+
+	def setRating = IsEditor { user => implicit request =>
+		ratingForm.bindFromRequest.fold(
+			formWithErrors => {
+				formWithErrors.error("stmt_id") match {
+					case Some(e) => Redirect(routes.Application.index).flashing("error" -> "Ungültige Anfrage")
+					case None => {
+						val stmt_id = ratingForm("stmt_id").value.get
+						internalView(Integer.parseInt(stmt_id), newEntryForm, Some(user))
+					}
+				}
+			},
+			{ case (rating, stmt_id) => {
+				Statement.rate(stmt_id, rating, new java.util.Date())
 				Redirect(routes.DetailViewController.view(stmt_id))
 			}}
 		)

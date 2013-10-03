@@ -463,4 +463,15 @@ object Statement {
 
 		Statement(id, title, author, cat, quote, quote_src, List[Entry](), None, List[Tag](), rating, rated, merged_id)
 	}
+
+	def rate(stmt_id: Int, rating: Int, date: Date) {
+		// TODO rating not in models.Rating -> erase rating, assert author is not rated
+		DB.withConnection { implicit c => 
+			SQL("update statement set rating = {rating}, rated = {rated} where id = {stmt_id}").
+				on('rating -> (if(0<=rating && rating<models.Rating.maxId) { Some(rating) } else { None }),
+					'rated -> date,
+					'stmt_id -> stmt_id 
+				).executeUpdate
+		}
+	}
 }

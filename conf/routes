@@ -17,6 +17,7 @@ GET		/rating/:rating				controllers.Application.rating(rating: Int)
 # Detail page
 GET		/view/:id					controllers.DetailViewController.view(id: Long)
 POST 	/addEntry					controllers.DetailViewController.addEntry
+POST 	/setRating					controllers.DetailViewController.setRating
 
 # Admin
 
