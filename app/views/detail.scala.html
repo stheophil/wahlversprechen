@@ -9,29 +9,29 @@
         <div>
           <span class="rating-row pull-left">
 
-	        <h2 style="color: @if(stmt.rating.isDefined) { Formatter.color(stmt.rating.get) }; margin: 0px">
+	        <h2 style="color: @if(stmt.rating.isDefined) { @Formatter.color(stmt.rating.get) }; margin: 0px">
           	@if(stmt.rating.isDefined) {
-	            <span class="glyphicon @Formatter.glyph(stmt.rating.get)"></span>&nbsp;@Formatter.name(stmt.rating.get)
-	            &nbsp;
-		        <form action="/setRating" method="POST" class="form-inline" style="display: inline-block">
-		        	<div class="form-group">
-					    <label for="rating" class="sr-only">Bewerte dieses Wahlversprechen:</label>
-					    <select id="rating" name="rating" class="form-control">
-					    	@if(!stmt.author.rated) {
-					    		<option value="-1" @if(!stmt.rating.isDefined) { "selected" }>Keine Bewertung</option> 
-					    	}
-					    	@for(rating <- 0 until models.Rating.maxId) {
-							  <option value="@rating" 
-							  	@if(stmt.rating.isDefined && stmt.rating.get.id==rating) { "selected" }
-							  >@Formatter.name(models.Rating(rating))</option> 
-							}
-						</select>
-					</div>				
-					<input type="hidden" name="stmt_id" value='@stmt.id' >
-					<button type="submit" class="btn">Aktualisieren</button>
-				</form>
-	
+	            <span class="glyphicon @Formatter.glyph(stmt.rating.get)"></span>&nbsp;@Formatter.name(stmt.rating.get)	            
 	        }
+	        &nbsp;
+	        <form action="/setRating" method="POST" class="form-inline" style="display: inline-block">
+	        	<div class="form-group">
+				    <label for="rating" class="sr-only">Bewerte dieses Wahlversprechen:</label>
+				    <select id="rating" name="rating" class="form-control">
+				    	@if(!stmt.author.rated) {
+				    		<option value="-1" @if(!stmt.rating.isDefined) { "selected" }>Keine Bewertung</option> 
+				    	}
+				    	@for(rating <- 0 until models.Rating.maxId) {
+						  <option value="@rating" 
+						  	@if(stmt.rating.isDefined && stmt.rating.get.id==rating) { "selected" }
+						  >@Formatter.name(models.Rating(rating))</option> 
+						}
+					</select>
+				</div>				
+				<input type="hidden" name="stmt_id" value='@stmt.id' >
+				<button type="submit" class="btn">Aktualisieren</button>
+			</form>
+
 	        </h2>
 	        
           </span>
