@@ -16,6 +16,10 @@ small a:hover {
 	text-decoration: underline;
 }
 
+.alert a {
+	text-decoration: underline;	
+}
+
 .page-header {
 	margin-top: 0px;	
 }

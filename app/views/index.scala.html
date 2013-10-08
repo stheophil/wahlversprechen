@@ -2,6 +2,11 @@
 @import models.Rating._
  
 @main("Wahlversprechen", user){
+
+<div class="alert alert-info">
+    Hier sieht es noch recht leer aus und bis ein Koalitionsvertrag steht, wird das auch so bleiben. Nur die <a href="/alle">Wahlversprechen der CDU</a> sind bereits vollständig online. Bis dahin schreiben wir unter <a href="blog.wahlversprechen2013.de">blog.wahlversprechen2013.de</a> wie dieses Projekt entstand und wie es die nächsten Jahre funktionieren soll. 
+</div>
+
 @flash.get("error").map { message =>
     <div class="alert alert-danger">
         @message
