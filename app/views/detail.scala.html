@@ -23,7 +23,7 @@
 				    	}
 				    	@for(rating <- 0 until models.Rating.maxId) {
 						  <option value="@rating" 
-						  	@if(stmt.rating.isDefined && stmt.rating.get.id==rating) { "selected" }
+						  	@if(stmt.rating.isDefined && stmt.rating.get.id==rating) { selected }
 						  >@Formatter.name(models.Rating(rating))</option> 
 						}
 					</select>

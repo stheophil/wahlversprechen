@@ -17,6 +17,34 @@ import scala.collection.JavaConversions._
 import views._
 
 object Admin extends Controller with Secured {
+	val editUserForm = Form(
+		tuple(
+			"id" -> number,
+			"email" -> text,
+			"name" -> text,
+			"password" -> optional(text), 
+			"admin_email" -> text,
+			"admin_password" -> optional(text)
+		) verifying ("Ungültige Administrator E-Mail oder falsches Passwort", result => result match {
+				case (_, _, _, password, admin_email, admin_password) => {
+					!password.isDefined || 
+					User.authenticate(admin_email, admin_password.getOrElse("")).map(_.role == Role.Admin).getOrElse(false)
+				}
+		}))
+
+	def prefs = IsAdmin { user => implicit request => 
+		Ok(html.adminPrefs( User.findAll(), editUserForm, user ))
+	}
+
+	def editUser = IsAdmin { user => implicit request => 
+		editUserForm.bindFromRequest.fold(
+			formWithErrors => BadRequest(html.adminPrefs( User.findAll(), formWithErrors, user)),
+			{ case (id, email, name, password, _, _) => {
+				User.edit(id, email, name, password, None) 
+				Redirect(routes.Admin.prefs.url + "#users").flashing("user_success" -> {"Änderungen an Nutzer "+name+" erfolgreich gespeichert"})
+			} }
+		) // bindFromRequest
+	}
 
 	val importForm = Form(
 		tuple(

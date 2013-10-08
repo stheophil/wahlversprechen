@@ -40,17 +40,19 @@ object DetailViewController extends Controller with Secured {
 		}
 	}
 
+	private def onFormWithErrors(strError: Option[FormError], strStmtId: Field, form: Form[(String, Int)], user: User)(implicit request: Request[AnyContent]) : play.api.mvc.Result = { 
+		strError match {
+			case Some(e) => Redirect(routes.Application.index).flashing("error" -> "Ungültige Anfrage")
+			case None => {
+				val stmt_id = strStmtId.value.get
+				internalView(Integer.parseInt(stmt_id), form, Some(user))
+			}
+		}
+	}
+
 	def addEntry = IsEditor { user => implicit request =>
 		newEntryForm.bindFromRequest.fold(
-			formWithErrors => {
-				formWithErrors.error("stmt_id") match {
-					case Some(e) => Redirect(routes.Application.index).flashing("error" -> "Ungültige Anfrage")
-					case None => {
-						val stmt_id = formWithErrors("stmt_id").value.get
-						internalView(Integer.parseInt(stmt_id), formWithErrors, Some(user))
-					}
-				}
-			},
+			formWithErrors => onFormWithErrors(formWithErrors.error("stmt_id"), formWithErrors("stmt_id"), formWithErrors, user),
 			{ case (content, stmt_id) => {
 				Entry.create(stmt_id, content, new java.util.Date(), user.id)
 				Redirect(routes.DetailViewController.view(stmt_id))
@@ -60,19 +62,18 @@ object DetailViewController extends Controller with Secured {
 
 	def setRating = IsEditor { user => implicit request =>
 		ratingForm.bindFromRequest.fold(
-			formWithErrors => {
-				formWithErrors.error("stmt_id") match {
-					case Some(e) => Redirect(routes.Application.index).flashing("error" -> "Ungültige Anfrage")
-					case None => {
-						val stmt_id = ratingForm("stmt_id").value.get
-						internalView(Integer.parseInt(stmt_id), newEntryForm, Some(user))
-					}
-				}
-			},
+			formWithErrors => onFormWithErrors(formWithErrors.error("stmt_id"), formWithErrors("stmt_id"), newEntryForm, user),
 			{ case (rating, stmt_id) => {
 				Statement.rate(stmt_id, rating, new java.util.Date())
 				Redirect(routes.DetailViewController.view(stmt_id))
 			}}
 		)
-	}	
+	}
+
+	def rawEntry(id: Long) = Action { implicit request =>
+		Entry.contentAsMarkdown(id) match {
+			case Some(content) => Ok(content)
+			case None => NotFound
+		}
+	}
 }

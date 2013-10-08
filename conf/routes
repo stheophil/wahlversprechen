@@ -21,8 +21,11 @@ POST 	/setRating					controllers.DetailViewController.setRating
 
 # Admin
 
-GET		/import						controllers.Admin.viewImportForm
-POST	/import						controllers.Admin.importStatements
+GET		/admin/import				controllers.Admin.viewImportForm
+POST	/admin/import				controllers.Admin.importStatements
+
+GET 	/admin/prefs				controllers.Admin.prefs
+POST 	/admin/editUser				controllers.Admin.editUser
 
 # Authentication
 GET     /login                      controllers.Application.login

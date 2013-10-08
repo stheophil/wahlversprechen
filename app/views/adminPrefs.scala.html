@@ -1,0 +1,97 @@
+@(users: List[User], formEditUser: Form[(Int, String,String, Option[String], String, Option[String])], user: User)(implicit flash: Flash)
+
+@main("Administrator Einstellungen", Some(user)){
+    <a name="users" id="users">
+
+    @formEditUser.globalError.map { error =>
+        <div class="alert alert-danger">
+            @error.message
+        </div>
+    }
+    
+    @flash.get("user_success").map { message =>
+        <div class="alert alert-success">
+            @message
+        </div>
+    }
+    
+    <table class="table table-hover">
+    <tr>
+        <th>Name</th><th>E-Mail</th><th>Rolle</th><th></th>
+    </tr>
+    @for(u <- users) {
+    <tr>
+        <td>@u.name</td><td>@u.email</td>
+        <td>
+        @{u.role match {
+            case Role.Admin => <span class="label label-success">Admin</span>
+            case Role.Editor => <span class="label label-warning">Editor</span>
+            case _ => <span class="label label-default">Unprivilegiert</span>
+        }
+        }
+        </td>
+        <td>
+            <a data-toggle="modal" href="#edit@(u.id)" href="#"><span class="glyphicon glyphicon-edit"></span></a>
+            <a href="#"><span class="glyphicon glyphicon-remove"></span></a>
+        </td>
+    </tr>
+    }
+
+    @for(u <- users) {
+      <!-- Edit Modal -->
+      <div class="modal fade" id="edit@(u.id)" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h4 class="modal-title">Bearbeite Nutzer "@u.name"</h4>
+            </div>
+            <div class="modal-body">
+                <form role="form" action="/admin/editUser#users" method="post" id="form_edit@(u.id)">
+                   <input type="hidden" id="id" name="id" value="@u.id">
+                   <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" class="form-control" id="name" name="name" value="@u.name">
+                  </div>
+                  <div class="form-group">
+                    <label for="email">E-Mail Addresse</label>
+                    <input type="email" class="form-control" id="email" name="email" value="@u.email">
+                  </div>
+                  <div class="form-group">
+                    <label for="role">Rolle</label>
+                    <select id="role" name="role" class="form-control" 
+                        "@if(u.id==user.id) { disabled }"
+                    >
+                        @for(role <- 0 until models.Role.maxId) {
+                          <option value="@role" @if(u.role.id==role) { selected }>
+                            @{models.Role(role) match {
+                                case Role.Admin => "Admin"
+                                case Role.Editor => "Editor"
+                                case Role.Unprivileged => "Unprivilegiert"
+                            } }
+                          </option> 
+                        }
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="email">Passwort</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Neues Passwort">
+                  </div>
+                  <input type="hidden" id="admin_name" name="admin_email" value="@user.email">
+                  <p><em>Wenn Sie das Passwort ändern möchten, geben Sie das Administrator Passwort noch einmal ein:</em></p>
+                  <div class="form-group">
+                    <input type="password" class="form-control" id="admin_password" name="admin_password" placeholder="Administrator Passwort">
+                  </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Abbrechen</button>
+              <button type="submit" form="form_edit@(u.id)" class="btn btn-primary">Speichern</button>
+            </div>
+          </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+      </div><!-- /.modal -->
+    }
+
+    </table>
+}

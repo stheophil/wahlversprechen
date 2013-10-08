@@ -184,7 +184,7 @@ object User {
 
 	def findAll(): List[User] = {
 		DB.withConnection { implicit c =>
-			SQL("select * from users").as(user*)
+			SQL("select * from users order by id DESC").as(user*)
 		}
 	}
 
@@ -210,6 +210,33 @@ object User {
 		}
 	}
 
+	def edit(id: Long, email: String, name: String, password: Option[String], role: Option[Role]) {
+		DB.withConnection { implicit c =>
+			var query = "update users set email = {email}, name = {name}"
+			var params = collection.mutable.ListBuffer[(Any, anorm.ParameterValue[_])]()
+			params += ('email -> email)
+			params += ('name -> name)
+
+			if(password.isDefined) {
+				query += ", salt = {salt}, password = {password}"
+				val salt = (for (i <- 1 to 20) yield util.Random.nextPrintableChar).mkString
+				val hash = passwordhash(salt, password.get)
+
+				params += ('salt -> salt)
+				params += ('password -> hash)
+			}
+
+			if(role.isDefined) {
+				query += ", role = {role}"
+				params += ('role -> role.get)
+			}
+			query += " where id = {id}"
+			params += ('id -> id)
+
+			SQL(query).on(params:_*).executeUpdate
+		}
+	}
+
 	def authenticate(email: String, password: String): Option[User] = {
 		DB.withConnection { implicit connection =>
 			User.load(email) filter (u => u.password == passwordhash(u.salt, password))
@@ -232,6 +259,37 @@ object Entry {
 		DB.withConnection { implicit c =>
 			SQL("select * from entry where stmt_id = {stmt_id} ORDER by date DESC").on('stmt_id -> stmt_id).as(entry*)
 		}
+	}
+
+	def contentAsMarkdown(id: Long) : Option[String] = {
+		DB.withConnection { implicit c => 
+			SQL("select content from entry where id = {id}").on('id -> id).as(scalar[String].singleOpt)
+		}
+	}
+
+	def edit(stmt_id: Long, id: Long, content: String, date: Date, user_id: Long) {
+		DB.withTransaction { implicit c =>
+			SQL("update entry set content = {content}, date = {date}, user_id = {user_id} where id = {id}").on(
+				'content -> content,
+				'date -> date,
+				'user_id -> user_id,
+				'id -> id).executeUpdate()
+
+         	SQL("update statement set latestEntry = {date} where id = {stmt_id}").on(					
+					'date -> date,
+					'stmt_id -> stmt_id).executeUpdate()
+		}
+	}
+
+	def delete(stmt_id: Long, id: Long) {
+		DB.withTransaction { implicit c =>
+			SQL("delete entry where id = {id} and stmt_id = {stmt_id}").on('id -> id, 'stmt_id -> stmt_id).executeUpdate()
+
+			val latest = SQL("select MAX(date) from entry where stmt_id = {stmt_id}").on('stmt_id -> stmt_id).as(scalar[Date].singleOpt)
+         	SQL("update statement set latestEntry = {date} where id = {stmt_id}").on(					
+					'date -> latest,
+					'stmt_id -> stmt_id).executeUpdate()
+		}	
 	}
 
 	def create(stmt_id: Long, content: String, date: Date, user_id: Long) {
