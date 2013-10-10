@@ -48,6 +48,8 @@ object Formatter {
 	def mail : String = Play.configuration.getString("mail").get
 	def disqus_shortname : String = Play.configuration.getString("disqus.shortname").get
 
+	def encode(url: String) = java.net.URLEncoder.encode(url, "UTF-8")
+
 	def format(date: Date)(implicit lang: play.api.i18n.Lang) : String = {
 		new java.text.SimpleDateFormat("dd.MM.yy", lang.toLocale).format(date)
 	}
