@@ -13,6 +13,7 @@
 	            <span class="glyphicon @Formatter.glyph(stmt.rating.get)"></span>&nbsp;@Formatter.name(stmt.rating.get)	            
 	        }
 	        &nbsp;
+	        @if(user.isDefined && (user.get.role==Role.Editor || user.get.role==Role.Admin)) {
 	        <form action="/setRating" method="POST" class="form-inline" style="display: inline-block">
 	        	<div class="form-group">
 				    <label for="rating" class="sr-only">Bewerte dieses Wahlversprechen:</label>
@@ -30,7 +31,7 @@
 				<input type="hidden" name="stmt_id" value='@stmt.id' >
 				<button type="submit" class="btn">Aktualisieren</button>
 			</form>
-
+			}
 	        </h2>
 	        
           </span>
