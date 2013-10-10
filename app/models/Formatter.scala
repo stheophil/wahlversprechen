@@ -78,6 +78,21 @@ object Formatter {
 		Html(markdownToHTMLWithoutHeadlines(markdown))
 	}
 
+	def transformFirstLineToHTML(markdown: String) : Html = {
+		def FindFirstLine( it: Iterator[String] ) : String = {
+			if(it.hasNext) {
+				val line = it.next
+				line.find(_.isLetterOrDigit) match {
+					case Some(c) => line
+					case None => FindFirstLine(it)
+				}
+			} else {
+				""
+			}
+		}
+		Html(markdownToHTML(FindFirstLine(markdown.lines)))
+	}
+
 	def transformToHTML(markdown: String) : Html = {
 		Html(markdownToHTML(markdown))
 	}

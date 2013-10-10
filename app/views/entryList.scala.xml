@@ -1,0 +1,25 @@
+@(stmt: Statement, entries: List[Entry])
+
+<?xml version="1.0"?>
+<rss version="2.0">
+   <channel>
+      <title>Wahlversprechen 2013: "@stmt.title"</title>
+      <link>http://@Formatter.url/view/@stmt.id</link>
+      <description></description>
+      <language>de-DE</language>
+      <pubDate>@{new java.util.Date().toString()}</pubDate>
+      <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+      <generator>Generated using Play Framework 2.1</generator>
+      <managingEditor>mail@@@Formatter.url</managingEditor>
+      <webMaster>mail@@@Formatter.url</webMaster>
+      @for(entry <- entries) {
+         <item>
+            <title>@{Xml( Formatter.transformFirstLineToHTML(entry.content).body )}</title>
+            <link>http://@Formatter.url/view/@stmt.id#@entry.id</link>
+            <description>@{Xml( Formatter.transformToHTML(entry.content).body )}</description>
+            <pubDate>@entry.date.toString</pubDate>
+            <guid>http://@Formatter.url/view/@stmt.id#@entry.id</guid>
+         </item>
+      }
+   </channel>
+</rss>

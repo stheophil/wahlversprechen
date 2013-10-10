@@ -25,6 +25,13 @@ object DetailViewController extends Controller with Secured {
 		internalView(id, newEntryForm, user(request))
 	}
 
+	def viewAsFeed(id: Long) = Action { implicit request =>
+		Statement.load(id) match {
+			case Some(stmt) => Ok(views.xml.entryList(stmt, Entry.loadByStatement(id)))
+			case None => NotFound
+		}		
+	}
+
 	private def internalView(id: Long, form: Form[(String, Int)], user: Option[User])(implicit request: Request[AnyContent]) : play.api.mvc.Result = { 
 		val liststmt = Statement.loadAll(id)
 		liststmt.find(_.id == id) match {
