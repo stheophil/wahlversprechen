@@ -37,7 +37,7 @@ object Application extends Controller with Secured {
 	}
 
 	// Index page
-	def index = Action { implicit request =>
+	def index = CachedAction("index") { implicit request =>
 		val optuser = user(request)
 
 		val statistics = ( Author.loadRated match {
@@ -50,29 +50,29 @@ object Application extends Controller with Secured {
 		Ok(views.html.index(statistics._1, statistics._2, Statement.byEntryDate(None, Some(5)), Statement.byTag("10-Punkteprogramm", None, Some(5)), user(request)))
 	}
 	
-	def recent = Action { implicit request => 		
+	def recent = CachedAction("recent") { implicit request => 		
 		val mapstmtByAuthor = Statement.byEntryDate(None, None).groupBy(_.author)
 		Ok(views.html.list("Alle Wahlversprechen nach letzter Aktualisierung", mapstmtByAuthor, user(request)))
 	}
 
-	def top = Action { implicit request =>  
+	def top = CachedAction("top") { implicit request =>  
 		// TODO: Define important tags in database
 		Ok(views.html.listByCategory("Die wichtigsten Wahlversprechen nach Ressorts", Statement.byTag("10-Punkteprogramm", None, None).groupBy(_.author), user(request)))
 	}
 
-	def all = Action { implicit request => 
+	def all = CachedAction("all") { implicit request => 
 		Ok(views.html.listByCategory("Alle Wahlversprechen nach Ressorts", Statement.all(), user(request)))
 	}
 
-	def tag(tag: String) = Action { implicit request =>
+	def tag(tag: String) = CachedAction("tag." + tag) { implicit request =>
 		Ok(views.html.list("Wahlversprechen mit Tag '"+tag+"'", Statement.byTag(tag, None, None).groupBy(_.author), user(request)))		
 	}
 
-	def category(category: String) = Action { implicit request => 
+	def category(category: String) = CachedAction("category."+category) { implicit request => 
 		Ok(views.html.list("Wahlversprechen aus dem Ressort '"+category+"'", Statement.byCategory(category, None, None).groupBy(_.author), user(request)))		
 	}
 
-	def rating(ratingId: Int) = Action { implicit request => 
+	def rating(ratingId: Int) = CachedAction("rating."+ratingId) { implicit request => 
 		if(0<= ratingId && ratingId < Rating.maxId ) {
 			val rating = Rating(ratingId)
 			Ok(views.html.listByCategory("Wahlversprechen mit Bewertung '"+Formatter.name(rating)+"'", Statement.byRating(rating, None, None).groupBy(_.author), user(request)))		
@@ -81,12 +81,12 @@ object Application extends Controller with Secured {
 		}
 	}
 
-	def search(query: String) = Action { implicit request => 
+	def search(query: String) = CachedAction("search."+query) { implicit request => 
 		val mapstmtByAuthor = Statement.find(query)
 		Ok(views.html.listByCategory("Suchergebnisse", mapstmtByAuthor, user(request) ))
 	}
 
-	def updatesAsFeed = Action { implicit request =>
+	def updatesAsFeed = CachedAction("updatesAsFeed", 60 * 60 ) { implicit request =>
 		Ok(views.xml.entryList("wahlversprechen2013.de: Alle Aktualisierungen", routes.Application.recent.url, Entry.loadRecent(10)))			
 	}
 	
@@ -139,4 +139,22 @@ trait Secured {
 			Results.Redirect("https://"+request.host + request.uri);
 		}
 	}
+
+	def CachedAction(key: String, duration: Int = 60 * 10)(f: Request[AnyContent] => Result): Action[AnyContent] = {
+	  Action { request =>
+	    username(request) match {
+	    	case Some(user) => {
+	    		Logger.debug("Uncached request. Key = " + key)
+	    		f(request)
+	    	}
+	    	case None => {
+	    		Logger.debug("Cached request. Key = " + key);
+	    		Cache.getOrElse( key, duration ) { 
+	    			Logger.debug("Added request to cache. Key = " + key);
+	    			f(request) 
+	    		}
+	    	}
+	    }
+	  }
+}
 }

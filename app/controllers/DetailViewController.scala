@@ -21,11 +21,11 @@ object DetailViewController extends Controller with Secured {
 			"rating" -> number,
 			"stmt_id" -> number.verifying(id => Statement.load(id).isDefined)))
 
-	def view(id: Long) = Action { implicit request =>
+	def view(id: Long) = CachedAction("view."+id) { implicit request =>
 		internalView(id, newEntryForm, user(request))
 	}
 
-	def viewAsFeed(id: Long) = Action { implicit request =>
+	def viewAsFeed(id: Long) = CachedAction("viewAsFeed."+id, 60 * 60) { implicit request =>
 		Statement.load(id) match {
 			case Some(stmt) => 
 				Ok(views.xml.entryList("Wahlversprechen 2013: " + stmt.title, "http://"+Formatter.url+"/view/"+id, Entry.loadByStatement(id).take(10)))			
