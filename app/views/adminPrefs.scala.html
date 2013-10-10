@@ -1,7 +1,7 @@
 @(users: List[User], formEditUser: Form[(Int, String,String, Option[String], String, Option[String])], user: User)(implicit flash: Flash)
 
 @main("Administrator Einstellungen", Some(user)){
-    <a name="users" id="users">
+    <a name="users" id="users"></a>
 
     @formEditUser.globalError.map { error =>
         <div class="alert alert-danger">

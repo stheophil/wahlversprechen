@@ -261,6 +261,12 @@ object Entry {
 		}
 	}
 
+	def loadRecent(limit: Long): List[Entry] = {
+		DB.withConnection { implicit c =>
+			SQL("select * from entry ORDER by date DESC limit {limit}").on('limit -> limit).as(entry*)
+		}
+	}
+
 	def contentAsMarkdown(id: Long) : Option[String] = {
 		DB.withConnection { implicit c => 
 			SQL("select content from entry where id = {id}").on('id -> id).as(scalar[String].singleOpt)

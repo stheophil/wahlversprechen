@@ -84,7 +84,11 @@ object Application extends Controller with Secured {
 	def search(query: String) = Action { implicit request => 
 		val mapstmtByAuthor = Statement.find(query)
 		Ok(views.html.listByCategory("Suchergebnisse", mapstmtByAuthor, user(request) ))
-	}	
+	}
+
+	def updatesAsFeed = Action { implicit request =>
+		Ok(views.xml.entryList("wahlversprechen2013.de: Alle Aktualisierungen", routes.Application.recent.url, Entry.loadRecent(10)))			
+	}
 	
 	def loader_io = Action {
 		Ok("loaderio-a8c18c9612671703651ea5e79d55623e")

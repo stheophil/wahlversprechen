@@ -1,10 +1,10 @@
-@(stmt: Statement, entries: List[Entry])
+@(title: String, url: String, entries: List[Entry])
 
 <?xml version="1.0"?>
 <rss version="2.0">
    <channel>
-      <title>Wahlversprechen 2013: "@stmt.title"</title>
-      <link>http://@Formatter.url/view/@stmt.id</link>
+      <title>@title</title>
+      <link>@url</link>
       <description></description>
       <language>de-DE</language>
       <pubDate>@{new java.util.Date().toString()}</pubDate>
@@ -15,10 +15,10 @@
       @for(entry <- entries) {
          <item>
             <title>@{Xml( Formatter.transformFirstLineToHTML(entry.content).body )}</title>
-            <link>http://@Formatter.url/view/@stmt.id#@entry.id</link>
+            <link>http://@Formatter.url/view/@entry.stmt_id#@entry.id</link>
             <description>@{Xml( Formatter.transformToHTML(entry.content).body )}</description>
             <pubDate>@entry.date.toString</pubDate>
-            <guid>http://@Formatter.url/view/@stmt.id#@entry.id</guid>
+            <guid>http://@Formatter.url/view/@entry.stmt_id#@entry.id</guid>
          </item>
       }
    </channel>
