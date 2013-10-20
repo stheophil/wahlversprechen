@@ -32,16 +32,37 @@ object Admin extends Controller with Secured {
 				}
 		}))
 
+	val editAuthorForm = Form(
+		tuple(
+			"id" -> number.verifying("Unbekannter Autor", author_id => Author.load(author_id).isDefined),
+			"name" -> text, 
+			"order" -> number,
+			"rated" -> boolean, 
+			"color" -> text,
+			"background" -> text 
+			)
+		)
+
 	def prefs = IsAdmin { user => implicit request => 
-		Ok(html.adminPrefs( User.findAll(), editUserForm, user ))
+		Ok(html.adminPrefs( Author.loadAll(), editAuthorForm, User.findAll(), editUserForm, user ))
 	}
 
 	def editUser = IsAdmin { user => implicit request => 
 		editUserForm.bindFromRequest.fold(
-			formWithErrors => BadRequest(html.adminPrefs( User.findAll(), formWithErrors, user)),
+			formWithErrors => BadRequest(html.adminPrefs( Author.loadAll(), editAuthorForm, User.findAll(), formWithErrors, user)),
 			{ case (id, email, name, password, _, _) => {
 				User.edit(id, email, name, password, None) 
 				Redirect(routes.Admin.prefs.url + "#users").flashing("user_success" -> {"Änderungen an Nutzer "+name+" erfolgreich gespeichert"})
+			} }
+		) // bindFromRequest
+	}
+
+	def editAuthor = IsAdmin { user => implicit request => 
+		editAuthorForm.bindFromRequest.fold(
+			formWithErrors => BadRequest(html.adminPrefs( Author.loadAll(), formWithErrors, User.findAll(), editUserForm, user)),
+			{ case (id, name, order, rated, color, background) => {
+				Author.edit(id, name, order, rated, color, background) 
+				Redirect(routes.Admin.prefs.url + "#author").flashing("author_success" -> {"Änderungen an "+name+" erfolgreich gespeichert"})
 			} }
 		) // bindFromRequest
 	}

@@ -93,9 +93,28 @@ object Author {
 		Author(id, name, order, rated, color, background)
 	}
 
+	def edit(id: Long, name: String, order: Long, rated: Boolean, color: String, background: String) {
+		DB.withConnection { implicit c =>
+
+			SQL("update author set name = {name}, ordering = {ordering}, rated = {rated}, color = {color}, background = {background} where id = {id}").on(
+				'id -> id,
+				'name -> name,
+				'ordering -> order,
+				'rated -> rated,
+				'color -> color,
+				'background -> background).executeUpdate()
+		}
+	}
+
 	def load(name : String): Option[Author] = {
 		DB.withConnection { implicit c =>
 			SQL("select * from author where name = {name}").on('name -> name).as(author.singleOpt)
+		}
+	}
+
+	def load(id : Int): Option[Author] = {
+		DB.withConnection { implicit c =>
+			SQL("select * from author where id = {id}").on('id -> id).as(author.singleOpt)
 		}
 	}
 

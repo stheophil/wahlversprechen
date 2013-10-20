@@ -29,6 +29,7 @@ POST	/admin/import				controllers.Admin.importStatements
 
 GET 	/admin/prefs				controllers.Admin.prefs
 POST 	/admin/editUser				controllers.Admin.editUser
+POST 	/admin/editAuthor			controllers.Admin.editAuthor
 
 # Authentication
 GET     /login                      controllers.Application.login
