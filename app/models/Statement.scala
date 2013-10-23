@@ -169,10 +169,16 @@ object Tag {
 			SQL("select id, name from tag").as(tag*)
 	}
 
-	def add(implicit connection: java.sql.Connection, stmt: Statement, tag: Tag) {
+	def add(implicit connection: java.sql.Connection, stmt_id: Long, tag: Tag) {
 			SQL("insert into statement_tags values ({tag_id}, {stmt_id})").on(
 				'tag_id -> tag.id,
-				'stmt_id -> stmt.id
+				'stmt_id -> stmt_id
+			).executeUpdate
+	}
+
+	def eraseAll(implicit connection: java.sql.Connection, stmt_id: Long) {
+			SQL("delete from statement_tags where stmt_id = {stmt_id}").on(
+				'stmt_id -> stmt_id
 			).executeUpdate
 	}
 }
@@ -526,8 +532,7 @@ object Statement {
 
 	def create(implicit connection: java.sql.Connection, title: String, author: Author, cat: Category, quote: Option[String], quote_src: Option[String], rating: Option[Rating], merged_id: Option[Long]): Statement = {
 		
-		require(author.rated == rating.isDefined)
-		require(!merged_id.isDefined || !author.rated)
+		require(author.rated || merged_id.isDefined || !rating.isDefined)
 
 		// Get the project id
 		val id: Long = SQL("select nextval('stmt_id_seq')").as(scalar[Long].single)
@@ -545,6 +550,20 @@ object Statement {
 				'merged_id -> merged_id).executeUpdate()
 
 		Statement(id, title, author, cat, quote, quote_src, List[Entry](), None, List[Tag](), rating, rated, merged_id)
+	}
+
+	def edit(implicit connection: java.sql.Connection, id: Long, title: String, cat: Category, quote: Option[String], quote_src: Option[String], rating: Option[Rating], merged_id: Option[Long]) {	
+		val rated = rating map { r => new Date() };
+		// Insert the project
+		SQL("update statement set title={title}, cat_id={cat_id}, quote={quote}, quote_src= {quote_src}, rating={rating}, rated={rated}, merged_id={merged_id} where id = {id}").on(
+				'id -> id,
+				'title -> title,
+				'cat_id -> cat.id,
+				'quote -> quote,
+				'quote_src -> quote_src, 
+				'rating -> { rating map { _.id } },
+				'rated -> rated,
+				'merged_id -> merged_id).executeUpdate()
 	}
 
 	def rate(stmt_id: Int, rating: Int, date: Date) {

@@ -125,6 +125,9 @@ object Admin extends Controller with Secured {
 			Logger.info("Found " + cRows.length + " statements. Begin import.")
 
 			import play.api.Play.current
+
+			var cUpdated = 0
+			var cInserted = 0
 			play.api.db.DB.withTransaction { c =>
 
 				var mapcategory = collection.mutable.Map.empty[String, Category]
@@ -134,8 +137,12 @@ object Admin extends Controller with Secured {
 				var maptag = collection.mutable.Map.empty[String, Tag]
 				maptag ++= (for( t <- Tag.loadAll(c) ) yield (t.name, t))
 
+				val mapstmtidByTitle = Statement.all().getOrElse( 
+					author, 
+					List.empty[Statement] 
+				).map( stmt => stmt.title -> stmt.id ).toMap
+
 				cRows.foreach(importrow => {
-					Logger.info("Create statement " + importrow.title + " with category " + importrow.category)					
 
 					val category = mapcategory.getOrElseUpdate(
 						importrow.category,
@@ -146,17 +153,34 @@ object Admin extends Controller with Secured {
 						}
 					)
 
-					val stmt = Statement.create(c, importrow.title, author, category, importrow.quote, importrow.quote_source, if(author.rated) Some(Rating.Unrated) else None, importrow.merged_id)
+					val stmt_id = { 
+						mapstmtidByTitle.get(importrow.title) match {
+							case Some(id) => {
+								Logger.info("Update statement " + importrow.title + " with category " + importrow.category)
+								cUpdated += 1
+								Statement.edit(c, id, importrow.title, category, importrow.quote, importrow.quote_source, if(author.rated || importrow.merged_id.isDefined) Some(Rating.Unrated) else None, importrow.merged_id)
+								Tag.eraseAll(c, id)
+								id
+							}
+							case None => {
+								cInserted += 1
+								Logger.info("Create statement " + importrow.title + " with category " + importrow.category)					
+								Statement.create(c, importrow.title, author, category, importrow.quote, importrow.quote_source, if(author.rated || importrow.merged_id.isDefined) Some(Rating.Unrated) else None, importrow.merged_id).id
+							}
+						}
+					}
+
 					importrow.tags.foreach( 
 							_.split(',').map(_.trim).distinct.foreach( tagname => {
 								val tag = maptag.getOrElseUpdate(tagname, { Tag.create(c, tagname) })
-								Tag.add(c, stmt, tag)
+								Tag.add(c, stmt_id, tag)
 							})
 					)
 				})
 			}
 
-			Redirect(routes.Application.index).flashing("success" -> (cRows.length+" Wahlversprechen erfolgreich importiert."))
+			Redirect(routes.Application.index).flashing(
+				"success" -> (cInserted+" Wahlversprechen erfolgreich hinzugefügt, " + cUpdated + " Wahlversprechen erfolgreich aktualisiert."))
 		} catch {
 			case e: ImportException => {
 				Redirect(routes.Admin.viewImportForm).flashing("error" -> e.getMessage())
