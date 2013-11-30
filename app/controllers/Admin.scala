@@ -102,12 +102,12 @@ object Admin extends Controller with Secured {
 			for (feedrow <- listFeed.getEntries()) {
 				val custom = feedrow.getCustomElements()
 
+				if (custom.getValue("titel") == null) throw new ImportException("Fehlender Titel bei Wahlversprechen Nr. "+(cRows.length+1))
+				if (custom.getValue("ressort") == null) throw new ImportException("Fehlendes Ressort bei Wahlversprechen Nr. "+(cRows.length+1))
+
 				val strCategory = custom.getValue("ressort").trim
-				if (strCategory == null) throw new ImportException("Fehlendes Ressort bei Wahlversprechen Nr. "+(cRows.length+1))
-
 				val strTitle = custom.getValue("titel").trim
-				if (strTitle == null) throw new ImportException("Fehlender Titel bei Wahlversprechen Nr. "+(cRows.length+1))
-
+				
 				val strQuote = if (custom.getValue("zitat") == null) None else Some(custom.getValue("zitat").trim)
 				val strSource = if (custom.getValue("quelle") == null) None else Some(custom.getValue("quelle").trim)
 				val strTags = if (custom.getValue("tags") == null) None else Some(custom.getValue("tags").trim)
