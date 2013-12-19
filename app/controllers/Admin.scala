@@ -67,21 +67,28 @@ object Admin extends Controller with Secured {
 		) // bindFromRequest
 	}
 
-	val setImportantTagForm = Form(
+	val updateTagForm = Form(
 		tuple(
-			"id" -> number.verifying("Unbekanntes Tag", tag_id => Tag.load(tag_id).isDefined),
-			"important" -> boolean
-		)
-	)
+			"name" -> optional(text), 
+			"important" -> optional(boolean)
+		))
 
-	def setImportantTag = IsAdmin { user => implicit request =>
-		setImportantTagForm.bindFromRequest.fold(
+	def updateTag(id: Long) = IsAdmin { user => implicit request =>
+		Logger.debug("updateTag: " + id)
+		updateTagForm.bindFromRequest.fold(
 			formWithErrors => InternalServerError(""),
-			{ case (id, important) => {
-				Tag.setImportant(id, important)
-				Ok("")
-			} }
-		)
+			{
+				case (name, important) => {
+					if(important.isDefined) Tag.setImportant(id, important.get)
+					if(name.isDefined) Tag.setName(id, name.get)
+				}
+			})
+		Ok("")
+	}
+
+	def deleteTag(id: Long) = IsAdmin { user => implicit request =>
+		Tag.delete(id)
+		Ok("")
 	}
 
 	val importForm = Form(

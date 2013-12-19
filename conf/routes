@@ -30,7 +30,10 @@ POST	/admin/import				controllers.Admin.importStatements
 GET 	/admin/prefs				controllers.Admin.prefs
 POST 	/admin/editUser				controllers.Admin.editUser
 POST 	/admin/editAuthor			controllers.Admin.editAuthor
-POST	/admin/setImportantTag		controllers.Admin.setImportantTag
+
+# AJAX
+PUT		/admin/tag/:id				controllers.Admin.updateTag(id: Long)
+DELETE	/admin/tag/:id				controllers.Admin.deleteTag(id: Long)
 
 # Authentication
 GET     /login                      controllers.Application.login

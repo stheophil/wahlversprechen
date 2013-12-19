@@ -204,9 +204,9 @@
             var $id = $input.attr("id");
 
             $.ajax({
-                type: 'POST',
-                url: '/admin/setImportantTag',
-                data: { id: $id, important: $checked },
+                type: 'PUT',
+                url: '/admin/tag/' + $id,
+                data: {  important: $checked },
                 datatype: 'text',
                 cache: 'false',
                 error: function(){

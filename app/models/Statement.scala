@@ -166,10 +166,12 @@ object Tag {
 		}
 	}
 
+	def load(implicit connection: java.sql.Connection, name: String): Option[Tag] = {
+		SQL("select id, name, important from tag where tag.name={name}").on('name -> name).as(tag.singleOpt)
+	}
+
 	def load(name: String): Option[Tag] = {
-		DB.withConnection { implicit c =>
-			SQL("select id, name, important from tag where tag.name={name}").on('name -> name).as(tag.singleOpt)
-		}
+		DB.withConnection { implicit c => load(c, name)	}
 	}
 
 	def loadAll(): List[Tag] = {
@@ -197,6 +199,40 @@ object Tag {
 		DB.withConnection { implicit c =>
 			SQL("update tag set important = {important} where id = {tag_id}").on(
 				'important -> important,
+				'tag_id -> tag_id
+			).executeUpdate
+		}	
+	}
+
+	def setName(tag_id: Long, name: String) {
+		DB.withTransaction { implicit c =>
+			val tag = load(c, name)
+			if(tag.isDefined) { // name already exists -> merge tags
+				if(tag.get.id!=tag_id) {
+					SQL("update statement_tags set tag_id = {new_tag_id} where tag_id = {old_tag_id}").on(
+						'old_tag_id -> tag_id,
+						'new_tag_id -> tag.get.id
+					).executeUpdate
+					SQL("delete from tag where id = {tag_id}").on(
+						'tag_id -> tag_id
+					).executeUpdate				
+				}
+			} else {
+				SQL("update tag set name = {name} where id = {tag_id}").on(
+					'name -> name,
+					'tag_id -> tag_id
+				).executeUpdate
+			}
+		}	
+	}
+
+	def delete(tag_id: Long) {
+		DB.withTransaction { implicit c =>
+			SQL("delete from statement_tags where tag_id = {tag_id}").on(
+				'tag_id -> tag_id
+			).executeUpdate
+
+			SQL("delete from tag where id = {tag_id}").on(
 				'tag_id -> tag_id
 			).executeUpdate
 		}	
