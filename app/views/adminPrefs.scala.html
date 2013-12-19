@@ -1,4 +1,4 @@
-@(authors: List[Author], formEditAuthor: Form[(Int, String, Int, Boolean, String, String)], users: List[User], formEditUser: Form[(Int, String,String, Option[String], String, Option[String])], user: User)(implicit flash: Flash)
+@(authors: List[Author], formEditAuthor: Form[(Int, String, Int, Boolean, String, String)], users: List[User], formEditUser: Form[(Int, String,String, Option[String], String, Option[String])], tags: List[Tag], user: User)(implicit flash: Flash)
 
 @main("Administrator Einstellungen", Some(user)){
     <h2>Administrator Einstellungen</h2>
@@ -43,6 +43,7 @@
         </td>
     </tr>
     }
+    </table>
 
     @for(a <- authors) {
       <!-- Edit Modal -->
@@ -86,7 +87,6 @@
         </div><!-- /.modal-dialog -->
       </div><!-- /.modal -->
     }
-    </table>
 
     <h3>Nutzer</h3>
     <a name="users" id="users"></a>
@@ -123,6 +123,7 @@
         </td>
     </tr>
     }
+    </table>
 
     @for(u <- users) {
       <!-- Edit Modal -->
@@ -180,5 +181,38 @@
       </div><!-- /.modal -->
     }
 
-    </table>
+    <h3>Tags</h3>
+    <p>Wählen Sie die Tags aus, die <em>wichtige</em> Wahlversprechen markieren.</p>
+      @for(tagrow <- tags.sliding(4, 4)) {
+        <div class="row">
+        @for(t <- tagrow) {
+          <div class="col-sm-3">
+            <input type="checkbox" class="setImportantTag" id="@t.id" @if(t.important) { checked } />&nbsp;<a href="/tag/@(t.name)"><span class='label label-primary'>@t.name</span></a>
+            &nbsp;<a href="#"><span class="glyphicon glyphicon-edit"></span></a>
+            &nbsp;<a href="#"><span class="glyphicon glyphicon-remove"></span></a>
+          </div>
+        }
+        </div>
+      }
 }
+
+      <script type="text/javascript">
+        $(document).ready(function ($) { // wait until the document is ready
+          $('input.setImportantTag').change(function(){
+            var $input = $( this );
+            var $checked = $input.is( ":checked" );
+            var $id = $input.attr("id");
+
+            $.ajax({
+                type: 'POST',
+                url: '/admin/setImportantTag',
+                data: { id: $id, important: $checked },
+                datatype: 'text',
+                cache: 'false',
+                error: function(){
+                    $input.prop( "checked", !$checked );
+                }
+            }); // End Ajax  
+        }); // End onclick
+      });
+    </script>

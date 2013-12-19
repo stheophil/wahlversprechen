@@ -27,3 +27,5 @@ conf/generated.keystore
 *.sublime-project
 
 *.sublime-workspace
+
+conf/application.conf

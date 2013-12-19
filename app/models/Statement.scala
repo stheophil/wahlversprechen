@@ -24,7 +24,7 @@ import play.api.templates._
 
 case class Category(id: Long, name: String, order: Long)
 case class Author(id: Long, name: String, order: Long, rated: Boolean, color: String, background: String)
-case class Tag(id: Long, name: String)
+case class Tag(id: Long, name: String, important: Boolean)
 case class User(id: Long, email: String, name: String, password: String, salt: String, role: Role)
 case class Entry(id: Long, stmt_id: Long, content: String, date: Date, user: User)
 case class Statement(id: Long, title: String, author: Author, category: Category, 
@@ -134,8 +134,9 @@ object Author {
 object Tag {
 	val tag = {
 		get[Long]("id") ~
-		get[String]("name") map {
-			case id ~ name => Tag(id, name)
+		get[String]("name") ~
+		get[Boolean]("important") map {
+			case id ~ name ~ important => Tag(id, name, important)
 		}
 	}
 
@@ -147,26 +148,36 @@ object Tag {
 		val id: Long = SQL("select nextval('tag_id_seq')").as(scalar[Long].single)
 
 		SQL("insert into tag values ({id}, {name})").on('id -> id, 'name -> name).executeUpdate()
-		Tag(id, name)
+		Tag(id, name, false)
 	}
 
 	def loadByStatement(stmt_id: Long): List[Tag] = {
 		DB.withConnection { implicit c =>
-			SQL("""select id, name from tag 
+			SQL("""select id, name, important from tag 
 			join statement_tags on statement_tags.tag_id=id 
 			where statement_tags.stmt_id = {stmt_id} 
 			order by tag.name""").on('stmt_id -> stmt_id).as(tag*)
 		}
 	}
 
-	def load(name: String): Option[Tag] = {
+	def load(id: Long): Option[Tag] = {
 		DB.withConnection { implicit c =>
-			SQL("select id, name from tag where tag.name={name}").on('name -> name).as(tag.singleOpt)
+			SQL("select id, name, important from tag where tag.id={id}").on('id -> id).as(tag.singleOpt)
 		}
 	}
 
+	def load(name: String): Option[Tag] = {
+		DB.withConnection { implicit c =>
+			SQL("select id, name, important from tag where tag.name={name}").on('name -> name).as(tag.singleOpt)
+		}
+	}
+
+	def loadAll(): List[Tag] = {
+		DB.withConnection { implicit c => loadAll(c) }
+	}
+
 	def loadAll(implicit connection: java.sql.Connection): List[Tag] = {
-			SQL("select id, name from tag").as(tag*)
+			SQL("select id, name, important from tag order by name").as(tag*)
 	}
 
 	def add(implicit connection: java.sql.Connection, stmt_id: Long, tag: Tag) {
@@ -180,6 +191,15 @@ object Tag {
 			SQL("delete from statement_tags where stmt_id = {stmt_id}").on(
 				'stmt_id -> stmt_id
 			).executeUpdate
+	}
+
+	def setImportant(tag_id: Long, important: Boolean) {
+		DB.withConnection { implicit c =>
+			SQL("update tag set important = {important} where id = {tag_id}").on(
+				'important -> important,
+				'tag_id -> tag_id
+			).executeUpdate
+		}	
 	}
 }
 
@@ -346,8 +366,14 @@ object Statement {
 		1. Statement with rated Author
 			always has rating and no merged_id
 		2. Statement with non-rated Author
-			may have either rating or merged_id
-			in case data is inconsistent, merged_id has precedence
+			may have rating and merged_id:
+			- if merged_id == null
+				-> display rating (may be null)
+			- else 
+				if rating == null
+					-> display rating of statement referred to by merged_id 
+				else
+					-> display rating
 	*/
 	val stmt = {
 			get[Long]("statement.id") ~
@@ -379,8 +405,8 @@ object Statement {
 					List[Entry](), 
 					latestEntry,
 					List[Tag](),
-					(if(merged_id.isDefined) merged_rating else rating) map { r => if (0 <= r && r < Rating.maxId) Rating(r) else Unrated },
-					(if(merged_id.isDefined) merged_rated else rated),
+					(if(merged_id.isDefined && !rating.isDefined) merged_rating else rating) map { r => if (0 <= r && r < Rating.maxId) Rating(r) else Unrated },
+					(if(merged_id.isDefined && !rating.isDefined) merged_rated else rated),
 					merged_id
 				)
 			} // Rating(rating) would throw java.util.NoSuchElementException
@@ -430,6 +456,23 @@ object Statement {
 			if(oauthor.isDefined) params += ('author_id -> oauthor.get.id)
 
 			SQL(queryLatest).on(params:_*).as(stmt*)
+		})
+	}
+
+	def byImportantTag(oauthor: Option[Author], olimit: Option[Int]) : List[Statement] = {
+		val queryWithTag = query + 
+			" join statement_tags on statement_tags.stmt_id = statement.id " +
+			" join tag on statement_tags.tag_id = tag.id and tag.important = TRUE " +
+			(if(oauthor.isDefined) "where author.id = {author_id} " else "") +
+			" order by category.ordering ASC, statement.id ASC " +
+			(if(olimit.isDefined) "limit {limit}" else "")
+
+		DB.withConnection({ implicit c =>
+			var params = collection.mutable.ListBuffer[(Any, anorm.ParameterValue[_])]()
+			if(olimit.isDefined)  params += ('limit -> olimit.get)
+			if(oauthor.isDefined) params += ('author_id -> oauthor.get.id)			
+
+			SQL(queryWithTag).on(params:_*).as(stmt*)
 		})
 	}
 

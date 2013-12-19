@@ -44,12 +44,12 @@ object Admin extends Controller with Secured {
 		)
 
 	def prefs = IsAdmin { user => implicit request => 
-		Ok(html.adminPrefs( Author.loadAll(), editAuthorForm, User.findAll(), editUserForm, user ))
+		Ok(html.adminPrefs( Author.loadAll(), editAuthorForm, User.findAll(), editUserForm, Tag.loadAll(), user ))
 	}
 
 	def editUser = IsAdmin { user => implicit request => 
 		editUserForm.bindFromRequest.fold(
-			formWithErrors => BadRequest(html.adminPrefs( Author.loadAll(), editAuthorForm, User.findAll(), formWithErrors, user)),
+			formWithErrors => BadRequest(html.adminPrefs( Author.loadAll(), editAuthorForm, User.findAll(), formWithErrors, Tag.loadAll(), user)),
 			{ case (id, email, name, password, _, _) => {
 				User.edit(id, email, name, password, None) 
 				Redirect(routes.Admin.prefs.url + "#users").flashing("user_success" -> {"Änderungen an Nutzer "+name+" erfolgreich gespeichert"})
@@ -59,12 +59,29 @@ object Admin extends Controller with Secured {
 
 	def editAuthor = IsAdmin { user => implicit request => 
 		editAuthorForm.bindFromRequest.fold(
-			formWithErrors => BadRequest(html.adminPrefs( Author.loadAll(), formWithErrors, User.findAll(), editUserForm, user)),
+			formWithErrors => BadRequest(html.adminPrefs( Author.loadAll(), formWithErrors, User.findAll(), editUserForm, Tag.loadAll(), user)),
 			{ case (id, name, order, rated, color, background) => {
 				Author.edit(id, name, order, rated, color, background) 
 				Redirect(routes.Admin.prefs.url + "#author").flashing("author_success" -> {"Änderungen an "+name+" erfolgreich gespeichert"})
 			} }
 		) // bindFromRequest
+	}
+
+	val setImportantTagForm = Form(
+		tuple(
+			"id" -> number.verifying("Unbekanntes Tag", tag_id => Tag.load(tag_id).isDefined),
+			"important" -> boolean
+		)
+	)
+
+	def setImportantTag = IsAdmin { user => implicit request =>
+		setImportantTagForm.bindFromRequest.fold(
+			formWithErrors => InternalServerError(""),
+			{ case (id, important) => {
+				Tag.setImportant(id, important)
+				Ok("")
+			} }
+		)
 	}
 
 	val importForm = Form(

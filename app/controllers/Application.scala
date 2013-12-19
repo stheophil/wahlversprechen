@@ -40,14 +40,13 @@ object Application extends Controller with Secured {
 	def index = CachedAction("index") { implicit request =>
 		val optuser = user(request)
 
-		val statistics = ( Author.loadRated match {
+		val oauthor = Author.loadRated
+		val statistics = oauthor match {
 			case Some(author) => Statement.countRatings(author)
 			case None => (1, Map.empty[Rating, Int])
-		})
+		}
 
-		// TODO: Use first author again
-		// TODO: Define important tags in database
-		Ok(views.html.index(statistics._1, statistics._2, Statement.byEntryDate(None, Some(5)), Statement.byTag("10-Punkteprogramm", None, Some(5)), user(request)))
+		Ok(views.html.index(statistics._1, statistics._2, Statement.byEntryDate(oauthor, Some(5)), Statement.byImportantTag(oauthor, Some(5)), user(request)))
 	}
 	
 	def recent = CachedAction("recent") { implicit request => 		
@@ -56,8 +55,7 @@ object Application extends Controller with Secured {
 	}
 
 	def top = CachedAction("top") { implicit request =>  
-		// TODO: Define important tags in database
-		Ok(views.html.listByCategory("Die wichtigsten Wahlversprechen nach Ressorts", Statement.byTag("10-Punkteprogramm", None, None).groupBy(_.author), user(request)))
+		Ok(views.html.listByCategory("Die wichtigsten Wahlversprechen nach Ressorts", Statement.byImportantTag(None, None).groupBy(_.author), user(request)))
 	}
 
 	def all = CachedAction("all") { implicit request => 
