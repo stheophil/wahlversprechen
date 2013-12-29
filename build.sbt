@@ -13,6 +13,4 @@ libraryDependencies ++= Seq(jdbc,
   "com.typesafe.play" %% "play-slick" % "0.5.0.8" 
 )
 
-scalacOptions += "-feature"
-
 playScalaSettings
