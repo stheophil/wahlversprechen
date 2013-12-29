@@ -45,7 +45,7 @@ object Application extends Controller with Secured {
 			case Some(author) => Statement.countRatings(author)
 			case None => (1, Map.empty[Rating, Int])
 		}
-
+		Logger.info("Statements: " + statistics._1 + " Statistics: " + statistics._2.toString)
 		Ok(views.html.index(statistics._1, statistics._2, Statement.byEntryDate(oauthor, Some(5)), Statement.byImportantTag(oauthor, Some(5)), user(request)))
 	}
 	
