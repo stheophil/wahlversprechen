@@ -109,7 +109,7 @@ object Admin extends Controller with Secured {
 	
 	def loadSpreadSheet(author_name: String, spreadsheet: String) : Result = {		
 		class ImportException(message: String) extends java.lang.Exception(message)
-		case class ImportRow(title: String, category: String, quote: Option[String], quote_source: Option[String], tags: Option[String], merged_id: Option[Long])
+		case class ImportRow(title: String, category: String, quote: Option[String], quote_source: Option[String], tags: Option[String], links: Option[String])
 		
 		try {
 			val author = Author.load(author_name).get
@@ -135,15 +135,13 @@ object Admin extends Controller with Secured {
 				val strQuote = if (custom.getValue("zitat") == null) None else Some(custom.getValue("zitat").trim)
 				val strSource = if (custom.getValue("quelle") == null) None else Some(custom.getValue("quelle").trim)
 				val strTags = if (custom.getValue("tags") == null) None else Some(custom.getValue("tags").trim)
-				val merged_id = if (author.rated || custom.getValue("merged") == null) None else {
-					try {
-						Some( java.lang.Long.parseLong( custom.getValue("merged"), 10 ) )
-					} catch {
-						case e : NumberFormatException => None
+				val strLinks = if (author.rated && custom.getValue("links") != null) {
+						Some(custom.getValue("links")) }
+					else {
+						None
 					}
-				}
 				Logger.info("Found statement " + strTitle)
-				cRows += new ImportRow(strTitle, strCategory, strQuote, strSource, strTags, merged_id)
+				cRows += new ImportRow(strTitle, strCategory, strQuote, strSource, strTags, strLinks)
 			}
 
 			Logger.info("Found " + cRows.length + " statements. Begin import.")
@@ -182,17 +180,28 @@ object Admin extends Controller with Secured {
 							case Some(id) => {
 								Logger.info("Update statement " + importrow.title + " with category " + importrow.category)
 								cUpdated += 1
-								Statement.edit(c, id, importrow.title, category, importrow.quote, importrow.quote_source, if(author.rated || importrow.merged_id.isDefined) Some(Rating.Unrated) else None, importrow.merged_id)
+								Statement.edit(c, id, importrow.title, category, importrow.quote, importrow.quote_source, if(author.rated) Some(Rating.Unrated) else None, None)
 								Tag.eraseAll(c, id)
 								id
 							}
 							case None => {
 								cInserted += 1
 								Logger.info("Create statement " + importrow.title + " with category " + importrow.category)					
-								Statement.create(c, importrow.title, author, category, importrow.quote, importrow.quote_source, if(author.rated || importrow.merged_id.isDefined) Some(Rating.Unrated) else None, importrow.merged_id).id
+								Statement.create(c, importrow.title, author, category, importrow.quote, importrow.quote_source, if(author.rated) Some(Rating.Unrated) else None, None).id
 							}
 						}
 					}
+
+					importrow.links.foreach(
+							_.split(',').map(_.trim).distinct.foreach( link => {
+								try {
+									Statement.setMergedID(c, java.lang.Integer.parseInt( link ), stmt_id)
+								} catch {
+									case e: NumberFormatException => 
+										Logger.info("Illegal characters in linked statement id: " + link) 
+								}
+							})
+					)
 
 					importrow.tags.foreach( 
 							_.split(',').map(_.trim).distinct.foreach( tagname => {

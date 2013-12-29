@@ -278,4 +278,10 @@ object Statement {
 				).executeUpdate
 		}
 	}
+
+	def setMergedID(implicit connection: java.sql.Connection, stmt_id: Int, merged_id: Long) {
+		// TODO assert author of merged_id is rated, author of stmt_id is not rated
+		SQL("update statement set merged_id = {merged_id} where id = {stmt_id}").
+				on('merged_id -> merged_id, 'stmt_id -> stmt_id).executeUpdate
+	}
 }
