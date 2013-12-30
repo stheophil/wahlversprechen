@@ -28,7 +28,11 @@ object DetailViewController extends Controller with Secured {
 	def viewAsFeed(id: Long) = CachedAction("viewAsFeed."+id, 60 * 60) { implicit request =>
 		Statement.load(id) match {
 			case Some(stmt) => 
-				Ok(views.xml.entryList("Wahlversprechen 2013: " + stmt.title, "http://"+Formatter.url+"/view/"+id, Entry.loadByStatement(id).take(10)))			
+					Ok(views.xml.entryList(
+					"Wahlversprechen 2013: " + stmt.title, 
+					routes.DetailViewController.view(id).absoluteURL(false),
+					Entry.loadByStatement(id).take(10)
+				))		
 			case None => NotFound
 		}		
 	}

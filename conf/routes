@@ -16,11 +16,19 @@ GET		/rating/:rating				controllers.Application.rating(rating: Int)
 
 GET 	/updates/feed 				controllers.Application.updatesAsFeed
 
-# Detail page
-GET		/view/:id					controllers.DetailViewController.view(id: Long)
-GET		/view/:id/feed				controllers.DetailViewController.viewAsFeed(id: Long)
+# Item Views 
+GET		/item/:id					controllers.DetailViewController.view(id: Long)
+GET		/item/:id/feed				controllers.DetailViewController.viewAsFeed(id: Long)
+
+# Item API
+# PUT 	/item/:id					controllers.DetailViewController.update(id: Long)
+# POST 	/item/:id					controllers.DetailViewController.addEntry(id: Long)
 POST 	/addEntry					controllers.DetailViewController.addEntry
 POST 	/setRating					controllers.DetailViewController.setRating
+
+# GET	/entry/:id 					controllers.DetailViewController.getEntry(entry_id: Long)
+# PUT 	/entry/:id					controllers.DetailViewController.updateEntry(entry_id: Long)
+# DELETE /entry/:id 				controllers.DetailViewController.deleteEntry(entry_id: Long)
 
 # Admin
 
