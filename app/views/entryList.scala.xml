@@ -1,4 +1,4 @@
-@(title: String, url: String, entries: List[Entry])<?xml version="1.0"?>
+@(title: String, url: String, entries: List[Entry])(implicit request: play.api.mvc.RequestHeader)<?xml version="1.0"?>
 <rss version="2.0">
    <channel>
       <title>@title</title>
@@ -13,10 +13,10 @@
       @for(entry <- entries) {
          <item>
             <title>@{Xml( Formatter.transformFirstLineToHTML(entry.content).body )}</title>
-            <link>http://@Formatter.url/view/@entry.stmt_id#@entry.id</link>
+            <link>@{ routes.DetailViewController.view(entry.stmt_id).absoluteURL(false)+ "#" + entry.id}</link>
             <description>@{Xml( Formatter.transformToHTML(entry.content).body )}</description>
             <pubDate>@entry.date.toString</pubDate>
-            <guid>http://@Formatter.url/view/@entry.stmt_id#@entry.id</guid>
+            <guid>@{ routes.DetailViewController.view(entry.stmt_id).absoluteURL(false)+ "#" + entry.id}</guid>
          </item>
       }
    </channel>

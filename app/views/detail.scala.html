@@ -14,7 +14,7 @@
 	        }
 	        &nbsp;
 	        @if(user.isDefined && (user.get.role==Role.Editor || user.get.role==Role.Admin)) {
-	        <form action="/setRating" method="POST" class="form-inline" style="display: inline-block">
+	        <form action="@routes.DetailViewController.setRating.url" method="POST" class="form-inline" style="display: inline-block">
 	        	<div class="form-group">
 				    <label for="rating" class="sr-only">Bewerte dieses Wahlversprechen:</label>
 				    <select id="rating" name="rating" class="form-control">
@@ -62,14 +62,14 @@
         	}
         </li>
         <li><div class="nav-header">Sharing</div>
-        	@defining( Formatter.encode("http://" + Formatter.url+"/view/"+stmt.id) ) { url => 
+        	@defining( Formatter.encode( routes.DetailViewController.view(stmt.id).url ) ) { url => 
         	@defining( Formatter.encode("Wahlversprechen: \"" + stmt.title+"\"") ) { title => 
            		<a class="facebook" target="_blank" onclick="return !window.open(this.href, 'Facebook', 'width=640,height=300')" href="http://www.facebook.com/sharer/sharer.php?u=@(url)"><img src="@routes.Assets.at("img/social/Facebook32px.gif")"></a>&nbsp;<a class="twitter" target="_blank" onclick="return !window.open(this.href, 'Twitter', 'width=640,height=300')" href="http://twitter.com/intent/tweet?text=@(title)+@(url)"><img src="@routes.Assets.at("img/social/Twitter32px.gif")"></a>&nbsp<a class="google" target="_blank" onclick="return !window.open(this.href, 'Google+', 'width=640,height=300')" href="https://plus.google.com/share?url=@(url)"><img src="@routes.Assets.at("img/social/Google32px.gif")"></a>&nbsp;<a class="tumblr" target="_blank" onclick="return !window.open(this.href, 'Tumblr', 'width=640,height=300')" href="http://www.tumblr.com/share/link?url=@(url)&name=@(title)"><img src="@routes.Assets.at("img/social/Tumblr32px.gif")"></a><br/>
            } }
-          <input type="text" class="form-control" style="font-size: 12px" readonly="readonly" value="@(Formatter.url)/view/@stmt.id">
+          <input type="text" class="form-control" style="font-size: 12px" readonly="readonly" value="@{routes.DetailViewController.view(stmt.id).url}">
         </li>
         <li><div class="nav-header">Abonnieren</div>
-          <a href="http://@Formatter.url/view/@stmt.id/feed"><img src="@routes.Assets.at("img/social/RSS32px.gif")"></a>&nbsp;
+          <a href="@{routes.DetailViewController.viewAsFeed(stmt.id).url}"><img src="@routes.Assets.at("img/social/RSS32px.gif")"></a>&nbsp;
         </li>
         </ul>
       </div>
@@ -85,7 +85,7 @@
 	                @error.message
 	            </div>
 	        }        
-			<form action="/addEntry" role="form" method="POST">
+			<form action="@routes.DetailViewController.addEntry.url" role="form" method="POST">
 				<div class="form-group">
 			   	<textarea class="expand form-control" name="content" style="width: 100%;" placeholder="Schreibe einen neuen Beitrag ...">@form("content").value.getOrElse("")</textarea>
 			    <span class="help-inline showonclick">(Formatierungen im <a href="http://daringfireball.net/projects/markdown/syntax#block">Markdown-Format</a> werden unterstützt.)<br/><br/></span>
@@ -123,7 +123,7 @@
 	"id" : "7012588",
 	"unique_id" : "@stmt.id",
 	"title" : "@stmt.title",
-	"permalink" : "/view/@stmt.id"
+	"permalink" : "@{routes.DetailViewController.view(stmt.id).url}"
 	};
 	</script>
 	<script type="text/javascript" src="http://i0.poll.fm/js/rating/rating.js"></script>
