@@ -6,23 +6,25 @@ import models.Rating._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.mvc._
+import play.api.Logger
 
 import views._
 
 object DetailViewController extends Controller with Secured {
 	// Entry page / entry editing  
-	val newEntryForm = Form(
-		tuple(
-			"content" -> text.verifying("Kein Text eingegeben", c => !c.isEmpty),
-			"stmt_id" -> number.verifying(id => Statement.load(id).isDefined)))
-
-	val ratingForm = Form(
-		tuple(
-			"rating" -> number,
-			"stmt_id" -> number.verifying(id => Statement.load(id).isDefined)))
 
 	def view(id: Long) = CachedAction("view."+id) { implicit request =>
-		internalView(id, newEntryForm, user(request))
+		val liststmt = Statement.loadAll(id)
+		liststmt.find(_.id == id) match {
+			case Some(stmt) => 
+				Ok(views.html.detail(
+					Statement.loadEntriesTags(stmt), 
+					liststmt.map(_.author).distinct, 
+					user(request)
+				))
+			case None => 
+				NotFound
+		}
 	}
 
 	def viewAsFeed(id: Long) = CachedAction("viewAsFeed."+id, 60 * 60) { implicit request =>
@@ -37,53 +39,50 @@ object DetailViewController extends Controller with Secured {
 		}		
 	}
 
-	private def internalView(id: Long, form: Form[(String, Int)], user: Option[User])(implicit request: Request[AnyContent]) : play.api.mvc.Result = { 
-		val liststmt = Statement.loadAll(id)
-		liststmt.find(_.id == id) match {
-			case Some(stmt) => 
-				Ok(views.html.detail(
-					Statement.loadEntriesTags(stmt), 
-					liststmt.map(_.author).distinct, 
-					form, 
-					user
-				))
-			case None => 
-				NotFound
-		}
-	}
+	val newEntryForm = Form("content" -> nonEmptyText)
 
-	private def onFormWithErrors(strError: Option[FormError], strStmtId: Field, form: Form[(String, Int)], user: User)(implicit request: Request[AnyContent]) : play.api.mvc.Result = { 
-		strError match {
-			case Some(e) => Redirect(routes.Application.index).flashing("error" -> "Ungültige Anfrage")
-			case None => {
-				val stmt_id = strStmtId.value.get
-				internalView(Integer.parseInt(stmt_id), form, Some(user))
-			}
-		}
-	}
-
-	def addEntry = IsEditor { user => implicit request =>
+	def addEntry(stmt_id: Long) = IsEditor { user => implicit request =>
 		newEntryForm.bindFromRequest.fold(
-			formWithErrors => onFormWithErrors(formWithErrors.error("stmt_id"), formWithErrors("stmt_id"), formWithErrors, user),
-			{ case (content, stmt_id) => {
+			formWithErrors => BadRequest(""),
+			{ case (content) => {
 				Entry.create(stmt_id, content, new java.util.Date(), user.id)
-				Redirect(routes.DetailViewController.view(stmt_id))
+				Ok("")
 			}}
 		)
 	}	
 
-	def setRating = IsEditor { user => implicit request =>
-		ratingForm.bindFromRequest.fold(
-			formWithErrors => onFormWithErrors(formWithErrors.error("stmt_id"), formWithErrors("stmt_id"), newEntryForm, user),
-			{ case (rating, stmt_id) => {
-				Statement.rate(stmt_id, rating, new java.util.Date())
-				Redirect(routes.DetailViewController.view(stmt_id))
+	val updateItemForm = Form(
+		tuple(
+			"title" -> optional(text),
+			"rating" -> optional(number),
+			"quote" -> optional(text),
+			"quote_src" -> optional(text),
+			"tags" -> optional(text),
+			"merged_id" -> optional(number).verifying(id => 
+				if(id.isDefined) {
+					val stmt = Statement.load(id.get)
+					stmt.isDefined && stmt.get.author.rated
+				} else {
+					true
+				}
+			) 
+	))
+
+	def update(stmt_id: Long) = IsEditor { user => implicit request =>
+		Logger.info("Update item " + stmt_id)
+		updateItemForm.bindFromRequest.fold(
+			formWithErrors => BadRequest(""),
+			{ case (title, rating, quote, quote_src, tags, merged_id) => {
+				Logger.info("Update item " + stmt_id + " (" + title + ", " + rating + ", " + quote + ", " + quote_src + ")" )
+				if(rating.isDefined) Statement.rate(stmt_id, rating.get, new java.util.Date())
+
+				Ok("")
 			}}
 		)
 	}
 
-	def rawEntry(id: Long) = Action { implicit request =>
-		Entry.contentAsMarkdown(id) match {
+	def getEntry(entry_id: Long) = Action { implicit request =>
+		Entry.contentAsMarkdown(entry_id) match {
 			case Some(content) => Ok(content)
 			case None => NotFound
 		}

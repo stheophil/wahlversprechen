@@ -268,7 +268,7 @@ object Statement {
 				'merged_id -> merged_id).executeUpdate()
 	}
 
-	def rate(stmt_id: Int, rating: Int, date: Date) {
+	def rate(stmt_id: Long, rating: Int, date: Date) {
 		// TODO rating not in models.Rating -> erase rating, assert author is not rated
 		DB.withConnection { implicit c => 
 			SQL("update statement set rating = {rating}, rated = {rated} where id = {stmt_id}").

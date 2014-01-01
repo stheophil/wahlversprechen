@@ -21,12 +21,10 @@ GET		/item/:id					controllers.DetailViewController.view(id: Long)
 GET		/item/:id/feed				controllers.DetailViewController.viewAsFeed(id: Long)
 
 # Item API
-# PUT 	/item/:id					controllers.DetailViewController.update(id: Long)
-# POST 	/item/:id					controllers.DetailViewController.addEntry(id: Long)
-POST 	/addEntry					controllers.DetailViewController.addEntry
-POST 	/setRating					controllers.DetailViewController.setRating
+PUT 	/item/:id					controllers.DetailViewController.update(id: Long)
+POST 	/item/:id					controllers.DetailViewController.addEntry(id: Long)
 
-# GET	/entry/:id 					controllers.DetailViewController.getEntry(entry_id: Long)
+GET		/entry/:id 					controllers.DetailViewController.getEntry(id: Long)
 # PUT 	/entry/:id					controllers.DetailViewController.updateEntry(entry_id: Long)
 # DELETE /entry/:id 				controllers.DetailViewController.deleteEntry(entry_id: Long)
 
