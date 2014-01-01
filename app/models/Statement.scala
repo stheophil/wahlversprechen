@@ -268,7 +268,28 @@ object Statement {
 				'merged_id -> merged_id).executeUpdate()
 	}
 
-	def rate(stmt_id: Long, rating: Int, date: Date) {
+	def setTitle(stmt_id: Long, title: String) {
+		DB.withConnection { implicit c => 
+			SQL("update statement set title = {title} where id = {stmt_id}").
+				on('title -> title, 'stmt_id -> stmt_id).executeUpdate
+		}
+	}
+
+	def setQuote(stmt_id: Long, quote: String) {
+		DB.withConnection { implicit c => 
+			SQL("update statement set quote = {quote} where id = {stmt_id}").
+				on('quote -> quote, 'stmt_id -> stmt_id).executeUpdate
+		}
+	}
+
+	def setQuoteSrc(stmt_id: Long, quote_src: String) {
+		DB.withConnection { implicit c => 
+			SQL("update statement set quote_src = {quote_src} where id = {stmt_id}").
+				on('quote_src -> quote_src, 'stmt_id -> stmt_id).executeUpdate
+		}
+	}
+
+	def setRating(stmt_id: Long, rating: Int, date: Date) {
 		// TODO rating not in models.Rating -> erase rating, assert author is not rated
 		DB.withConnection { implicit c => 
 			SQL("update statement set rating = {rating}, rated = {rated} where id = {stmt_id}").

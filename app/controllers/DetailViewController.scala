@@ -53,7 +53,7 @@ object DetailViewController extends Controller with Secured {
 
 	val updateItemForm = Form(
 		tuple(
-			"title" -> optional(text),
+			"title" -> optional(nonEmptyText),
 			"rating" -> optional(number),
 			"quote" -> optional(text),
 			"quote_src" -> optional(text),
@@ -69,12 +69,14 @@ object DetailViewController extends Controller with Secured {
 	))
 
 	def update(stmt_id: Long) = IsEditor { user => implicit request =>
-		Logger.info("Update item " + stmt_id)
 		updateItemForm.bindFromRequest.fold(
 			formWithErrors => BadRequest(""),
 			{ case (title, rating, quote, quote_src, tags, merged_id) => {
 				Logger.info("Update item " + stmt_id + " (" + title + ", " + rating + ", " + quote + ", " + quote_src + ")" )
-				if(rating.isDefined) Statement.rate(stmt_id, rating.get, new java.util.Date())
+				if(title.isDefined) Statement.setTitle(stmt_id, title.get)
+				if(rating.isDefined) Statement.setRating(stmt_id, rating.get, new java.util.Date())
+				if(quote.isDefined) Statement.setQuote(stmt_id, quote.get)
+				if(quote_src.isDefined) Statement.setQuoteSrc(stmt_id, quote_src.get)
 
 				Ok("")
 			}}
