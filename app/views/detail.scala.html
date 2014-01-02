@@ -93,7 +93,7 @@
 	@if(user.isDefined && (user.get.role==Role.Editor || user.get.role==Role.Admin)) {
 		<div class="row"> 
 	      <div class="col-md-9">
-			<form action="@routes.DetailViewController.addEntry(stmt.id).url" role="form" method="POST">
+			<form class="post-item" item="@stmt.id" role="form">
 				<div class="form-group">
 			   	<textarea class="expand form-control" name="content" style="width: 100%;" placeholder="Schreibe einen neuen Beitrag ..."></textarea>
 			    <span class="help-inline showonclick">(Formatierungen im <a href="http://daringfireball.net/projects/markdown/syntax#block">Markdown-Format</a> werden unterstützt.)<br/><br/></span>
@@ -179,6 +179,27 @@
 	        	prevValue = value;
 	        })
 
+    	  })
+
+    	  $("form.post-item").each(function() {    	  		
+    	  		var form = $(this)
+    	  		var submit = form.find("button[type='submit']")
+    	  		submit.click(function(e) {
+	    	  		$.ajax({
+		                type: 'POST',
+		                url: '/item/' + form.attr("item"),
+		                data: form.serialize(),
+		                datatype: 'text',
+		                cache: 'false',
+		                success: function() {
+		                	window.location.reload()
+		                },
+		                error: function(){
+		                    // element.val( prevValue );
+		                }
+		            }); // End Ajax  
+		            e.preventDefault()
+	    	  	})
     	  })
       });
     </script>
