@@ -89,4 +89,20 @@ object DetailViewController extends Controller with Secured {
 			case None => NotFound
 		}
 	}
+
+	def updateEntry(entry_id: Long) = IsEditor { user => implicit request =>
+		newEntryForm.bindFromRequest.fold(
+			formWithErrors => BadRequest(""),
+			{ case (content) => {
+				Logger.info("Update entry with text '"+content+"'")
+				Entry.edit(entry_id, content)
+				Ok("")
+			}}
+		)
+	}	
+
+	def deleteEntry(entry_id: Long) = IsEditor { user => implicit request =>
+		Entry.delete(entry_id)
+		Ok("")
+	}	
 }

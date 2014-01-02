@@ -7,7 +7,7 @@
 	<div class="page-header">                
         <h1><small><a href="/category/@stmt.category.name">@stmt.category.name</a>&nbsp;|&nbsp;@stmt.author.name</small><br/>
         @if(editing) {
-        	<span contenteditable class="update-item" item="@stmt.id" name="title">@stmt.title</span>
+        	<span contenteditable class="ajax-update" url="/item/@stmt.id" name="title">@stmt.title</span>
         }
        @if(!editing) {
         	@stmt.title
@@ -19,7 +19,7 @@
       			<form class="form-inline" style="display: inline-block">
 	        	<div class="form-group">
 				    <label for="rating" class="sr-only">Bewerte dieses Wahlversprechen:</label>
-				    <select id="rating" name="rating" class="form-control update-item" item="@stmt.id">
+				    <select id="rating" class="form-control ajax-update" url="/item/@stmt.id" name="rating" >
 				    	@if(!stmt.author.rated) {
 				    		<option value="-1" @if(!stmt.rating.isDefined) { "selected" }>Keine Bewertung</option> 
 				    	}
@@ -53,8 +53,8 @@
     <div class="row">
       <div class="col-md-9 col-sm-12">
       @if(editing) {
-      	<blockquote class="lead entry-quote"><p contenteditable class="update-item" item="@stmt.id" name="quote">@stmt.quote.getOrElse("Gib ein Zitat ein")</p><br/>
-		<small><p contenteditable class="update-item" item="@stmt.id" name="quote_src">@stmt.quote_src.getOrElse("Gib eine Quelle für das Zitat ein")</p></small>
+      	<blockquote class="lead entry-quote"><p contenteditable class="ajax-update" url="/item/@stmt.id" name="quote">@stmt.quote.getOrElse("Gib ein Zitat ein")</p><br/>
+		<small><p contenteditable class="ajax-update" url="/item/@stmt.id" name="quote_src">@stmt.quote_src.getOrElse("Gib eine Quelle für das Zitat ein")</p></small>
 		</blockquote>
       }
       @if(!editing) {
@@ -90,10 +90,10 @@
 
     <hr>
 		
-	@if(user.isDefined && (user.get.role==Role.Editor || user.get.role==Role.Admin)) {
+	@if(editing) {
 		<div class="row"> 
 	      <div class="col-md-9">
-			<form class="post-item" item="@stmt.id" role="form">
+			<form class="ajax-submit" url="/item/@stmt.id" role="form">
 				<div class="form-group">
 			   	<textarea class="expand form-control" name="content" style="width: 100%;" placeholder="Schreibe einen neuen Beitrag ..."></textarea>
 			    <span class="help-inline showonclick">(Formatierungen im <a href="http://daringfireball.net/projects/markdown/syntax#block">Markdown-Format</a> werden unterstützt.)<br/><br/></span>
@@ -110,13 +110,17 @@
 		<div class="row">      
 	      <div class="entry-content col-md-9">
 	      <div class="entry-intro">
-	      @if(user.isDefined && (user.get.role==Role.Editor || user.get.role==Role.Admin)) {
-	      	<span class="glyphicon glyphicon-edit"></span>
-	      	<span class="glyphicon glyphicon-remove"></span>
+	      @if(editing) {
+	      	<a href="#" class="ajax-delete" url="/entry/@entry.id"><span class="glyphicon glyphicon-remove text-danger"></span></a>
 	      }
 	      </div>
 	      <small>Von @entry.user.name am @Formatter.format(entry.date)</small>
-	      @Formatter.transformToHTML(entry.content)
+	      @if(editing) {
+	      	<p style="white-space: pre-wrap;" contenteditable class="ajax-update" name="content" url="/entry/@entry.id">@entry.content</p>
+	      }
+	      @if(!editing) {
+	      	@Formatter.transformToHTML(entry.content)
+	      }
 	      </div>
 	      <div class="entry-intro col-md-3"></div>
 	    </div>
@@ -155,20 +159,20 @@
       <script type="text/javascript">
         $(document).ready(function ($) { // wait until the document is ready
           
-          $('.update-item').focus(function () {
+          $('.ajax-update').focus(function () {
         	// Store the current value on focus and on change        	
         	var element = $( this );
-        	var prevValue = this.nodeName.toLowerCase()=="select" ? element.val() : element.text();
+        	var prevValue = this.nodeName.toLowerCase()=="select" ? element.val() : this.outerText;
 
         	element.on("change input", function() { 
-	            var value = this.nodeName.toLowerCase()=="select" ? element.val() : element.text();
+	            var value = this.nodeName.toLowerCase()=="select" ? element.val() : this.outerText;
 
 	            var data = {};
 	            data[element.attr("name")] = value;
 
 	            $.ajax({
 	                type: 'PUT',
-	                url: '/item/' + element.attr("item"),
+	                url: element.attr("url"),
 	                data: data,
 	                datatype: 'text',
 	                cache: 'false',
@@ -178,16 +182,30 @@
 	            }); // End Ajax  
 	        	prevValue = value;
 	        })
-
     	  })
 
-    	  $("form.post-item").each(function() {    	  		
+    	  $('.ajax-delete').click(function () {     	
+        	var element = $( this );
+            $.ajax({
+                type: 'DELETE',
+                url: element.attr("url"),
+                data: {},
+                datatype: 'text',
+                cache: 'false',
+                success: function() {
+                	window.location.reload()
+                },
+                error: function(){}
+            }); // End Ajax  
+    	  })
+
+    	  $("form.ajax-submit").each(function() {    	  		
     	  		var form = $(this)
     	  		var submit = form.find("button[type='submit']")
     	  		submit.click(function(e) {
 	    	  		$.ajax({
 		                type: 'POST',
-		                url: '/item/' + form.attr("item"),
+		                url: form.attr("url"),
 		                data: form.serialize(),
 		                datatype: 'text',
 		                cache: 'false',
