@@ -1,11 +1,11 @@
-@(stmt: Statement, authors: List[Author], user: Option[User])
+@(stmt: Statement, stmtRelatedByAllAuthors: List[Statement], user: Option[User])(implicit request: play.api.mvc.RequestHeader)
 
 @main(stmt.title, user){
 @defining(user.isDefined && (user.get.role==Role.Editor || user.get.role==Role.Admin)) { editing => 
 
 <div class="container">
 	<div class="page-header">                
-        <h1><small><a href="/category/@stmt.category.name">@stmt.category.name</a></small><br/>
+        <h1><small><a href="/category/@stmt.category.name">@stmt.category.name</a>&nbsp;|&nbsp;@stmt.author.name</small><br/>
         @if(editing) {
         	<span contenteditable class="update-item" item="@stmt.id" name="title">@stmt.title</span>
         }
@@ -42,8 +42,8 @@
       		}	
           </span>
           <span class="rating-row pull-right">
-          	@for(a <- authors) {
-	            <span class='label' style="color: @{a.color}; background-color: @{a.background}">@a.name</span> 
+          	@for(s <- stmtRelatedByAllAuthors) {
+	            <a href="@routes.DetailViewController.view(s.id).url"><span class='label' style="color: @{s.author.color}; background-color: @{s.author.background}">@s.author.name</span></a>
 	        }
           </span>
           <div style="clear: both;"></div>
@@ -75,11 +75,11 @@
         	}
         </li>
         <li><div class="nav-header">Sharing</div>
-        	@defining( Formatter.encode( routes.DetailViewController.view(stmt.id).url ) ) { url => 
+        	@defining( Formatter.encode( routes.DetailViewController.view(stmt.id).absoluteURL(false) ) ) { url => 
         	@defining( Formatter.encode("Wahlversprechen: \"" + stmt.title+"\"") ) { title => 
            		<a class="facebook" target="_blank" onclick="return !window.open(this.href, 'Facebook', 'width=640,height=300')" href="http://www.facebook.com/sharer/sharer.php?u=@(url)"><img src="@routes.Assets.at("img/social/Facebook32px.gif")"></a>&nbsp;<a class="twitter" target="_blank" onclick="return !window.open(this.href, 'Twitter', 'width=640,height=300')" href="http://twitter.com/intent/tweet?text=@(title)+@(url)"><img src="@routes.Assets.at("img/social/Twitter32px.gif")"></a>&nbsp<a class="google" target="_blank" onclick="return !window.open(this.href, 'Google+', 'width=640,height=300')" href="https://plus.google.com/share?url=@(url)"><img src="@routes.Assets.at("img/social/Google32px.gif")"></a>&nbsp;<a class="tumblr" target="_blank" onclick="return !window.open(this.href, 'Tumblr', 'width=640,height=300')" href="http://www.tumblr.com/share/link?url=@(url)&name=@(title)"><img src="@routes.Assets.at("img/social/Tumblr32px.gif")"></a><br/>
            } }
-          <input type="text" class="form-control" style="font-size: 12px" readonly="readonly" value="@{routes.DetailViewController.view(stmt.id).url}">
+          <input type="text" class="form-control" style="font-size: 12px" readonly="readonly" value="@{routes.DetailViewController.view(stmt.id).absoluteURL(false)}">
         </li>
         <li><div class="nav-header">Abonnieren</div>
           <a href="@{routes.DetailViewController.viewAsFeed(stmt.id).url}"><img src="@routes.Assets.at("img/social/RSS32px.gif")"></a>&nbsp;

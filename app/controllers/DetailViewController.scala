@@ -19,7 +19,7 @@ object DetailViewController extends Controller with Secured {
 			case Some(stmt) => 
 				Ok(views.html.detail(
 					Statement.loadEntriesTags(stmt), 
-					liststmt.map(_.author).distinct, 
+					liststmt, 
 					user(request)
 				))
 			case None => 
