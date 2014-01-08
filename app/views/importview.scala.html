@@ -1,34 +1,53 @@
 @(form: Form[(String,String)], user: User)(implicit flash: Flash)
 
 @main("Importiere Daten", Some(user)){
-    @helper.form(routes.Admin.importStatements) {
         
-        <h1>Importiere aus Google Spreadsheet</h1>
-        
-        @form.globalError.map { error =>
-            <div class="alert alert-danger">
-                @error.message
-            </div>
-        }
+    <h1>Importiere aus Google Spreadsheet</h1>
 
-        @flash.get("error").map { message =>
-            <div class="alert alert-danger">
-                @message
-            </div>
-        }
-        
-        <p>           
+    <form class="ajax-submit" url="@routes.Admin.doImport.url" method="POST" role="form">
+        <p class="lead"> 
         <select name="author">
         @for(author <- Author.loadAll) {
            <option>@author.name</option> 
         }
         </select>            
         </p>
-        <p>
-            <input name="spreadsheet" id="spreadsheet" placeholder="Google Spreadsheet Key">
+        <p class="lead">
+            <input name="spreadsheet" id="spreadsheet" placeholder="Google Spreadsheet Key" size="45">
         </p>
-        <p>
-            <button type="submit" id="loginbutton" class="btn btn-primary">Importieren</button>
+        <p class="lead">
+            <button type="submit" class="btn btn-primary">Importieren</button>
         </p>            
-    }
+    </form>
 }
+
+      <script type="text/javascript">
+        $(document).ready(function ($) { // wait until the document is ready
+          
+          $("form.ajax-submit").each(function() {     
+                var form = $(this)
+                var submit = form.find("button[type='submit']")
+                submit.click(function(e) { 
+                    submit.prop("disabled", true);
+                    $("div.alert").remove()    
+
+                    $.ajax({
+                        type: 'POST',
+                        url: form.attr("url"),
+                        data: form.serialize()
+                    })
+                    .done(function(data, textStatus, jqXHR) {
+                        $('<div class="alert alert-success">' + data + '</div>').insertAfter(form);
+                    })
+                    .fail(function(jqXHR, textStatus, errorThrown) {
+                        $('<div class="alert alert-danger">' + jqXHR.responseText + '</div>').insertAfter(form);
+                    })
+                    .always(function() { 
+                        submit.prop("disabled", false); 
+                    }); // End Ajax  
+                     
+                    e.preventDefault()
+                })
+          })
+      })
+    </script>

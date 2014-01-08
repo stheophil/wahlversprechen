@@ -31,7 +31,7 @@ DELETE /entry/:id 					controllers.DetailViewController.deleteEntry(id: Long)
 # Admin
 
 GET		/admin/import				controllers.Admin.viewImportForm
-POST	/admin/import				controllers.Admin.importStatements
+POST	/admin/import				controllers.Admin.doImport
 
 GET 	/admin/prefs				controllers.Admin.prefs
 POST 	/admin/editUser				controllers.Admin.editUser

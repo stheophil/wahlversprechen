@@ -94,15 +94,15 @@ object Admin extends Controller with Secured {
 	val importForm = Form(
 		tuple(
 			"author" -> text.verifying("Unbekannter Autor", author => Author.load(author).isDefined),
-			"spreadsheet" -> text))
+			"spreadsheet" -> nonEmptyText))
 
 	def viewImportForm  = IsAdmin { user => implicit request =>
 		Ok(html.importview(importForm, user))
 	}
 
-	def importStatements = IsAdmin { user => implicit request =>
+	def doImport = IsAdmin { user => implicit request =>
 		importForm.bindFromRequest.fold(
-			formWithErrors => BadRequest(html.importview(formWithErrors, user)),
+			formWithErrors => BadRequest(""),
 			{ case (author_name, spreadsheet) => loadSpreadSheet(author_name, spreadsheet) }
 		) // bindFromRequest
 	}
@@ -126,11 +126,8 @@ object Admin extends Controller with Secured {
 			for (feedrow <- listFeed.getEntries()) {
 				val custom = feedrow.getCustomElements()
 
-				if (custom.getValue("titel") == null) throw new ImportException("Fehlender Titel bei Wahlversprechen Nr. "+(cRows.length+1))
-				if (custom.getValue("ressort") == null) throw new ImportException("Fehlendes Ressort bei Wahlversprechen Nr. "+(cRows.length+1))
-
-				val strCategory = custom.getValue("ressort").trim
-				val strTitle = custom.getValue("titel").trim
+				val strCategory = if(custom.getValue("ressort")==null) None else Some(custom.getValue("ressort").trim)
+				val strTitle = if(custom.getValue("titel")==null) None else Some(custom.getValue("titel").trim)
 				
 				val strQuote = if (custom.getValue("zitat") == null) None else Some(custom.getValue("zitat").trim)
 				val strSource = if (custom.getValue("quelle") == null) None else Some(custom.getValue("quelle").trim)
@@ -140,8 +137,19 @@ object Admin extends Controller with Secured {
 					else {
 						None
 					}
-				Logger.info("Found statement " + strTitle)
-				cRows += new ImportRow(strTitle, strCategory, strQuote, strSource, strTags, strLinks)
+
+				if(strCategory.isDefined || strTitle.isDefined || strQuote.isDefined ||
+					strSource.isDefined || strTags.isDefined || strLinks.isDefined) 
+				{
+					
+					if (!strTitle.isDefined) throw new ImportException("Fehlender Titel bei Wahlversprechen Nr. "+(cRows.length+1))
+					if (!strCategory.isDefined) throw new ImportException("Fehlendes Ressort bei Wahlversprechen Nr. "+(cRows.length+1))
+
+					Logger.info("Found statement " + strTitle)
+					cRows += new ImportRow(strTitle.get, strCategory.get, strQuote, strSource, strTags, strLinks)
+				} else {
+					// skip completely empty rows
+				}
 			}
 
 			Logger.info("Found " + cRows.length + " statements. Begin import.")
@@ -212,16 +220,18 @@ object Admin extends Controller with Secured {
 				})
 			}
 
-			Redirect(routes.Application.index).flashing(
-				"success" -> (cInserted+" Wahlversprechen erfolgreich hinzugefügt, " + cUpdated + " Wahlversprechen erfolgreich aktualisiert."))
+			Ok(cInserted+" Wahlversprechen erfolgreich hinzugefügt, " + cUpdated + " Wahlversprechen erfolgreich aktualisiert.")
 		} catch {
+			case e: com.google.gdata.util.ServiceException => {
+				BadRequest("Fehler beim Zugriff auf das Google Spreadsheet. Google meldet folgendes: " + e.getMessage())
+			}
 			case e: ImportException => {
-				Redirect(routes.Admin.viewImportForm).flashing("error" -> e.getMessage())
+				BadRequest("Die Daten im Google Spreadsheet sind fehlerhaft: " + e.getMessage())
 			}
 			case e: Exception => {
 				Logger.error(e.toString)
 				Logger.error(e.getStackTraceString)
-				Redirect(routes.Admin.viewImportForm).flashing("error" -> "Beim Importieren ist ein Fehler aufgetreten.")
+				InternalServerError("")
 			}
 		}		
 	}
