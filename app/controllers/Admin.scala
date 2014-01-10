@@ -17,21 +17,7 @@ import scala.collection.JavaConversions._
 import views._
 
 object Admin extends Controller with Secured {
-	val editUserForm = Form(
-		tuple(
-			"id" -> number,
-			"email" -> text,
-			"name" -> text,
-			"password" -> optional(text), 
-			"admin_email" -> text,
-			"admin_password" -> optional(text)
-		) verifying ("Ungültige Administrator E-Mail oder falsches Passwort", result => result match {
-				case (_, _, _, password, admin_email, admin_password) => {
-					!password.isDefined || 
-					User.authenticate(admin_email, admin_password.getOrElse("")).map(_.role == Role.Admin).getOrElse(false)
-				}
-		}))
-
+	
 	val editAuthorForm = Form(
 		tuple(
 			"id" -> number.verifying("Unbekannter Autor", author_id => Author.load(author_id).isDefined),
@@ -44,22 +30,70 @@ object Admin extends Controller with Secured {
 		)
 
 	def prefs = IsAdmin { user => implicit request => 
-		Ok(html.adminPrefs( Author.loadAll(), editAuthorForm, User.findAll(), editUserForm, Tag.loadAll(), user ))
+		Ok(html.adminPrefs( Author.loadAll(), editAuthorForm, User.findAll(), Tag.loadAll(), user ))
 	}
 
-	def editUser = IsAdmin { user => implicit request => 
-		editUserForm.bindFromRequest.fold(
-			formWithErrors => BadRequest(html.adminPrefs( Author.loadAll(), editAuthorForm, User.findAll(), formWithErrors, Tag.loadAll(), user)),
-			{ case (id, email, name, password, _, _) => {
-				User.edit(id, email, name, password, None) 
-				Redirect(routes.Admin.prefs.url + "#users").flashing("user_success" -> {"Änderungen an Nutzer "+name+" erfolgreich gespeichert"})
+	def userForm(edit: Boolean) = Form(
+		tuple(
+			"email" -> email,
+			"name" -> nonEmptyText,
+			"password" -> text.verifying(
+				"Das Passwort muss mindestens 8 Stellen, eine Zahl und ein Sonderzeichen enthalten.", 
+				password => edit && password.isEmpty 
+				 		|| 8<=password.length && password.exists(_.isDigit) && password.exists(!_.isLetterOrDigit)
+			),
+			"role" -> number(min=0, max = Role.maxId),
+			"admin_email" -> email,
+			"admin_password" -> text
+		) verifying ("Ungültige Administrator E-Mail oder falsches Passwort", result => result match {
+			case (_, _, password, role, admin_email, admin_password) => {
+				User.authenticate(admin_email, admin_password).map(_.role == Role.Admin).getOrElse(false)
+			}
+		}))
+
+	def newUser = IsAdmin { user => implicit request => 
+		userForm(/*edit*/ false).bindFromRequest.fold(
+			formWithErrors => BadRequest(formWithErrors.errors.head.message),
+			{ case (email, name, password, role, _, _) => {
+				User.create(email, name, password, Role(role))
+				Ok("")
 			} }
-		) // bindFromRequest
+		) 
+	}
+
+	def editUser(id: Long) = IsAdmin { user => implicit request => 
+		userForm(/*edit*/ true).bindFromRequest.fold(
+			formWithErrors => BadRequest(formWithErrors.errors.head.message),
+			{ case (email, name, password, role, _, _) => {
+				User.edit(id, email, name, Some(password), Some(Role(role))) 
+				Ok("")
+			} }
+		) 
+	}
+
+	val verifyAdminForm = Form(
+		tuple(
+			"admin_email" -> email,
+			"admin_password" -> text
+		) verifying ("Ungültige Administrator E-Mail oder falsches Passwort", result => result match {
+				case (admin_email, admin_password) => {
+					User.authenticate(admin_email, admin_password).map(_.role == Role.Admin).getOrElse(false)
+				}
+		}))
+
+	def deleteUser(id: Long) = IsAdmin { user => implicit request => 
+		verifyAdminForm.bindFromRequest.fold(
+			formWithErrors => BadRequest(formWithErrors.errors.head.message),
+			{ case(_, _) => {
+				User.delete(id)
+				Ok("")
+			}}
+		) 
 	}
 
 	def editAuthor = IsAdmin { user => implicit request => 
 		editAuthorForm.bindFromRequest.fold(
-			formWithErrors => BadRequest(html.adminPrefs( Author.loadAll(), formWithErrors, User.findAll(), editUserForm, Tag.loadAll(), user)),
+			formWithErrors => BadRequest(html.adminPrefs( Author.loadAll(), formWithErrors, User.findAll(), Tag.loadAll(), user)),
 			{ case (id, name, order, rated, color, background) => {
 				Author.edit(id, name, order, rated, color, background) 
 				Redirect(routes.Admin.prefs.url + "#author").flashing("author_success" -> {"Änderungen an "+name+" erfolgreich gespeichert"})

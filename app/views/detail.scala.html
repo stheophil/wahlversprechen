@@ -93,7 +93,7 @@
 	@if(editing) {
 		<div class="row"> 
 	      <div class="col-md-9">
-			<form class="ajax-submit" url="/item/@stmt.id" role="form">
+			<form class="ajax-submit" action="@routes.DetailViewController.addEntry(stmt.id).url" data-method="POST" data-action="reload" data-alert-id="formNewEntry" role="form" method="POST" >
 				<div class="form-group">
 			   	<textarea class="expand form-control" name="content" style="width: 100%;" placeholder="Schreibe einen neuen Beitrag ..."></textarea>
 			    <span class="help-inline showonclick">(Formatierungen im <a href="http://daringfireball.net/projects/markdown/syntax#block">Markdown-Format</a> werden unterstützt.)<br/><br/></span>
@@ -156,68 +156,3 @@
 	<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
 </div>
 }}
-      <script type="text/javascript">
-        $(document).ready(function ($) { // wait until the document is ready
-          
-          $('.ajax-update').focus(function () {
-        	// Store the current value on focus and on change        	
-        	var element = $( this );
-        	var prevValue = this.nodeName.toLowerCase()=="select" ? element.val() : this.outerText;
-
-        	element.on("change input", function() { 
-	            var value = this.nodeName.toLowerCase()=="select" ? element.val() : this.outerText;
-
-	            var data = {};
-	            data[element.attr("name")] = value;
-
-	            $.ajax({
-	                type: 'PUT',
-	                url: element.attr("url"),
-	                data: data,
-	                datatype: 'text',
-	                cache: 'false',
-	                error: function(){
-	                    element.val( prevValue );
-	                }
-	            }); // End Ajax  
-	        	prevValue = value;
-	        })
-    	  })
-
-    	  $('.ajax-delete').click(function () {     	
-        	var element = $( this );
-            $.ajax({
-                type: 'DELETE',
-                url: element.attr("url"),
-                data: {},
-                datatype: 'text',
-                cache: 'false',
-                success: function() {
-                	window.location.reload()
-                },
-                error: function(){}
-            }); // End Ajax  
-    	  })
-
-    	  $("form.ajax-submit").each(function() {    	  		
-    	  		var form = $(this)
-    	  		var submit = form.find("button[type='submit']")
-    	  		submit.click(function(e) {
-	    	  		$.ajax({
-		                type: 'POST',
-		                url: form.attr("url"),
-		                data: form.serialize(),
-		                datatype: 'text',
-		                cache: 'false',
-		                success: function() {
-		                	window.location.reload()
-		                },
-		                error: function(){
-		                    // element.val( prevValue );
-		                }
-		            }); // End Ajax  
-		            e.preventDefault()
-	    	  	})
-    	  })
-      });
-    </script>

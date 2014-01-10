@@ -26,18 +26,21 @@ POST 	/item/:id					controllers.DetailViewController.addEntry(id: Long)
 
 GET		/entry/:id 					controllers.DetailViewController.getEntry(id: Long)
 PUT 	/entry/:id					controllers.DetailViewController.updateEntry(id: Long)
-DELETE /entry/:id 					controllers.DetailViewController.deleteEntry(id: Long)
+DELETE 	/entry/:id 					controllers.DetailViewController.deleteEntry(id: Long)
 
-# Admin
-
+# Admin Views 
 GET		/admin/import				controllers.Admin.viewImportForm
+GET 	/admin/prefs				controllers.Admin.prefs
+
+# Admin API
 POST	/admin/import				controllers.Admin.doImport
 
-GET 	/admin/prefs				controllers.Admin.prefs
-POST 	/admin/editUser				controllers.Admin.editUser
+POST 	/admin/user					controllers.Admin.newUser
+PUT 	/admin/user/:id				controllers.Admin.editUser(id: Long)
+DELETE 	/admin/user/:id				controllers.Admin.deleteUser(id: Long)
+
 POST 	/admin/editAuthor			controllers.Admin.editAuthor
 
-# AJAX
 PUT		/admin/tag/:id				controllers.Admin.updateTag(id: Long)
 DELETE	/admin/tag/:id				controllers.Admin.deleteTag(id: Long)
 

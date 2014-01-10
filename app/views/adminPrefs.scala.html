@@ -1,4 +1,4 @@
-@(authors: List[Author], formEditAuthor: Form[(Int, String, Int, Boolean, String, String)], users: List[User], formEditUser: Form[(Int, String,String, Option[String], String, Option[String])], tags: List[Tag], user: User)(implicit flash: Flash)
+@(authors: List[Author], formEditAuthor: Form[(Int, String, Int, Boolean, String, String)], users: List[User], tags: List[Tag], user: User)(implicit flash: Flash)
 
 @main("Administrator Einstellungen", Some(user)){
     <h2>Administrator Einstellungen</h2>
@@ -90,18 +90,6 @@
 
     <h3>Nutzer</h3>
     <a name="users" id="users"></a>
-    @flash.get("user_success").map { message =>
-        <div class="alert alert-success">
-            @message
-        </div>
-    }
-
-    @formEditUser.globalError.map { error =>
-        <div class="alert alert-danger">
-            @error.message
-        </div>
-    }
-
     <table class="table table-hover">
     <tr>
         <th>Name</th><th>E-Mail</th><th>Rolle</th><th></th>
@@ -135,8 +123,7 @@
               <h4 class="modal-title">Bearbeite Nutzer "@u.name"</h4>
             </div>
             <div class="modal-body">
-                <form role="form" action="/admin/editUser#users" method="post" id="form_edit@(u.id)">
-                   <input type="hidden" id="id" name="id" value="@u.id">
+                <form class="ajax-submit" action="@routes.Admin.editUser(u.id).url" data-method="PUT" data-alert-id="alert_edit@(u.id)" data-action="reload" role="form" id="form_edit@(u.id)">
                    <div class="form-group">
                     <label for="name">Name</label>
                     <input type="text" class="form-control" id="name" name="name" value="@u.name">
@@ -166,7 +153,7 @@
                     <input type="password" class="form-control" id="password" name="password" placeholder="Neues Passwort">
                   </div>
                   <input type="hidden" id="admin_name" name="admin_email" value="@user.email">
-                  <p><em>Wenn Sie das Passwort ändern möchten, geben Sie das Administrator Passwort noch einmal ein:</em></p>
+                  <p><em>Geben Sie das Administrator Passwort noch einmal ein:</em></p>
                   <div class="form-group">
                     <input type="password" class="form-control" id="admin_password" name="admin_password" placeholder="Administrator Passwort">
                   </div>

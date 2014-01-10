@@ -4,7 +4,7 @@
         
     <h1>Importiere aus Google Spreadsheet</h1>
 
-    <form class="ajax-submit" url="@routes.Admin.doImport.url" method="POST" role="form">
+    <form class="ajax-submit" action="@routes.Admin.doImport.url" data-method="POST" data-action="message" data-alert-id="import" method="POST" role="form">
         <p class="lead"> 
         <select name="author">
         @for(author <- Author.loadAll) {
@@ -20,34 +20,3 @@
         </p>            
     </form>
 }
-
-      <script type="text/javascript">
-        $(document).ready(function ($) { // wait until the document is ready
-          
-          $("form.ajax-submit").each(function() {     
-                var form = $(this)
-                var submit = form.find("button[type='submit']")
-                submit.click(function(e) { 
-                    submit.prop("disabled", true);
-                    $("div.alert").remove()    
-
-                    $.ajax({
-                        type: 'POST',
-                        url: form.attr("url"),
-                        data: form.serialize()
-                    })
-                    .done(function(data, textStatus, jqXHR) {
-                        $('<div class="alert alert-success">' + data + '</div>').insertAfter(form);
-                    })
-                    .fail(function(jqXHR, textStatus, errorThrown) {
-                        $('<div class="alert alert-danger">' + jqXHR.responseText + '</div>').insertAfter(form);
-                    })
-                    .always(function() { 
-                        submit.prop("disabled", false); 
-                    }); // End Ajax  
-                     
-                    e.preventDefault()
-                })
-          })
-      })
-    </script>

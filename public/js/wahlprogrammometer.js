@@ -34,4 +34,83 @@ $(document).ready(function() {
 			$(this).show();
 		}
 	});
+          
+      $('.ajax-update').focus(function () {
+    	// Store the current value on focus and on change        	
+    	var element = $( this );
+    	var prevValue = this.nodeName.toLowerCase()=="select" ? element.val() : this.outerText;
+
+    	element.on("change input", function() { 
+            var value = this.nodeName.toLowerCase()=="select" ? element.val() : this.outerText;
+
+            var data = {};
+            data[element.attr("name")] = value;
+
+            $.ajax({
+                type: 'PUT',
+                url: element.attr("url"),
+                data: data,
+                datatype: 'text',
+                cache: 'false',
+                error: function(){
+                    element.val( prevValue );
+                }
+            }); // End Ajax  
+        	prevValue = value;
+        })
+	  })
+
+	  $('.ajax-delete').click(function () {     	
+    	var element = $( this );
+        $.ajax({
+            type: 'DELETE',
+            url: element.attr("url"),
+            data: {},
+            datatype: 'text',
+            cache: 'false',
+            success: function() {
+            	location.reload()
+            },
+            error: function(){}
+        }); // End Ajax  
+	  })
+
+      $("form.ajax-submit").each(function() {     
+            var form = $(this)
+            var submit = form.find("button[type='submit']")
+            if(0==submit.length) {
+            	var id = form.attr("id")
+            	submit = $("button[type='submit'][form='"+id+"']")
+            }
+
+            submit.click(function(e) {             	
+                submit.prop("disabled", true);
+                var alert = form.attr("data-alert-id")
+
+                $('#'+alert).remove()    
+
+                $.ajax({
+                    type: form.attr("data-method"),
+                    url: form.attr("action"),
+                    data: form.serialize()
+                })
+                .done(function(data, textStatus, jqXHR) {
+                	if(form.attr("data-action")=="reload") {
+                		location.reload(true)
+                	} else if(form.attr("data-action")=="message") {
+                		if(0<data.length) {
+                			$('<div class="alert alert-success" id='+alert+'>' + data + '</div>').insertAfter(form);
+                		}
+                    }
+                })
+                .fail(function(jqXHR, textStatus, errorThrown) {
+                    $('<div class="alert alert-danger" id='+alert+'>' + jqXHR.responseText + '</div>').insertAfter(form);
+                })
+                .always(function() { 
+                    submit.prop("disabled", false); 
+                }); // End Ajax  
+                 
+                e.preventDefault()
+            })
+      })
 });

@@ -84,12 +84,18 @@ object User {
 
 			if(role.isDefined) {
 				query += ", role = {role}"
-				params += ('role -> role.get)
+				params += ('role -> role.get.id)
 			}
 			query += " where id = {id}"
 			params += ('id -> id)
 
 			SQL(query).on(params:_*).executeUpdate
+		}
+	}
+
+	def delete(id: Long) {
+		DB.withConnection { implicit c=> 
+			SQL("DELETE FROM users where id = {id}").on('id -> id).executeUpdate
 		}
 	}
 
