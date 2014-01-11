@@ -17,20 +17,9 @@ import scala.collection.JavaConversions._
 import views._
 
 object Admin extends Controller with Secured {
-	
-	val editAuthorForm = Form(
-		tuple(
-			"id" -> number.verifying("Unbekannter Autor", author_id => Author.load(author_id).isDefined),
-			"name" -> text, 
-			"order" -> number,
-			"rated" -> boolean, 
-			"color" -> text,
-			"background" -> text 
-			)
-		)
 
 	def prefs = IsAdmin { user => implicit request => 
-		Ok(html.adminPrefs( Author.loadAll(), editAuthorForm, User.findAll(), Tag.loadAll(), user ))
+		Ok(html.adminPrefs( Author.loadAll(), User.findAll(), Tag.loadAll(), user ))
 	}
 
 	def userForm(edit: Boolean) = Form(
@@ -91,12 +80,48 @@ object Admin extends Controller with Secured {
 		) 
 	}
 
-	def editAuthor = IsAdmin { user => implicit request => 
-		editAuthorForm.bindFromRequest.fold(
-			formWithErrors => BadRequest(html.adminPrefs( Author.loadAll(), formWithErrors, User.findAll(), Tag.loadAll(), user)),
-			{ case (id, name, order, rated, color, background) => {
+	def authorForm(edited: Option[Long]) = Form(
+		tuple(
+			"name" -> nonEmptyText.verifying(
+				"Ein Author mit diesem Namen existiert bereits", 
+				name => { 
+					Author.load(name).map(_.id) match {
+						case None => true
+						case Some(id) => edited==Some(id)
+					}
+				} 
+			), 
+			"order" -> number,
+			"rated" -> boolean.verifying(
+				"Es kann momentan nur einen ausgezeichneten Author geben, dessen Wahlversprechen bewertet werten.",
+				rated => { 
+					!rated || (Author.loadRated().map(_.id) match {
+						case None => true
+						case Some(id) => edited == Some(id)
+					})
+				}
+			),
+			"color" -> text,
+			"background" -> text 
+			)
+		);
+
+	def newAuthor() = IsAdmin { user => implicit request => 
+		authorForm(None).bindFromRequest.fold(
+			formWithErrors => BadRequest(formWithErrors.errors.head.message),
+			{ case (name, order, rated, color, background) => {
+				Author.create(name, order, rated, color, background) 
+				Ok("")
+			} }
+		) // bindFromRequest
+	}
+
+	def editAuthor(id: Long) = IsAdmin { user => implicit request => 
+		authorForm(Some(id)).bindFromRequest.fold(
+			formWithErrors => BadRequest(formWithErrors.errors.head.message),
+			{ case (name, order, rated, color, background) => {
 				Author.edit(id, name, order, rated, color, background) 
-				Redirect(routes.Admin.prefs.url + "#author").flashing("author_success" -> {"Änderungen an "+name+" erfolgreich gespeichert"})
+				Ok("")
 			} }
 		) // bindFromRequest
 	}

@@ -1,28 +1,10 @@
-@(authors: List[Author], formEditAuthor: Form[(Int, String, Int, Boolean, String, String)], users: List[User], tags: List[Tag], user: User)(implicit flash: Flash)
+@(authors: List[Author], users: List[User], tags: List[Tag], user: User)
 
 @main("Administrator Einstellungen", Some(user)){
     <h2>Administrator Einstellungen</h2>
 
     <h3>Autoren</h3>
     <a name="authors" id="authors"></a>
-    @flash.get("author_success").map { message =>
-        <div class="alert alert-success">
-            @message
-        </div>
-    }
-
-    @formEditAuthor.globalErrors.map { error =>
-        <div class="alert alert-danger">
-            @error.message
-        </div>
-    }
-
-    @formEditAuthor.errors.map { error =>
-        <div class="alert alert-danger">
-            @error.message
-        </div>
-    }
-
     <table class="table table-hover">
     <tr>
         <th>Reihenfolge</th><th>Name</th><th>Bewertet</th><th>Farbe</th><th></th>
@@ -39,7 +21,7 @@
         </td>
         <td>
             <a data-toggle="modal" href="#editAuthor@(a.id)" href="#"><span class="glyphicon glyphicon-edit"></span></a>
-            <a href="#"><span class="glyphicon glyphicon-remove"></span></a>
+            <!--<a href="#"><span class="glyphicon glyphicon-remove"></span></a>-->
         </td>
     </tr>
     }
@@ -55,8 +37,7 @@
               <h4 class="modal-title">Bearbeite Author "@a.name"</h4>
             </div>
             <div class="modal-body">
-                <form role="form" action="/admin/editAuthor#authors" method="post" id="form_editAuthor@(a.id)">
-                   <input type="hidden" id="id" name="id" value="@a.id">
+                <form class="ajax-submit" data-alert-id="form_alertAuthor@(a.id)" data-url="@routes.Admin.editAuthor(a.id).url" data-method="PUT" data-action="reload" id="form_editAuthor@(a.id)" role="form">
                    <div class="form-group">
                     <label for="order">Reihenfolge</label>
                     <input type="text" class="form-control" id="order" name="order" value="@a.order">
@@ -67,7 +48,7 @@
                   </div>
                   <div class="form-group">
                     <label for="rated">Bewerted</label>       
-                    <input type="checkbox" name="rated" id="rated" value="Bewerted" @if(a.rated) {checked}>
+                    <input type="checkbox" name="rated" id="rated" value="true" @if(a.rated) {checked}>
                   </div>
                   <div class="form-group">
                     <label for="color">Textfarbe</label>
@@ -107,7 +88,7 @@
         </td>
         <td>
             <a data-toggle="modal" href="#edit@(u.id)" href="#"><span class="glyphicon glyphicon-edit"></span></a>
-            <a href="#"><span class="glyphicon glyphicon-remove"></span></a>
+            <!--<a href="#"><span class="glyphicon glyphicon-remove"></span></a>-->
         </td>
     </tr>
     }
@@ -123,7 +104,7 @@
               <h4 class="modal-title">Bearbeite Nutzer "@u.name"</h4>
             </div>
             <div class="modal-body">
-                <form class="ajax-submit" action="@routes.Admin.editUser(u.id).url" data-method="PUT" data-alert-id="alert_edit@(u.id)" data-action="reload" role="form" id="form_edit@(u.id)">
+                <form class="ajax-submit" data-url="@routes.Admin.editUser(u.id).url" data-method="PUT" data-alert-id="alert_edit@(u.id)" data-action="reload" role="form" id="form_edit@(u.id)">
                    <div class="form-group">
                     <label for="name">Name</label>
                     <input type="text" class="form-control" id="name" name="name" value="@u.name">

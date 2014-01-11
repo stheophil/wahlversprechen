@@ -4,7 +4,7 @@
         
     <h1>Importiere aus Google Spreadsheet</h1>
 
-    <form class="ajax-submit" action="@routes.Admin.doImport.url" data-method="POST" data-action="message" data-alert-id="import" method="POST" role="form">
+    <form class="ajax-submit" data-url="@routes.Admin.doImport.url" data-method="POST" data-action="message" data-alert-id="import"  role="form">
         <p class="lead"> 
         <select name="author">
         @for(author <- Author.loadAll) {

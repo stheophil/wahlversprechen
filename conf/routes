@@ -39,7 +39,9 @@ POST 	/admin/user					controllers.Admin.newUser
 PUT 	/admin/user/:id				controllers.Admin.editUser(id: Long)
 DELETE 	/admin/user/:id				controllers.Admin.deleteUser(id: Long)
 
-POST 	/admin/editAuthor			controllers.Admin.editAuthor
+POST 	/admin/author				controllers.Admin.newAuthor
+PUT 	/admin/author/:id			controllers.Admin.editAuthor(id: Long)
+# DELETE 	/admin/author/:id		controllers.Admin.deleteAuthor(id: Long)
 
 PUT		/admin/tag/:id				controllers.Admin.updateTag(id: Long)
 DELETE	/admin/tag/:id				controllers.Admin.deleteTag(id: Long)

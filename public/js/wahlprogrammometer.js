@@ -91,7 +91,7 @@ $(document).ready(function() {
 
                 $.ajax({
                     type: form.attr("data-method"),
-                    url: form.attr("action"),
+                    url: form.attr("data-url"),
                     data: form.serialize()
                 })
                 .done(function(data, textStatus, jqXHR) {
