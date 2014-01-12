@@ -149,6 +149,7 @@
       </div><!-- /.modal -->
     }
 
+    <a name="tags" id="tags"></a> 
     <h3>Tags</h3>
     <p>Wählen Sie die Tags aus, die <em>wichtige</em> Wahlversprechen markieren.</p>
       @for(tagrow <- tags.sliding(4, 4)) {
@@ -157,7 +158,7 @@
           <div class="col-sm-3">
             <input type="checkbox" class="setImportantTag" id="@t.id" @if(t.important) { checked } />&nbsp;<a href="/tag/@(t.name)"><span class='label label-primary'>@t.name</span></a>
             &nbsp;<a href="#"><span class="glyphicon glyphicon-edit"></span></a>
-            &nbsp;<a href="#"><span class="glyphicon glyphicon-remove"></span></a>
+            &nbsp;<a href="#tags" class="ajax-delete" url="@routes.Admin.deleteTag(t.id).url"><span class="glyphicon glyphicon-remove text-danger"></span></a>
           </div>
         }
         </div>
