@@ -157,8 +157,8 @@
         @for(t <- tagrow) {
           <div class="col-sm-3">
             <input type="checkbox" class="setImportantTag" id="@t.id" @if(t.important) { checked } />&nbsp;<a href="/tag/@(t.name)"><span class='label label-primary'>@t.name</span></a>
-            &nbsp;<a href="#"><span class="glyphicon glyphicon-edit"></span></a>
-            &nbsp;<a href="#tags" class="ajax-delete" url="@routes.Admin.deleteTag(t.id).url"><span class="glyphicon glyphicon-remove text-danger"></span></a>
+            &nbsp;<a href="#" class="tag-edit" data-tag-id="@t.id" data-tag-name="@t.name"><span class="glyphicon glyphicon-edit"></span></a>
+            &nbsp;<a href="#" class="ajax-delete" url="@routes.Admin.deleteTag(t.id).url"><span class="glyphicon glyphicon-remove text-danger"></span></a>
           </div>
         }
         </div>
@@ -183,5 +183,28 @@
                 }
             }); // End Ajax  
         }); // End onclick
+      
+        $(".tag-edit").popover({
+          html: true,
+          placement: "top",
+          container: "body",
+          content: function() {
+            var id = $(this).data('tag-id')
+            var name = $(this).data('tag-name')
+            return '<form id="formEditTag'+id+'" class="ajax-submit" data-method="PUT" data-url="/admin/tag/'+id+'" data-action="reload" data-alert-id="alertEditTag'+id+'" role="form">' +
+            '<div class="form-group">' +
+            '<input type="text" name="name" class="form-control input-sm" size="25" value="'+name+'">' +
+            '</div>' + 
+            '<button type="submit" class="btn-primary btn btn-sm">OK</button>' +
+            '</form>';
+          }
+        }).click(function(e) {
+          e.preventDefault()
+        })
+
+        $('.tag-edit').on('shown.bs.popover', function () {
+            var id = $(this).data('tag-id')
+            form_ajax_submit($("#formEditTag" + id))
+        })
       });
     </script>

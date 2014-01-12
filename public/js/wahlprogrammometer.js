@@ -1,3 +1,41 @@
+function form_ajax_submit(form) {
+    var submit = form.find("button[type='submit']")
+    if(0==submit.length) {
+    	var id = form.attr("id")
+    	submit = $("button[type='submit'][form='"+id+"']")
+    }
+
+    submit.click(function(e) {             	
+        submit.prop("disabled", true);
+        var alert = form.attr("data-alert-id")
+
+        $('#'+alert).remove()    
+
+        $.ajax({
+            type: form.attr("data-method"),
+            url: form.attr("data-url"),
+            data: form.serialize()
+        })
+        .done(function(data, textStatus, jqXHR) {
+        	if(form.attr("data-action")=="reload") {
+        		location.reload(true)
+        	} else if(form.attr("data-action")=="message") {
+        		if(0<data.length) {
+        			$('<div class="alert alert-success" id='+alert+'>' + data + '</div>').insertAfter(form);
+        		}
+            }
+        })
+        .fail(function(jqXHR, textStatus, errorThrown) {
+            $('<div class="alert alert-danger" id='+alert+'>' + jqXHR.responseText + '</div>').insertAfter(form);
+        })
+        .always(function() { 
+            submit.prop("disabled", false); 
+        }); // End Ajax  
+         
+        e.preventDefault()
+    })
+}
+
 
 $(document).ready(function() {  
 	$('textarea.expand').each( function( i ) {		
@@ -64,7 +102,7 @@ $(document).ready(function() {
         })
 	  })
 
-	  $('.ajax-delete').click(function () {     	
+	  $('.ajax-delete').click(function (e) {     	
     	var element = $( this );
         $.ajax({
             type: 'DELETE',
@@ -77,44 +115,10 @@ $(document).ready(function() {
             },
             error: function(){}
         }); // End Ajax  
+        e.preventDefault()
 	  })
 
-      $("form.ajax-submit").each(function() {     
-            var form = $(this)
-            var submit = form.find("button[type='submit']")
-            if(0==submit.length) {
-            	var id = form.attr("id")
-            	submit = $("button[type='submit'][form='"+id+"']")
-            }
-
-            submit.click(function(e) {             	
-                submit.prop("disabled", true);
-                var alert = form.attr("data-alert-id")
-
-                $('#'+alert).remove()    
-
-                $.ajax({
-                    type: form.attr("data-method"),
-                    url: form.attr("data-url"),
-                    data: form.serialize()
-                })
-                .done(function(data, textStatus, jqXHR) {
-                	if(form.attr("data-action")=="reload") {
-                		location.reload(true)
-                	} else if(form.attr("data-action")=="message") {
-                		if(0<data.length) {
-                			$('<div class="alert alert-success" id='+alert+'>' + data + '</div>').insertAfter(form);
-                		}
-                    }
-                })
-                .fail(function(jqXHR, textStatus, errorThrown) {
-                    $('<div class="alert alert-danger" id='+alert+'>' + jqXHR.responseText + '</div>').insertAfter(form);
-                })
-                .always(function() { 
-                    submit.prop("disabled", false); 
-                }); // End Ajax  
-                 
-                e.preventDefault()
-            })
-      })
+      $("form.ajax-submit").each(function() {
+      	form_ajax_submit($(this))
+  	   })
 });
