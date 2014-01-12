@@ -105,4 +105,26 @@ object DetailViewController extends Controller with Secured {
 		Entry.delete(entry_id)
 		Ok("")
 	}	
+
+	val newTagForm = Form("name" -> nonEmptyText)
+	def addTag(id: Long) = IsEditor { user => implicit request => 
+		newTagForm.bindFromRequest.fold(
+			formWithErrors => BadRequest(""),
+			{
+				case (name) => {
+					val tag = (Tag.load(name) match {
+						case Some(tag) => tag
+						case None => Tag.create(name)
+					})
+					Tag.add(id, tag)
+					Ok("")
+				}
+			}
+		)
+	}
+
+	def deleteTag(stmt_id: Long, tagid: Long) = IsEditor { user => implicit request => 
+		Tag.delete(stmt_id, tagid)
+		Ok("")
+	}
 }

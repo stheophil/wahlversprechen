@@ -71,7 +71,16 @@
         <ul class="nav nav-list hidden-print">
         <li><div class="nav-header">Stichwörter</div>
         	@for(t <- stmt.tags) {
-        		<a href="/tag/@(t.name)"><span class='label label-primary'>@t.name</span></a>
+        		<a href="/tag/@(t.name)"><span class='label label-primary'>@t.name</span></a>@if(editing) {<small><a href="#" class="ajax-delete" url="@routes.DetailViewController.deleteTag(stmt.id, t.id).url"><span class="glyphicon glyphicon-remove text-danger"></span></a></small>&nbsp;}
+        	}
+        	@if(editing) {
+        		<br><br>
+        		<form class="ajax-submit form-inline" data-url="@routes.DetailViewController.addTag(stmt.id).url" data-method="POST" data-action="reload" data-alert-id="formNewTag" role="form">
+        		<div class="form-group">
+        		<input type="text" name="name" class="form-control input-sm" size="25" placeholder="Neues Tag hinzufügen">
+        		</div>
+				<button type="submit" class="btn-primary btn btn-sm">OK</button>
+				</form>
         	}
         </li>
         <li><div class="nav-header">Sharing</div>
@@ -79,7 +88,8 @@
         	@defining( Formatter.encode("Wahlversprechen: \"" + stmt.title+"\"") ) { title => 
            		<a class="facebook" target="_blank" onclick="return !window.open(this.href, 'Facebook', 'width=640,height=300')" href="http://www.facebook.com/sharer/sharer.php?u=@(url)"><img src="@routes.Assets.at("img/social/Facebook32px.gif")"></a>&nbsp;<a class="twitter" target="_blank" onclick="return !window.open(this.href, 'Twitter', 'width=640,height=300')" href="http://twitter.com/intent/tweet?text=@(title)+@(url)"><img src="@routes.Assets.at("img/social/Twitter32px.gif")"></a>&nbsp<a class="google" target="_blank" onclick="return !window.open(this.href, 'Google+', 'width=640,height=300')" href="https://plus.google.com/share?url=@(url)"><img src="@routes.Assets.at("img/social/Google32px.gif")"></a>&nbsp;<a class="tumblr" target="_blank" onclick="return !window.open(this.href, 'Tumblr', 'width=640,height=300')" href="http://www.tumblr.com/share/link?url=@(url)&name=@(title)"><img src="@routes.Assets.at("img/social/Tumblr32px.gif")"></a><br/>
            } }
-          <input type="text" class="form-control" style="font-size: 12px" readonly="readonly" value="@{routes.DetailViewController.view(stmt.id).absoluteURL(false)}">
+           <br/>
+          <input type="text" class="form-control input-sm" readonly="readonly" value="@{routes.DetailViewController.view(stmt.id).absoluteURL(false)}">
         </li>
         <li><div class="nav-header">Abonnieren</div>
           <a href="@{routes.DetailViewController.viewAsFeed(stmt.id).url}"><img src="@routes.Assets.at("img/social/RSS32px.gif")"></a>&nbsp;

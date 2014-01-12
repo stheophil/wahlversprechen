@@ -17,7 +17,9 @@ object Tag {
 	}
 
 	def create(name: String): Tag = {
-		DB.withConnection { implicit c => create(name) }
+		DB.withConnection { 
+			implicit c => create(c, name) 
+		}
 	}
 
 	def create(implicit connection: java.sql.Connection, name: String): Tag = {
@@ -58,11 +60,24 @@ object Tag {
 			SQL("select id, name, important from tag order by name").as(tag*)
 	}
 
+	def add(stmt_id: Long, tag: Tag) {
+		DB.withConnection{ implicit c => add(c, stmt_id, tag) }
+	}
+
 	def add(implicit connection: java.sql.Connection, stmt_id: Long, tag: Tag) {
 			SQL("insert into statement_tags values ({tag_id}, {stmt_id})").on(
 				'tag_id -> tag.id,
 				'stmt_id -> stmt_id
 			).executeUpdate
+	}
+
+	def delete(stmt_id: Long, tag_id: Long) {
+		DB.withConnection { implicit c => 
+			SQL("DELETE FROM statement_tags where tag_id = {tag_id} and stmt_id = {stmt_id}").on(
+				'tag_id -> tag_id,
+				'stmt_id -> stmt_id
+			).executeUpdate
+		}
 	}
 
 	def eraseAll(implicit connection: java.sql.Connection, stmt_id: Long) {

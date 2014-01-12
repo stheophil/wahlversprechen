@@ -38,6 +38,10 @@ $(document).ready(function() {
       $('.ajax-update').focus(function () {
     	// Store the current value on focus and on change        	
     	var element = $( this );
+    	var method = element.attr("method")
+    	if(!method) {
+    		method = "PUT"
+    	}
     	var prevValue = this.nodeName.toLowerCase()=="select" ? element.val() : this.outerText;
 
     	element.on("change input", function() { 
@@ -47,7 +51,7 @@ $(document).ready(function() {
             data[element.attr("name")] = value;
 
             $.ajax({
-                type: 'PUT',
+                type: method,
                 url: element.attr("url"),
                 data: data,
                 datatype: 'text',

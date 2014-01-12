@@ -52,13 +52,14 @@ small a:hover {
   padding: inherit;
   height: 26px;
 }
-
+/*
 .nav-list .form-control {
   padding: 5px;
   margin-top: 10px;
   height: 26px;
   min-width: 200px;
 }
+*/
 
 .navbar .btn {
   padding-top: 2px;
