@@ -13,15 +13,15 @@
 	} else {
 		<li>
 	}
-  	<a href="#@(author.name)" data-toggle="tab">@(author.name)</a></li>
+  	<a href="#@(author.name.filter(!_.isWhitespace))" data-toggle="tab">@(author.name)</a></li>
 }
 </ul>
 <div class="tab-content">  				
 @for( (author, liststmtAll) <- stmtsByAuthor ) {
 	@if(author==stmtsByAuthor.head._1) {
-	<div class="tab-pane active" id="@(author.name)">
+	<div class="tab-pane active" id="@(author.name.filter(!_.isWhitespace))">
 	} else {
-	<div class="tab-pane" id="@(author.name)">
+	<div class="tab-pane" id="@(author.name.filter(!_.isWhitespace))">
 	}
 			
 	@for(stmt <- liststmtAll) {
