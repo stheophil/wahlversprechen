@@ -18,7 +18,6 @@ GET 	/updates/feed 				controllers.Application.updatesAsFeed
 
 # Item Views 
 GET		/item/:id					controllers.DetailViewController.view(id: Long)
-GET		/item/nocache/:id			controllers.DetailViewController.viewUncached(id: Long)
 GET		/item/:id/feed				controllers.DetailViewController.viewAsFeed(id: Long)
 
 # Item API

@@ -27,20 +27,6 @@ object DetailViewController extends Controller with Secured {
 		}
 	}
 
-	def viewUncached(id: Long) = Action { implicit request =>
-		val liststmt = Statement.loadAll(id)
-		liststmt.find(_.id == id) match {
-			case Some(stmt) => 
-				Ok(views.html.detail(
-					Statement.loadEntriesTags(stmt), 
-					liststmt, 
-					user(request)
-				))
-			case None => 
-				NotFound
-		}
-	}
-
 	def viewAsFeed(id: Long) = CachedAction("viewAsFeed."+id, 60 * 60) { implicit request =>
 		Statement.load(id) match {
 			case Some(stmt) => 
