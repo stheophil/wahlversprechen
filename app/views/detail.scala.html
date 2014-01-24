@@ -136,7 +136,13 @@
 	    </div>
 	}
 	<hr>
-	<p class="lead">Du bist anderer Meinung oder gibt es neue Entwicklungen, die dieser Bewertung widersprechen? Diskutier mit!</p>
+	@{stmt.entries.isEmpty match {
+		case true => 
+		 		<p class="lead">Arbeitet die Regierung bereits an diesem Vorhaben? Gibt es irgendwelche Neuigkeiten oder ist es sogar schon umgesetzt? Dann schreib uns in den Kommentaren!</p>
+		 case false =>
+	  			<p class="lead">Du bist anderer Meinung oder gibt es neue Entwicklungen, die dieser Bewertung widersprechen? Diskutier mit!</p>
+	}}
+	
 	<!--
 	<div id="pd_rating_holder_7012588"></div>
 	<script type="text/javascript">
