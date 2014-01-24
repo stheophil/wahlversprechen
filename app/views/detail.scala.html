@@ -6,39 +6,43 @@
 <div class="container">
 	<div class="page-header">                
         <h1><small><a href="/category/@stmt.category.name">@stmt.category.name</a>&nbsp;|&nbsp;@stmt.author.name</small><br/>
-        @if(editing) {
-        	<span contenteditable class="ajax-update" url="/item/@stmt.id" name="title">@stmt.title</span>
-        }
-       @if(!editing) {
-        	@stmt.title
+        @editing match {
+        	case true => {
+        		<span contenteditable class="ajax-update" url="/item/@stmt.id" name="title">@stmt.title</span>
+        	}
+        	case false => { 
+        		@stmt.title 
+        	}
         }
         </h1>
         <div>
           <span class="rating-row pull-left">          	
-      		@if(editing) {
-      			<form class="form-inline" style="display: inline-block">
-	        	<div class="form-group">
-				    <label for="rating" class="sr-only">Bewerte dieses Wahlversprechen:</label>
-				    <select id="rating" class="form-control ajax-update" url="/item/@stmt.id" name="rating" >
-				    	@if(!stmt.author.rated) {
-				    		<option value="-1" @if(!stmt.rating.isDefined) { "selected" }>Keine Bewertung</option> 
-				    	}
-				    	@for(rating <- 0 until models.Rating.maxId) {
-						  <option value="@rating" 
-						  	@if(stmt.rating.isDefined && stmt.rating.get.id==rating) { selected }
-						  >@Formatter.name(models.Rating(rating))</option> 
-						}
-					</select>
-				</div>
-				</form>
-      		}
-      		@if(!editing) {
-      			<h2 style="color: @if(stmt.rating.isDefined) { @Formatter.color(stmt.rating.get) }; margin: 0px">
-	          	@if(stmt.rating.isDefined) {
-		            <span class="glyphicon @Formatter.glyph(stmt.rating.get)"></span>&nbsp;@Formatter.name(stmt.rating.get)	            
-		        }
-		        &nbsp;	
-		        </h2>
+      		@editing match {
+      			case true => {
+	      			<form class="form-inline" style="display: inline-block">
+		        	<div class="form-group">
+					    <label for="rating" class="sr-only">Bewerte dieses Wahlversprechen:</label>
+					    <select id="rating" class="form-control ajax-update" url="/item/@stmt.id" name="rating" >
+					    	@if(!stmt.author.rated) {
+					    		<option value="-1" @if(!stmt.rating.isDefined) { "selected" }>Keine Bewertung</option> 
+					    	}
+					    	@for(rating <- 0 until models.Rating.maxId) {
+							  <option value="@rating" 
+							  	@if(stmt.rating.isDefined && stmt.rating.get.id==rating) { selected }
+							  >@Formatter.name(models.Rating(rating))</option> 
+							}
+						</select>
+					</div>
+					</form>
+	      		}
+	      		case false => {
+	      			<h2 style="color: @if(stmt.rating.isDefined) { @Formatter.color(stmt.rating.get) }; margin: 0px">
+		          	@if(stmt.rating.isDefined) {
+			            <span class="glyphicon @Formatter.glyph(stmt.rating.get)"></span>&nbsp;@Formatter.name(stmt.rating.get)	            
+			        }
+			        &nbsp;	
+			        </h2>
+			    }
       		}	
           </span>
           <span class="rating-row pull-right">
@@ -52,19 +56,21 @@
 
     <div class="row">
       <div class="col-md-9 col-sm-12">
-      @if(editing) {
-      	<blockquote class="lead entry-quote"><p contenteditable class="ajax-update" url="/item/@stmt.id" name="quote">@stmt.quote.getOrElse("Gib ein Zitat ein")</p><br/>
-		<small><p contenteditable class="ajax-update" url="/item/@stmt.id" name="quote_src">@stmt.quote_src.getOrElse("Gib eine Quelle für das Zitat ein")</p></small>
-		</blockquote>
-      }
-      @if(!editing) {
-	      @if(stmt.quote.isDefined) {
+      @editing match {
+      	case true => {
+	      	<blockquote class="lead entry-quote"><p contenteditable class="ajax-update" url="/item/@stmt.id" name="quote">@stmt.quote.getOrElse("Gib ein Zitat ein")</p><br/>
+			<small><p contenteditable class="ajax-update" url="/item/@stmt.id" name="quote_src">@stmt.quote_src.getOrElse("Gib eine Quelle für das Zitat ein")</p></small>
+			</blockquote>
+		}
+      	case false => {
+      		@if(stmt.quote.isDefined) {
 				<blockquote class="lead entry-quote">@Formatter.transformToHTML(stmt.quote.get)<br/>
 				@if(stmt.quote_src.isDefined) {
 					<small>@Formatter.transformToHTML(stmt.quote_src.get)</small>
 				}
 				</blockquote>
-		  }
+		  	}
+		}
 	  }
       </div>
       <div class="col-md-3">
@@ -125,23 +131,27 @@
 	      }
 	      </div>
 	      <small>Von @entry.user.name am @Formatter.format(entry.date)</small>
-	      @if(editing) {
-	      	<p style="white-space: pre-wrap;" contenteditable class="ajax-update" name="content" url="/entry/@entry.id">@entry.content</p>
-	      }
-	      @if(!editing) {
-	      	@Formatter.transformToHTML(entry.content)
+	      @editing match {
+	      	case true => {
+	      		<p style="white-space: pre-wrap;" contenteditable class="ajax-update" name="content" url="/entry/@entry.id">@entry.content</p>
+	      	}
+	      	case false => {
+	      		@Formatter.transformToHTML(entry.content)
+	      	}
 	      }
 	      </div>
 	      <div class="entry-intro col-md-3"></div>
 	    </div>
 	}
 	<hr>
-	@{stmt.entries.isEmpty match {
-		case true => 
+	@stmt.entries.isEmpty match {
+		case true => {
 		 		<p class="lead">Arbeitet die Regierung bereits an diesem Vorhaben? Gibt es irgendwelche Neuigkeiten oder ist es sogar schon umgesetzt? Dann schreib uns in den Kommentaren!</p>
-		 case false =>
+		 }
+		 case false => {
 	  			<p class="lead">Du bist anderer Meinung oder gibt es neue Entwicklungen, die dieser Bewertung widersprechen? Diskutier mit!</p>
-	}}
+		 }
+	}
 	
 	<!--
 	<div id="pd_rating_holder_7012588"></div>
