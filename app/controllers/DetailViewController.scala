@@ -13,13 +13,18 @@ import views._
 object DetailViewController extends Controller with Secured {
 	// Entry page / entry editing  
 
-	def view(id: Long) = CachedAction("view."+id) { implicit request =>
-		val liststmt = Statement.loadAll(id)
-		liststmt.find(_.id == id) match {
+	def view(id: Long) = CachedAction("view."+id) { implicit request =>		
+		Statement.load(id) match {
 			case Some(stmt) => 
 				Ok(views.html.detail(
 					Statement.loadEntriesTags(stmt), 
-					liststmt, 
+					if(stmt.author.rated) {
+						Statement.loadAll(id)
+					} else if(stmt.merged_id.isDefined) {
+						Statement.loadAll(stmt.merged_id.get)
+					} else {
+						List(stmt)
+					}, 
 					user(request)
 				))
 			case None => 
