@@ -104,6 +104,8 @@ $(document).ready(function() {
 
 	  $('.ajax-delete').click(function (e) {     	
     	var element = $( this );
+    	var target = element.attr("target-url")
+
         $.ajax({
             type: 'DELETE',
             url: element.attr("url"),
@@ -111,9 +113,15 @@ $(document).ready(function() {
             datatype: 'text',
             cache: 'false',
             success: function() {
-            	location.reload()
+            	if(target) {
+            		location.href = target
+            	} else {
+            		location.reload()
+            	}            	
             },
-            error: function(){}
+            error: function(){
+
+            }
         }); // End Ajax  
         e.preventDefault()
 	  })

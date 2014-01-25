@@ -180,5 +180,29 @@
 	    </script>
 	<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 	<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+	@if(editing && user.get.role==Role.Admin) {
+		<p>
+		<span class="pull-right">
+			<button type="button" class="btn-danger btn btn-lg" data-toggle="modal" data-target="#modalDeleteItem">Wahlversprechen Löschen</button>
+		</span>
+        <div style="clear: both;"></div>
+		</p>
+
+		<div class="modal fade" id="modalDeleteItem" tabindex="-1" role="dialog" aria-labelledby="modalDeleteItem" aria-hidden="true">
+		  <div class="modal-dialog">
+		    <div class="modal-content">
+		      <div class="modal-body">
+		        Das Löschen dieses Wahlversprechens kann nicht rückgängig gemacht werden. Möchtest Du das Wahlversprechen wirklich löschen?
+		      </div>
+		      <div class="modal-footer">
+		        <button type="button" class="btn btn-default" data-dismiss="modal">Abbrechen</button>
+		        <button type="submit" class="btn-danger btn ajax-delete" url="@routes.DetailViewController.delete(stmt.id).url" target-url="@routes.Application.all.url" confirm-text="Diese Aktion kann nicht rückgängig gemacht werden!">Löschen</button>
+		      </div>
+		    </div><!-- /.modal-content -->
+		  </div><!-- /.modal-dialog -->
+		</div><!-- /.modal -->
+			
+	}
 </div>
 }}

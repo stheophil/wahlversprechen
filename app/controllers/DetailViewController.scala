@@ -88,6 +88,11 @@ object DetailViewController extends Controller with Secured {
 		)
 	}
 
+	def delete(stmt_id: Long) = IsAdmin { user => implicit request =>
+		Statement.delete(stmt_id)
+		Ok("")
+	}
+
 	def getEntry(entry_id: Long) = Action { implicit request =>
 		Entry.contentAsMarkdown(entry_id) match {
 			case Some(content) => Ok(content)

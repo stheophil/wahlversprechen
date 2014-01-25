@@ -62,6 +62,17 @@ object Entry {
 		}	
 	}
 
+	def deleteAll(implicit c: java.sql.Connection, stmt_id: Long) {		
+		SQL("delete from entry where stmt_id = {stmt_id}").on('stmt_id -> stmt_id).executeUpdate()
+
+		/*
+		val latest = SQL("select MAX(date) from entry where stmt_id = {stmt_id}").on('stmt_id -> stmt_id).as(scalar[Date].singleOpt)
+     	SQL("update statement set latestEntry = {date} where id = {stmt_id}").on(					
+				'date -> latest,
+				'stmt_id -> stmt_id).executeUpdate()
+		*/	
+	}
+
 	def create(stmt_id: Long, content: String, date: Date, user_id: Long) {
 		DB.withTransaction { implicit c =>
 			val id = SQL("select nextval('entry_id_seq')").as(scalar[Long].single)

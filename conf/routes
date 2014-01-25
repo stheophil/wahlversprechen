@@ -23,6 +23,7 @@ GET		/item/:id/feed				controllers.DetailViewController.viewAsFeed(id: Long)
 # Item API
 PUT 	/item/:id					controllers.DetailViewController.update(id: Long)
 POST 	/item/:id					controllers.DetailViewController.addEntry(id: Long)
+DELETE 	/item/:id 					controllers.DetailViewController.delete(id: Long)
 
 POST	/item/:id/tag 				controllers.DetailViewController.addTag(id: Long)
 DELETE	/item/:id/tag/:tagid		controllers.DetailViewController.deleteTag(id: Long, tagid: Long)

@@ -268,6 +268,15 @@ object Statement {
 				'merged_id -> merged_id).executeUpdate()
 	}
 
+	def delete(id: Long) {
+		DB.withTransaction { implicit c => 
+			Tag.eraseAll(c, id)
+			Entry.deleteAll(c, id)
+			SQL("UPDATE STATEMENT SET merged_id = NULL WHERE merged_id = {id} ").on('id -> id).executeUpdate
+			SQL("DELETE FROM STATEMENT WHERE id = {id}").on('id -> id).executeUpdate
+		}
+	}
+
 	def setTitle(stmt_id: Long, title: String) {
 		DB.withConnection { implicit c => 
 			SQL("update statement set title = {title} where id = {stmt_id}").
