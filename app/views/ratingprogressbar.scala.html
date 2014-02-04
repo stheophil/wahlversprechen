@@ -1,13 +1,15 @@
 @(cStatement: Int, mapRating: Map[models.Rating.Rating, Int], progressclass: String, glyphiconclass: String)
 
 <div class="progress @progressclass">
-	@for(rating <- List(models.Rating.PromiseKept, models.Rating.Compromise, models.Rating.PromiseBroken, models.Rating.Unrated)) {
-		@defining(mapRating.getOrElse(rating, 0).toDouble / math.max(1, cStatement) * 100.0) { value => 
-			@if(0.0<value) {
-			<div class="progress-bar" style="background-color: @{Formatter.color(rating)}; width: @value%">
-				<span class="glyphicon @Formatter.glyph(rating) @glyphiconclass"></span>
-				<span class="sr-only" href="#content">@{Formatter.name(rating)} @value%</span>
-			</div>
+	@for(ratingId <- 0 until models.Rating.maxId) {
+		@defining(models.Rating(ratingId)) { rating => 
+			@defining(mapRating.getOrElse(rating, 0).toDouble / math.max(1, cStatement) * 100.0) { value => 
+				@if(0.0<value) {
+				<div class="progress-bar" style="background-color: @Formatter.color(rating); width: @value%">
+					<a href="@routes.Application.rating(ratingId).url"><span class="glyphicon @Formatter.glyph(rating) @glyphiconclass" style="color: white"></span></a>
+					<span class="sr-only" href="#content">@Formatter.name(rating) @value%</span>
+				</div>
+				}
 			}
 		}
 	}
