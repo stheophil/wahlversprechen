@@ -104,7 +104,7 @@ object Statement {
 
 	def byEntryDate(oauthor: Option[Author], olimit: Option[Int]) : List[Statement] = {
 		val queryLatest = query +
-		" where statement.latestEntry IS NOT NULL "
+		" where statement.latestEntry IS NOT NULL " + 
 		(if(oauthor.isDefined) " and author.id = {author_id} " else "") +
 		"order by statement.latestEntry DESC " +
 		(if(olimit.isDefined) "limit {limit}" else "")
