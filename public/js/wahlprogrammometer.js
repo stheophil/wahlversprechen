@@ -129,14 +129,15 @@ $(document).ready(function() {
 
             $('<br/><button type="button" class="btn btn-primary btn-sm">Speichern</button>&nbsp;')
                 .insertAfter(element)
-                .click(function() {
-                    saveHandler()                    
-                    element.nextAll("button").delay(1000).fadeOut()
-                 })
+                .click(saveHandler)
                 .hide();
 
             element.focusin( function() { 
-                $(this).nextAll("button").fadeIn()
+                element.nextAll("button").fadeIn()
+            })
+
+            element.blur( function() { 
+                element.nextAll("button").fadeOut()
             })
         }
 	  })
