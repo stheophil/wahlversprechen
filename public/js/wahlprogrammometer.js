@@ -73,17 +73,30 @@ $(document).ready(function() {
 		}
 	});
           
-      $('.ajax-update').focus(function () {
+    $('.ajax-update').each(function () {
     	// Store the current value on focus and on change        	
     	var element = $( this );
+        var elementDOM = this
+        var bSelect = this.nodeName.toLowerCase()=="select"        
     	var method = element.attr("method")
     	if(!method) {
     		method = "PUT"
     	}
-    	var prevValue = this.nodeName.toLowerCase()=="select" ? element.val() : this.outerText;
 
-    	element.on("change input", function() { 
-            var value = this.nodeName.toLowerCase()=="select" ? element.val() : this.outerText;
+    	var prevValue = bSelect ? element.val() : elementDOM.outerText;
+        var errorHandler = bSelect 
+            ? function() { 
+                element.val( prevValue ); 
+            }
+            : function() {
+                $('<div class="alert alert-danger">Speichern fehlgeschlagen!</div>')
+                    .insertAfter(element)
+                    .delay(1000)
+                    .fadeOut()
+            }
+
+        var saveHandler = function() { 
+            var value = bSelect ? element.val() : elementDOM.outerText;
 
             var data = {};
             data[element.attr("name")] = value;
@@ -94,12 +107,38 @@ $(document).ready(function() {
                 data: data,
                 datatype: 'text',
                 cache: 'false',
-                error: function(){
-                    element.val( prevValue );
-                }
+                success: function() {
+                    prevValue = value;
+                },
+                error: errorHandler
             }); // End Ajax  
-        	prevValue = value;
-        })
+        }
+
+        if(bSelect) {
+            element.on("change input", saveHandler)     
+        } else {
+            element.attr("contenteditable", true)
+
+            $('<button type="button" class="btn btn-default btn-sm">Abbrechen</button>')
+                .insertAfter(element)
+                .click(function() {
+                    element.nextAll("button").fadeOut()
+                    element.text(prevValue)
+                })
+                .hide(); 
+
+            $('<br/><button type="button" class="btn btn-primary btn-sm">Speichern</button>&nbsp;')
+                .insertAfter(element)
+                .click(function() {
+                    saveHandler()                    
+                    element.nextAll("button").delay(1000).fadeOut()
+                 })
+                .hide();
+
+            element.focusin( function() { 
+                $(this).nextAll("button").fadeIn()
+            })
+        }
 	  })
 
 	  $('.ajax-delete').click(function (e) {     	
