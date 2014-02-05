@@ -3,10 +3,12 @@ package controllers
 import models._
 import models.Rating._
 
+import play.api.cache._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.mvc._
 import play.api.Logger
+import play.api.Play.current
 
 import views._
 
@@ -51,6 +53,7 @@ object DetailViewController extends Controller with Secured {
 			formWithErrors => BadRequest(""),
 			{ case (content) => {
 				Entry.create(stmt_id, content, new java.util.Date(), user.id)
+				Cache.remove("view."+stmt_id)
 				Ok("")
 			}}
 		)
@@ -82,6 +85,7 @@ object DetailViewController extends Controller with Secured {
 				if(rating.isDefined) Statement.setRating(stmt_id, rating.get, new java.util.Date())
 				if(quote.isDefined) Statement.setQuote(stmt_id, quote.get)
 				if(quote_src.isDefined) Statement.setQuoteSrc(stmt_id, quote_src.get)
+				Cache.remove("view."+stmt_id)
 
 				Ok("")
 			}}
@@ -90,6 +94,7 @@ object DetailViewController extends Controller with Secured {
 
 	def delete(stmt_id: Long) = IsAdmin { user => implicit request =>
 		Statement.delete(stmt_id)
+		Cache.remove("view."+stmt_id)
 		Ok("")
 	}
 
@@ -104,16 +109,30 @@ object DetailViewController extends Controller with Secured {
 		newEntryForm.bindFromRequest.fold(
 			formWithErrors => BadRequest(""),
 			{ case (content) => {
-				Logger.info("Update entry with text '"+content+"'")
-				Entry.edit(entry_id, content)
-				Ok("")
+				Entry.load(entry_id) match {
+					case Some(entry) => {						
+						Logger.info("Update entry with text '"+content+"'")
+						Entry.edit(entry.id, content)
+						Cache.remove("view."+entry.stmt_id)
+						Ok("")
+					}
+					case None => 
+						NotFound
+				}
 			}}
 		)
 	}	
 
 	def deleteEntry(entry_id: Long) = IsEditor { user => implicit request =>
-		Entry.delete(entry_id)
-		Ok("")
+		Entry.load(entry_id) match {
+			case Some(entry) => {
+				Entry.delete(entry_id)
+				Cache.remove("view."+entry.stmt_id)
+				Ok("")
+			}
+			case None => 
+				NotFound
+		}
 	}	
 
 	val newTagForm = Form("name" -> nonEmptyText)

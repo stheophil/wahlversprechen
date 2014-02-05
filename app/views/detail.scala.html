@@ -58,7 +58,7 @@
       <div class="col-md-9 col-sm-12">
       @editing match {
       	case true => {
-	      	<blockquote class="lead entry-quote"><p contenteditable class="ajax-update" url="/item/@stmt.id" name="quote">@stmt.quote.getOrElse("Gib ein Zitat ein")</p><br/>
+	      	<blockquote class="lead entry-quote"><p style="white-space: pre-wrap;" contenteditable class="ajax-update" url="/item/@stmt.id" name="quote">@stmt.quote.getOrElse("Gib ein Zitat ein")</p><br/>
 			<small><p contenteditable class="ajax-update" url="/item/@stmt.id" name="quote_src">@stmt.quote_src.getOrElse("Gib eine Quelle für das Zitat ein")</p></small>
 			</blockquote>
 		}

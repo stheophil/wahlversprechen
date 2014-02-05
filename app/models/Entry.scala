@@ -19,6 +19,12 @@ object Entry {
 			}
 	}
 
+	def load(id: Long): Option[Entry] = {
+		DB.withConnection { implicit c =>
+			SQL("select * from entry where id = {id} ORDER by date DESC").on('id -> id).as(entry.singleOpt)
+		}
+	}
+
 	def loadByStatement(stmt_id: Long): List[Entry] = {
 		DB.withConnection { implicit c =>
 			SQL("select * from entry where stmt_id = {stmt_id} ORDER by date DESC").on('stmt_id -> stmt_id).as(entry*)
