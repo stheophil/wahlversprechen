@@ -43,6 +43,18 @@ object Formatter {
 		}
 	}
 
+	def icon(rating: Rating) : String = {
+		val file = rating match {
+			case PromiseKept => "kept"
+			case Compromise => "compromise"
+			case PromiseBroken => "broken"
+			case Stalled => "stalled"
+			case InTheWorks => "InTheWorks"
+			case Unrated => "unrated"
+		}
+		controllers.routes.Assets.at("img/ratings/" + file + ".png").url
+	}
+
 	def url : String = Play.configuration.getString("url").get
 	def twitter : String = Play.configuration.getString("twitter").get
 	def mail : String = Play.configuration.getString("mail").get

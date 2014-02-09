@@ -11,13 +11,24 @@
       <managingEditor>mail@@@Formatter.url</managingEditor>
       <webMaster>mail@@@Formatter.url</webMaster>
       @for(entry <- entries) {
+         @defining(Statement.load(entry.stmt_id).get) { stmt => 
          <item>
-            <title>@{Xml( Formatter.transformFirstLineToHTML(entry.content).body )}</title>
+            <title>@if(stmt.rating.isDefined) { 
+                  <em>[@Formatter.name(stmt.rating.get)]</em>
+               }
+               @stmt.title
+            </title>
             <link>@{ routes.DetailViewController.view(entry.stmt_id).absoluteURL(false)+ "#" + entry.id}</link>
-            <description>@{Xml( Formatter.transformToHTML(entry.content).body )}</description>
+            <description>
+               @if(stmt.rating.isDefined) { 
+                  <img src="@Formatter.icon(stmt.rating.get )" alt="@Formatter.name(stmt.rating.get)"/>
+               }
+               @{Xml( Formatter.transformToHTML(entry.content).body )}
+            </description>
             <pubDate>@entry.date.toString</pubDate>
             <guid>@{ routes.DetailViewController.view(entry.stmt_id).absoluteURL(false)+ "#" + entry.id}</guid>
          </item>
+         }
       }
    </channel>
 </rss>
