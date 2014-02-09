@@ -43,7 +43,7 @@ object Formatter {
 		}
 	}
 
-	def icon(rating: Rating) : String = {
+	def icon(rating: Rating)(implicit request: play.api.mvc.RequestHeader) : String = {
 		val file = rating match {
 			case PromiseKept => "kept"
 			case Compromise => "compromise"
@@ -52,7 +52,7 @@ object Formatter {
 			case InTheWorks => "InTheWorks"
 			case Unrated => "unrated"
 		}
-		controllers.routes.Assets.at("img/ratings/" + file + ".png").url
+		controllers.routes.Assets.at("img/ratings/" + file + ".png").absoluteURL(false)
 	}
 
 	def url : String = Play.configuration.getString("url").get
