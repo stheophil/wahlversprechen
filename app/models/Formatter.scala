@@ -49,7 +49,7 @@ object Formatter {
 			case Compromise => "compromise"
 			case PromiseBroken => "broken"
 			case Stalled => "stalled"
-			case InTheWorks => "InTheWorks"
+			case InTheWorks => "intheworks"
 			case Unrated => "unrated"
 		}
 		controllers.routes.Assets.at("img/ratings/" + file + ".png").absoluteURL(false)
@@ -88,21 +88,6 @@ object Formatter {
 
 	def transformBodyToHTML(markdown: String) : Html = {
 		Html(markdownToHTMLWithoutHeadlines(markdown))
-	}
-
-	def transformFirstLineToHTML(markdown: String) : Html = {
-		def FindFirstLine( it: Iterator[String] ) : String = {
-			if(it.hasNext) {
-				val line = it.next
-				line.find(_.isLetterOrDigit) match {
-					case Some(c) => line
-					case None => FindFirstLine(it)
-				}
-			} else {
-				""
-			}
-		}
-		Html(markdownToHTML(FindFirstLine(markdown.lines)))
 	}
 
 	def transformToHTML(markdown: String) : Html = {
