@@ -36,6 +36,22 @@ function form_ajax_submit(form) {
     })
 }
 
+function showAndHideProgressGlyphs() {
+    $(".progress-bar").each( function() {
+        var bar = $(this)
+        $(this).find(".glyphicon").each( function() {
+            var glyph = $(this)
+            if(bar.width() < glyph.width()) {
+                glyph.hide()
+            } else {
+                glyph.show()
+            }
+        })
+    })
+}
+
+$(document).ready(showAndHideProgressGlyphs)
+$(window).resize(showAndHideProgressGlyphs)
 
 $(document).ready(function() {  
 	$('textarea.expand').each( function( i ) {		
