@@ -1,11 +1,19 @@
 /* Bootstrap Overloads */
 body { padding-top: 70px; }
+
 h1 { 
   color: #515295; 
-  font-size: 50px;
+  font-size: 40px;
 }
+
 h2 { color: #515295; }
 h2 a { color: #515295; }
+
+@media(min-width: 768px) {
+	h1 {
+	  font-size: 50px;
+	}
+}
 
 small a {
 	color: inherit;
@@ -18,14 +26,6 @@ small a:hover {
 
 .alert a {
 	text-decoration: underline;	
-}
-
-.page-header {
-	margin-top: 0px;	
-}
-
-.page-header h1 {
-	margin-top: 0px;	
 }
 
 .navbar {
@@ -78,26 +78,6 @@ small a:hover {
 	font-size: 16px; 
 	line-height: 30px;
 	vertical-align: middle;
-}
-
-.nav-list li {
-	margin-top: 0px;
-	margin-bottom: 10px;		
-}
-
-.nav-list li a {
-	position: inherit;
-	display: inline;
-	padding: inherit;
-}
-
-@media (max-width: 991px) {
-	.nav-list li {		
-		display: inline-block;
-		vertical-align: top;
-		padding-left: 15px;
-		padding-right: 15px;
-	}
 }
 
 .nav-header {
@@ -189,6 +169,78 @@ small a:hover {
 }
 
 /* Detail Page */
+
+.page-header {
+	margin-top: 0px;	
+}
+
+.page-header h1 {
+	margin-top: 0px;
+	font-size: 24px;
+}
+
+.page-header h2, h1 small {
+	font-size: 20px;
+}
+
+@media(min-width: 768px) {
+	.page-header h1 {
+	  font-size: 32px;
+	}
+
+	.page-header h2, h1 small {
+	  font-size: 24px;
+	}
+}
+
+
+@media(min-width: 992px) {
+	.page-header h1 {
+	  font-size: 40px;
+	}
+
+	.page-header h2, h1 small {
+	  font-size: 30px;
+	}
+}
+
+.nav-list li {
+	margin-top: 0px;
+	margin-bottom: 10px;		
+}
+
+.nav-list li a {
+	position: inherit;
+	display: inline;
+	padding: inherit;
+}
+
+.nav-list .short-url {
+	margin-top: 10px;
+}
+
+@media (max-width: 991px) {
+	.nav-list li {		
+		display: inline-block;
+		vertical-align: top;
+		padding-left: 5px;
+		padding-right: 5px;
+	}
+	.nav-list li.tags {
+		display: block;
+	}
+	.nav-list li a {
+		padding-left: 3px;
+		padding-right: 3px;
+	}
+	.nav-list .nav-header {
+		display: none;
+	}
+	.nav-list .short-url {
+		display: none;
+	}
+}
+
 .rating-row {
 	vertical-align:middle;
 	line-height: 33px; /* page-header h2 line-height */
