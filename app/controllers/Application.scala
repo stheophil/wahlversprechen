@@ -84,6 +84,16 @@ object Application extends Controller with Secured {
 		Ok(views.html.listByCategory("Suchergebnisse", mapstmtByAuthor, user(request) ))
 	}
 
+	import play.api.libs.json._
+	def authorAsJSON(authorName: String) = CachedAction("author.json." + authorName, 60 * 60 * 24) { implicit request => 
+		Author.load(authorName) match {
+			case None => NotFound
+			case Some(author) => {
+				Ok( Json.toJson( Statement.filter(author = Some(author)) ) )
+			}
+		}
+	}
+
 	def updatesAsFeed = CachedAction("updatesAsFeed", 60 * 60 ) { implicit request =>
 		Ok(views.xml.entryList("wahlversprechen2013.de: Alle Aktualisierungen", routes.Application.recent.url, Entry.loadRecent(10)))			
 	}

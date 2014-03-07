@@ -349,4 +349,20 @@ object Statement {
 		}
 	}
 
+	import play.api.libs.json._
+	implicit val StatementToJson = new Writes[Statement] {
+	  def writes(s: Statement): JsValue = {
+	    Json.obj(
+	    	"id" -> s.id,
+	    	"title" -> s.title,
+	    	"quote" -> s.quote,
+	    	"quote_src" -> s.quote_src,
+	    	"author" -> s.author.name,
+	    	"category" -> s.category.name,
+	    	"tags" -> s.tags.map( _.name ),
+	    	"rating" -> s.rating.map( _.toString ).getOrElse("").toString,
+	    	"linked_to" -> s.merged_id.map( _.toString ).getOrElse( "" ).toString 
+	    )
+	  }
+	}
 }
