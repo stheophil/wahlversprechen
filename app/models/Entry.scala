@@ -47,36 +47,17 @@ object Entry {
 		DB.withTransaction { implicit c =>
 			SQL("update entry set content = {content} where id = {id}").on(
 				'content -> content, 'id -> id).executeUpdate()
-			/*
-         	SQL("update statement set latestEntry = {date} where id = {stmt_id}").on(					
-					'date -> date,
-					'stmt_id -> stmt_id).executeUpdate()
-			*/
 		}
 	}
 
 	def delete(id: Long) {
 		DB.withTransaction { implicit c =>
 			SQL("delete from entry where id = {id}").on('id -> id).executeUpdate()
-
-			/*
-			val latest = SQL("select MAX(date) from entry where stmt_id = {stmt_id}").on('stmt_id -> stmt_id).as(scalar[Date].singleOpt)
-         	SQL("update statement set latestEntry = {date} where id = {stmt_id}").on(					
-					'date -> latest,
-					'stmt_id -> stmt_id).executeUpdate()
-			*/
 		}	
 	}
 
 	def deleteAll(implicit c: java.sql.Connection, stmt_id: Long) {		
 		SQL("delete from entry where stmt_id = {stmt_id}").on('stmt_id -> stmt_id).executeUpdate()
-
-		/*
-		val latest = SQL("select MAX(date) from entry where stmt_id = {stmt_id}").on('stmt_id -> stmt_id).as(scalar[Date].singleOpt)
-     	SQL("update statement set latestEntry = {date} where id = {stmt_id}").on(					
-				'date -> latest,
-				'stmt_id -> stmt_id).executeUpdate()
-		*/	
 	}
 
 	def create(stmt_id: Long, content: String, date: Date, user_id: Long) {

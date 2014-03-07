@@ -47,9 +47,8 @@ object Statement {
 		queryStatements("statement.id = {id} OR statement.merged_id = {id}", List('id -> id))
 	}
 
-	def loadEntriesTags(stmt: Statement) : Statement = {
-		stmt.copy(entries = Entry.loadByStatement(stmt.id),
-			tags = Tag.loadByStatement(stmt.id))
+	def withEntries(stmt: Statement) : Statement = {
+		stmt.copy(entries = Entry.loadByStatement(stmt.id))
 	}
 
 	def find(searchQuery: String) : Map[Author, List[Statement]] =  {
@@ -243,6 +242,30 @@ object Statement {
 
 	// TODO: This is a poor man's database abstraction layer.
 	// Replace with Slick or sth similar as soon as possible
+	implicit def rowToSeqString: Column[Seq[String]] = Column.nonNull { (value, meta) =>
+	  val MetaDataItem(qualified, nullable, clazz) = meta
+	  value match {
+	    case arr: java.sql.Array => Right(arr.getArray.asInstanceOf[Array[String]].toSeq)
+	    case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Seq[String] for column " + qualified))
+	  } 
+	}
+
+	implicit def rowToSeqInt: Column[Seq[Int]] = Column.nonNull { (value, meta) =>
+	  val MetaDataItem(qualified, nullable, clazz) = meta
+	  value match {
+	    case arr: java.sql.Array => Right(arr.getArray.asInstanceOf[Array[Integer]].map(_.intValue).toSeq)
+	    case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Seq[Int] for column " + qualified))
+	  } 
+	}
+
+	implicit def rowToSeqBoolean: Column[Seq[Boolean]] = Column.nonNull { (value, meta) =>
+	  val MetaDataItem(qualified, nullable, clazz) = meta
+	  value match {
+	    case arr: java.sql.Array => Right(arr.getArray.asInstanceOf[Array[java.lang.Boolean]].map(_.booleanValue).toSeq)
+	    case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Seq[Int] for column " + qualified))
+	  } 
+	}
+
 	private val stmt = {
 			get[Long]("statement.id") ~
 			get[String]("statement.title") ~
@@ -262,17 +285,20 @@ object Statement {
 			get[String]("author.background") ~
 			get[Long]("category.id") ~
 			get[String]("category.name") ~
-			get[Long]("category.ordering")  map {
+			get[Long]("category.ordering") ~
+			get[Seq[Int]]("tag_id") ~
+			get[Seq[String]]("tag_name") ~
+			get[Seq[Boolean]]("tag_important") map {
 				case id ~ title ~ quote ~ quote_src ~ latestEntry ~ rating ~ rated ~ merged_id  ~ merged_rating ~ merged_rated ~ 
 					author_id ~ author_name ~ author_order ~ author_rated ~ author_color ~ author_background ~ 
-				 	category_id ~ category_name ~ category_order => 
+				 	category_id ~ category_name ~ category_order ~ tag_id ~ tag_name ~ tag_important => 
 				Statement(id, title, 
 					Author(author_id, author_name, author_order, author_rated, author_color, author_background),
 					Category(category_id, category_name, category_order),
 					quote, quote_src, 
 					List[Entry](), 
 					latestEntry,
-					List[Tag](),
+					(tag_id, tag_name, tag_important).zipped.map( (id, name, important) => Tag(id, name, important) ).toList.sortBy(_.name),
 					(if(merged_id.isDefined && !rating.isDefined) merged_rating else rating) map { r => if (0 <= r && r < Rating.maxId) Rating(r) else Unrated },
 					(if(merged_id.isDefined && !rating.isDefined) merged_rated else rated),
 					merged_id
@@ -286,7 +312,7 @@ object Statement {
 		statement.rating, statement.rated, statement.merged_id, statement2.rating AS merged_rating, statement2.rated AS merged_rated,
 		category.id, category.name, category.ordering,
 		author.id, author.name, author.ordering, author.rated, author.color, author.background,
-		ARRAY_AGG(tag.id) AS tag_id, ARRAY_AGG(tag.name) AS tag_name
+		ARRAY_AGG(tag.id) AS tag_id, ARRAY_AGG(tag.name) AS tag_name, ARRAY_AGG(tag.important) AS tag_important
 		FROM statement 
 		JOIN category ON category.id=statement.cat_id
 		JOIN author ON author.id=statement.author_id

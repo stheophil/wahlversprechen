@@ -29,15 +29,6 @@ object Tag {
 		Tag(id, name, false)
 	}
 
-	def loadByStatement(stmt_id: Long): List[Tag] = {
-		DB.withConnection { implicit c =>
-			SQL("""select id, name, important from tag 
-			join statement_tags on statement_tags.tag_id=id 
-			where statement_tags.stmt_id = {stmt_id} 
-			order by tag.name""").on('stmt_id -> stmt_id).as(tag*)
-		}
-	}
-
 	def load(id: Long): Option[Tag] = {
 		DB.withConnection { implicit c =>
 			SQL("select id, name, important from tag where tag.id={id}").on('id -> id).as(tag.singleOpt)

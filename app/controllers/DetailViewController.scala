@@ -19,7 +19,7 @@ object DetailViewController extends Controller with Secured {
 		Statement.load(id) match {
 			case Some(stmt) => 
 				Ok(views.html.detail(
-					Statement.loadEntriesTags(stmt), 
+					Statement.withEntries(stmt), 
 					if(stmt.author.rated) {
 						Statement.loadAll(id)
 					} else if(stmt.merged_id.isDefined) {
