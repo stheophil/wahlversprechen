@@ -11,6 +11,7 @@ import java.util.Date
 import anorm._
 import anorm.SqlParser._
 import play.api.db._
+import play.api.Logger
 import play.api.Play.current
 
 case class Statement(id: Long, title: String, author: Author, category: Category, 
@@ -34,176 +35,101 @@ object Statement {
 				else
 					-> display rating
 	*/
-	val stmt = {
-			get[Long]("statement.id") ~
-			get[String]("statement.title") ~
-			get[Option[String]]("statement.quote") ~
-			get[Option[String]]("statement.quote_src") ~
-			get[Option[Date]]("statement.latestEntry") ~
-			get[Option[Int]]("statement.rating") ~
-			get[Option[Date]]("statement.rated") ~
-			get[Option[Long]]("statement.merged_id") ~
-			get[Option[Int]]("merged_rating") ~
-			get[Option[Date]]("merged_rated") ~
-			get[Long]("author.id") ~
-			get[String]("author.name") ~
-			get[Long]("author.ordering") ~
-			get[Boolean]("author.rated") ~
-			get[String]("author.color") ~
-			get[String]("author.background") ~
-			get[Long]("category.id") ~
-			get[String]("category.name") ~
-			get[Long]("category.ordering")  map {
-				case id ~ title ~ quote ~ quote_src ~ latestEntry ~ rating ~ rated ~ merged_id  ~ merged_rating ~ merged_rated ~ 
-					author_id ~ author_name ~ author_order ~ author_rated ~ author_color ~ author_background ~ 
-				 	category_id ~ category_name ~ category_order => 
-				Statement(id, title, 
-					Author(author_id, author_name, author_order, author_rated, author_color, author_background),
-					Category(category_id, category_name, category_order),
-					quote, quote_src, 
-					List[Entry](), 
-					latestEntry,
-					List[Tag](),
-					(if(merged_id.isDefined && !rating.isDefined) merged_rating else rating) map { r => if (0 <= r && r < Rating.maxId) Rating(r) else Unrated },
-					(if(merged_id.isDefined && !rating.isDefined) merged_rated else rated),
-					merged_id
-				)
-			} // Rating(rating) would throw java.util.NoSuchElementException
-	}
-
-	val query = """SELECT statement.id, statement.title, statement.quote, statement.quote_src, statement.latestEntry, 
-		statement.rating, statement.rated, statement.merged_id, statement2.rating as merged_rating, statement2.rated as merged_rated,
-		category.id, category.name, category.ordering,
-		author.id, author.name, author.ordering, author.rated, author.color, author.background
-		from statement 
-		join category on category.id=statement.cat_id
-		join author on author.id=statement.author_id
-		left join statement statement2 on statement2.id = statement.merged_id"""
-
-	val queryOrdering = " order by author.ordering ASC, category.ordering ASC, statement.id ASC"
-	
 	def all(): Map[Author, List[Statement]] = {
-		DB.withConnection({ implicit c =>
-			SQL(query+queryOrdering).as(stmt*)
-		}).groupBy( _.author )
-	}
-
-	def find(searchQuery: String) : Map[Author, List[Statement]] =  {
-		val queryLike = query + """ 
-		join statement_tags on statement_tags.stmt_id=statement.id 
-		join tag on statement_tags.tag_id = tag.id
-		where LOWER(statement.title) like {query} or LOWER(category.name) like {query} or LOWER(statement.quote) like {query} or 
-		LOWER(tag.name) like {query}
-		group by statement.id, category.id, author.id, statement2.id""" + queryOrdering;
-
-		val queryString = "%" + searchQuery.toLowerCase + "%"
-		DB.withConnection({ implicit c =>
-			SQL(queryLike).on('query -> queryString).as(stmt*)
-		}).groupBy( _.author )
-	}
-
-	def byEntryDate(oauthor: Option[Author], olimit: Option[Int]) : List[Statement] = {
-		val queryLatest = query +
-		" where statement.latestEntry IS NOT NULL " + 
-		(if(oauthor.isDefined) " and author.id = {author_id} " else "") +
-		"order by statement.latestEntry DESC " +
-		(if(olimit.isDefined) "limit {limit}" else "")
-
-		DB.withConnection({ implicit c =>			
-			var params = collection.mutable.ListBuffer[(Any, anorm.ParameterValue[_])]()
-			if(olimit.isDefined)  params += ('limit -> olimit.get)
-			if(oauthor.isDefined) params += ('author_id -> oauthor.get.id)
-
-			SQL(queryLatest).on(params:_*).as(stmt*)
-		})
-	}
-
-	def byImportantTag(oauthor: Option[Author], olimit: Option[Int]) : List[Statement] = {
-		val queryWithTag = query + 
-			" join statement_tags on statement_tags.stmt_id = statement.id " +
-			" join tag on statement_tags.tag_id = tag.id and tag.important = TRUE " +
-			(if(oauthor.isDefined) "where author.id = {author_id} " else "") +
-			" order by category.ordering ASC, statement.id ASC " +
-			(if(olimit.isDefined) "limit {limit}" else "")
-
-		DB.withConnection({ implicit c =>
-			var params = collection.mutable.ListBuffer[(Any, anorm.ParameterValue[_])]()
-			if(olimit.isDefined)  params += ('limit -> olimit.get)
-			if(oauthor.isDefined) params += ('author_id -> oauthor.get.id)			
-
-			SQL(queryWithTag).on(params:_*).as(stmt*)
-		})
-	}
-
-	def byTag(tag: String, oauthor: Option[Author], olimit: Option[Int]) : List[Statement] = {
-		val queryWithTag = query + 
-			" join statement_tags on statement_tags.stmt_id = statement.id " +
-			" join tag on statement_tags.tag_id = tag.id and tag.name = {tagname} " +
-			(if(oauthor.isDefined) "where author.id = {author_id} " else "") +
-			" order by category.ordering ASC, statement.id ASC " +
-			(if(olimit.isDefined) "limit {limit}" else "")
-
-		DB.withConnection({ implicit c =>
-			var params = collection.mutable.ListBuffer[(Any, anorm.ParameterValue[_])]()
-			params += ('tagname -> tag)
-			if(olimit.isDefined)  params += ('limit -> olimit.get)
-			if(oauthor.isDefined) params += ('author_id -> oauthor.get.id)			
-
-			SQL(queryWithTag).on(params:_*).as(stmt*)
-		})
-	}
-
-	def byCategory(category: String, oauthor: Option[Author], olimit: Option[Int]) : List[Statement] = {
-		val queryWithTag = query + 
-			" where category.name = {name} " +
-			(if(oauthor.isDefined) "and author.id = {author_id} " else "") +
-			"order by category.ordering ASC, statement.id ASC " +
-			(if(olimit.isDefined) "limit {limit}" else "")
-
-		DB.withConnection({ implicit c =>
-			var params = collection.mutable.ListBuffer[(Any, anorm.ParameterValue[_])]()
-			params += ('name -> category)
-			if(olimit.isDefined)  params += ('limit -> olimit.get)
-			if(oauthor.isDefined) params += ('author_id -> oauthor.get.id)			
-
-			SQL(queryWithTag).on(params:_*).as(stmt*)
-		})
-	}
-
-	def byRating(rating: Rating, oauthor: Option[Author], olimit: Option[Int]) : List[Statement] = {
-		val queryWithTag = query + 
-			" where statement.rating = {rating} or statement2.rating = {rating} " +
-			(if(oauthor.isDefined) "and author.id = {author_id} " else "") +
-			"order by category.ordering ASC, statement.id ASC " +
-			(if(olimit.isDefined) "limit {limit}" else "")
-
-		DB.withConnection({ implicit c =>
-			var params = collection.mutable.ListBuffer[(Any, anorm.ParameterValue[_])]()
-			params += ('rating -> rating.id)
-			params += ('rating -> rating.id)
-			if(olimit.isDefined)  params += ('limit -> olimit.get)
-			if(oauthor.isDefined) params += ('author_id -> oauthor.get.id)			
-
-			SQL(queryWithTag).on(params:_*).as(stmt*)
-		})
-	}
-
-	def loadEntriesTags(stmt: Statement) : Statement = {
-		Statement(stmt.id, stmt.title, stmt.author, stmt.category, stmt.quote, stmt.quote_src, 
-				Entry.loadByStatement(stmt.id), stmt.latestEntry, Tag.loadByStatement(stmt.id), stmt.rating, stmt.rated, stmt.merged_id)
+		queryStatements().groupBy( _.author )
 	}
 	
 	def load(id: Long): Option[Statement] = {
-		// TODO: Create stmt with entries in the first place
-		DB.withConnection({ implicit c =>
-			SQL(query+" where statement.id = {id}").on('id -> id).as(stmt.singleOpt)
-		})
+		queryStatements("statement.id = {id}", List('id -> id)).headOption
 	}
 
 	def loadAll(id: Long): List[Statement] = {
-		// TODO: Create stmt with entries in the first place
+		queryStatements("statement.id = {id} OR statement.merged_id = {id}", List('id -> id))
+	}
+
+	def loadEntriesTags(stmt: Statement) : Statement = {
+		stmt.copy(entries = Entry.loadByStatement(stmt.id),
+			tags = Tag.loadByStatement(stmt.id))
+	}
+
+	def find(searchQuery: String) : Map[Author, List[Statement]] =  {
+		val wildcard = "%"+searchQuery.toLowerCase()+"%";
+
+		queryStatements("""statement.id IN 
+			(SELECT statement.id FROM statement  
+			JOIN category ON category.id=statement.cat_id
+			LEFT JOIN statement_tags ON statement.id = statement_tags.stmt_id 
+			JOIN tag on statement_tags.tag_id = tag.id
+			WHERE LOWER(statement.title) LIKE {query} OR LOWER(category.name) LIKE {query} OR LOWER(statement.quote) LIKE {query} OR 
+			LOWER(tag.name) LIKE {query})""",
+			List('query -> wildcard)
+		).groupBy( _.author )
+	}
+
+
+	def byEntryDate(oauthor: Option[Author], olimit: Option[Int]) : List[Statement] = {
+		filter(author = oauthor, limit = olimit, withEntriesOnly = true)
+	}
+
+	def byImportantTag(oauthor: Option[Author], olimit: Option[Int]) : List[Statement] = {
+		filter(importantTagOnly = true, author = oauthor, limit = olimit)
+	}
+
+	def byTag(tag: String, oauthor: Option[Author], olimit: Option[Int]) : List[Statement] = {
+		filter(tag = Some(tag), author = oauthor, limit = olimit)
+	}
+
+	def byCategory(category: String, oauthor: Option[Author], olimit: Option[Int]) : List[Statement] = {
+		filter(category = Some(category), author = oauthor, limit = olimit)
+	}
+
+	def byRating(rating: Rating, oauthor: Option[Author], olimit: Option[Int]) : List[Statement] = {
+		filter(rating = Some(rating), author = oauthor, limit = olimit)
+	}
+
+	def filter(category: Option[String] = None, author: Option[Author] = None, rating: Option[Rating] = None, importantTagOnly : Boolean = false, tag : Option[String] = None, limit: Option[Int] = None, withEntriesOnly : Boolean = false) : List[Statement] = {	
+		val params = collection.mutable.ListBuffer[(Any, anorm.ParameterValue[_])]()
+		val conditions = new SQLWhereClause
+
+		if(category.isDefined) {
+			params += ('category -> category.get)
+			conditions += ("category.name = {category}")
+		}
+		if(author.isDefined) {
+			params += ('author_id -> author.get.id)
+			conditions += ("author.id = {author_id}")
+		}
+		if(rating.isDefined) {
+			params += ('rating -> rating.get.id)
+			conditions += ("(statement.rating = {rating} OR statement2.rating = {rating})")
+		}
+		if(importantTagOnly || tag.isDefined) {
+			val conditionsTag = new SQLWhereClause 
+			if(importantTagOnly) conditionsTag += ("tag.important = TRUE")
+			if(tag.isDefined) {
+				params += ('tag -> tag.get)
+				conditionsTag += ("tag.name = {tag}")
+			}
+			conditions += ("""statement.id IN (SELECT statement.id 
+				FROM statement 
+				JOIN statement_tags ON statement_tags.stmt_id = statement.id
+				JOIN tag ON tag.id = statement_tags.tag_id """ + conditionsTag + ")")
+		}
+
+		val querySql = query(withEntriesOnly) +
+		conditions +
+		queryGrouping + 
+		(if(withEntriesOnly) {
+			"ORDER BY latestEntry DESC "
+		} else queryOrdering) +
+		(if(limit.isDefined) {
+			if(limit.isDefined)  params += ('limit -> limit.get)
+			"limit {limit}"
+		} else "")
+
 		DB.withConnection({ implicit c =>
-			SQL(query+" where statement.id = {id} or statement.merged_id = {id} ").on('id -> id).as(stmt*)
+			Logger.debug("filter() querySql = " + querySql)
+			SQL(querySql).on(params:_*).as(stmt*)
 		})
 	}
 
@@ -314,4 +240,87 @@ object Statement {
 		SQL("update statement set merged_id = {merged_id} where id = {stmt_id}").
 				on('merged_id -> merged_id, 'stmt_id -> stmt_id).executeUpdate
 	}
+
+	// TODO: This is a poor man's database abstraction layer.
+	// Replace with Slick or sth similar as soon as possible
+	private val stmt = {
+			get[Long]("statement.id") ~
+			get[String]("statement.title") ~
+			get[Option[String]]("statement.quote") ~
+			get[Option[String]]("statement.quote_src") ~
+			get[Option[Date]]("latestEntry") ~
+			get[Option[Int]]("statement.rating") ~
+			get[Option[Date]]("statement.rated") ~
+			get[Option[Long]]("statement.merged_id") ~
+			get[Option[Int]]("merged_rating") ~
+			get[Option[Date]]("merged_rated") ~
+			get[Long]("author.id") ~
+			get[String]("author.name") ~
+			get[Long]("author.ordering") ~
+			get[Boolean]("author.rated") ~
+			get[String]("author.color") ~
+			get[String]("author.background") ~
+			get[Long]("category.id") ~
+			get[String]("category.name") ~
+			get[Long]("category.ordering")  map {
+				case id ~ title ~ quote ~ quote_src ~ latestEntry ~ rating ~ rated ~ merged_id  ~ merged_rating ~ merged_rated ~ 
+					author_id ~ author_name ~ author_order ~ author_rated ~ author_color ~ author_background ~ 
+				 	category_id ~ category_name ~ category_order => 
+				Statement(id, title, 
+					Author(author_id, author_name, author_order, author_rated, author_color, author_background),
+					Category(category_id, category_name, category_order),
+					quote, quote_src, 
+					List[Entry](), 
+					latestEntry,
+					List[Tag](),
+					(if(merged_id.isDefined && !rating.isDefined) merged_rating else rating) map { r => if (0 <= r && r < Rating.maxId) Rating(r) else Unrated },
+					(if(merged_id.isDefined && !rating.isDefined) merged_rated else rated),
+					merged_id
+				)
+			} // Rating(rating) would throw java.util.NoSuchElementException
+	}
+
+	// Huge join but takes only 70ms vs 20ms without aggregating the tags too on the Heroku instance	
+	private def query(withEntriesOnly: Boolean) : String = {
+		"""SELECT statement.id, statement.title, statement.quote, statement.quote_src, MAX(entry.date) AS latestEntry, 
+		statement.rating, statement.rated, statement.merged_id, statement2.rating AS merged_rating, statement2.rated AS merged_rated,
+		category.id, category.name, category.ordering,
+		author.id, author.name, author.ordering, author.rated, author.color, author.background,
+		ARRAY_AGG(tag.id) AS tag_id, ARRAY_AGG(tag.name) AS tag_name
+		FROM statement 
+		JOIN category ON category.id=statement.cat_id
+		JOIN author ON author.id=statement.author_id
+		LEFT JOIN statement statement2 ON statement2.id = statement.merged_id
+		LEFT JOIN statement_tags ON statement.id = statement_tags.stmt_id 
+		JOIN tag on statement_tags.tag_id = tag.id """ + 
+		(if(!withEntriesOnly) { "LEFT " } else "") + 
+		"JOIN entry on statement.id = entry.stmt_id "
+	}
+
+	private val queryGrouping = "group by statement.id, category.id, author.id, statement2.id "
+	private val queryOrdering = "order by author.ordering ASC, category.ordering ASC, statement.id ASC "
+
+	private def queryStatements(whereClause : String = "", params: List[(Any, anorm.ParameterValue[_])] = List.empty[(Any, anorm.ParameterValue[_])]) : List[Statement] = {
+		val querySql = query(false) + (if(whereClause.isEmpty) { "" } else { " WHERE " + whereClause + " "}) + queryGrouping + queryOrdering
+		Logger.debug("queryStatements querySql = " + querySql)
+		Logger.debug("queryStatements params = " + params)
+		DB.withConnection({ implicit c =>
+			SQL(querySql).on(params:_*).as(stmt*)
+		})		
+	}
+
+	private class SQLWhereClause extends {
+		val conditions = collection.mutable.ListBuffer[String]()
+		def +=( condition: String ) {
+			conditions += condition
+		}
+
+		override def toString() : String = {
+			conditions.foldLeft("")( {
+				case ("", cond) => "WHERE " + cond + " "
+				case (prev, cond) => prev + " AND " + cond + " "
+			})
+		}
+	}
+
 }
