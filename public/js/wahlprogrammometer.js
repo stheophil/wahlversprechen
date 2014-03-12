@@ -185,4 +185,55 @@ $(document).ready(function() {
       $("form.ajax-submit").each(function() {
       	form_ajax_submit($(this))
   	   })
+
+      // constructs the suggestion engine
+      var tags = new Bloodhound({
+        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+        queryTokenizer: Bloodhound.tokenizers.whitespace,
+        prefetch: { url: '/json/tags' }
+      });
+       
+      tags.initialize();
+
+      var categories = new Bloodhound({
+        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+        queryTokenizer: Bloodhound.tokenizers.whitespace,
+        prefetch: { url: '/json/categories' }
+      });
+       
+      categories.initialize();
+       
+      $('.typeahead').typeahead({
+        hint: true,
+        highlight: true,
+        minLength: 1
+      },
+      {
+        name: 'tags',
+        displayKey: 'name',
+        source: tags.ttAdapter(),
+        templates: {
+          header: '<h3 class="tt-header">Stichwörter</h3>'
+        }
+      },
+      {
+        name: 'categories',
+        displayKey: 'name',
+        source: categories.ttAdapter(),
+        templates: {
+          header: '<h3 class="tt-header">Ressorts</h3>'
+        }
+      });
+
+      $('.typeahead').on("typeahead:selected typeahead:autocompleted", function(evt, suggestion, dataset) {
+        if(dataset=="tags") {
+          window.location = "/tag/"+suggestion.name
+        } else if(dataset=="categories") {
+          window.location = "/category/"+suggestion.name
+        }
+      })
+
+      $('.typeahead').on("change", function(e) {
+        window.location = "/search?query="+e.target.value
+      })
 });
