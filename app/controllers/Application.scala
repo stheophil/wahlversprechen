@@ -94,6 +94,10 @@ object Application extends Controller with Secured {
 		}
 	}
 
+	def tagsAsJSON() = CachedAction("tags.json") { implicit request =>
+		Ok( Json.toJson( Tag.loadAll() ) )
+	}
+
 	def updatesAsFeed = CachedAction("updatesAsFeed", 60 * 60 ) { implicit request =>
 		Ok(views.xml.entryList("wahlversprechen2013.de: Alle Aktualisierungen", routes.Application.recent.url, Entry.loadRecent(10)))			
 	}

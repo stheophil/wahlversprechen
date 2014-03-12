@@ -15,7 +15,8 @@ GET		/category/:category			controllers.Application.category(category: String)
 GET		/rating/:rating				controllers.Application.rating(rating: Int)
 
 # JSON
-GET 	/author/:author/json 		controllers.Application.authorAsJSON(author: String)
+GET 	/json/author/:author 		controllers.Application.authorAsJSON(author: String)
+GET 	/json/alltags 				controllers.Application.tagsAsJSON()
 
 # RSS
 GET 	/updates/feed 				controllers.Application.updatesAsFeed

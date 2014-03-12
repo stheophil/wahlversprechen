@@ -119,4 +119,15 @@ object Tag {
 			).executeUpdate
 		}	
 	}
+
+	import play.api.libs.json._
+	implicit val TagToJson = new Writes[Tag] {
+	  def writes(t: Tag): JsValue = {
+	    Json.obj(
+	    	"id" -> t.id,
+	    	"name" -> t.name,
+	    	"important" -> t.important
+	    )
+	  }
+	}
 }
