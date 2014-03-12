@@ -52,16 +52,17 @@ object Statement {
 	}
 
 	def find(searchQuery: String) : Map[Author, List[Statement]] =  {
-		val wildcard = "%"+searchQuery.toLowerCase()+"%";
+		val query = selectClause + ", ts_rank_cd(statement.textsearchable, to_tsquery({query})) AS rank " + 
+			fromClause + 
+			joinClause(false) +
+			"WHERE statement.textsearchable @@ to_tsquery({query}) " +
+			groupbyClause +
+			"order by rank DESC"
 
-		queryStatements("""statement.id IN 
-			(SELECT statement.id FROM statement  
-			JOIN category ON category.id=statement.cat_id
-			LEFT JOIN statement_tags ON statement.id = statement_tags.stmt_id 
-			JOIN tag on statement_tags.tag_id = tag.id
-			WHERE LOWER(statement.title) LIKE {query} OR LOWER(category.name) LIKE {query} OR LOWER(statement.quote) LIKE {query} OR 
-			LOWER(tag.name) LIKE {query})""",
-			List('query -> wildcard)
+		Logger.debug(query)
+
+		DB.withConnection( implicit c => 
+			SQL(query).on('query -> searchQuery).as(stmt*)
 		).groupBy( _.author )
 	}
 
@@ -115,16 +116,16 @@ object Statement {
 				JOIN tag ON tag.id = statement_tags.tag_id """ + conditionsTag + ")")
 		}
 
-		val querySql = query(withEntriesOnly) +
-		conditions +
-		queryGrouping + 
-		(if(withEntriesOnly) {
-			"ORDER BY latestEntry DESC "
-		} else queryOrdering) +
-		(if(limit.isDefined) {
-			if(limit.isDefined)  params += ('limit -> limit.get)
-			"limit {limit}"
-		} else "")
+		val querySql = selectClause + fromClause + joinClause(withEntriesOnly) +
+			conditions +
+			groupbyClause + 
+			(if(withEntriesOnly) {
+				"ORDER BY latestEntry DESC "
+			} else orderbyClause) +
+			(if(limit.isDefined) {
+				if(limit.isDefined)  params += ('limit -> limit.get)
+				"limit {limit}"
+			} else "")
 
 		DB.withConnection({ implicit c =>
 			Logger.debug("filter() querySql = " + querySql)
@@ -306,15 +307,18 @@ object Statement {
 			} // Rating(rating) would throw java.util.NoSuchElementException
 	}
 
-	// Huge join but takes only 70ms vs 20ms without aggregating the tags too on the Heroku instance	
-	private def query(withEntriesOnly: Boolean) : String = {
+	val selectClause = 
 		"""SELECT statement.id, statement.title, statement.quote, statement.quote_src, MAX(entry.date) AS latestEntry, 
 		statement.rating, statement.rated, statement.merged_id, statement2.rating AS merged_rating, statement2.rated AS merged_rated,
 		category.id, category.name, category.ordering,
 		author.id, author.name, author.ordering, author.rated, author.color, author.background,
-		ARRAY_AGG(tag.id) AS tag_id, ARRAY_AGG(tag.name) AS tag_name, ARRAY_AGG(tag.important) AS tag_important
-		FROM statement 
-		JOIN category ON category.id=statement.cat_id
+		ARRAY_AGG(tag.id) AS tag_id, ARRAY_AGG(tag.name) AS tag_name, ARRAY_AGG(tag.important) AS tag_important """
+
+	val fromClause = "FROM statement "
+
+	// Huge join but takes only 70ms vs 20ms without aggregating the tags too on the Heroku instance	
+	private def joinClause(withEntriesOnly: Boolean) : String = {
+		"""JOIN category ON category.id=statement.cat_id
 		JOIN author ON author.id=statement.author_id
 		LEFT JOIN statement statement2 ON statement2.id = statement.merged_id
 		LEFT JOIN statement_tags ON statement.id = statement_tags.stmt_id 
@@ -323,11 +327,15 @@ object Statement {
 		"JOIN entry on statement.id = entry.stmt_id "
 	}
 
-	private val queryGrouping = "group by statement.id, category.id, author.id, statement2.id "
-	private val queryOrdering = "order by author.ordering ASC, category.ordering ASC, statement.id ASC "
+	private val groupbyClause = "GROUP BY statement.id, category.id, author.id, statement2.id "
+	private val orderbyClause = "ORDER BY author.ordering ASC, category.ordering ASC, statement.id ASC "
 
 	private def queryStatements(whereClause : String = "", params: List[(Any, anorm.ParameterValue[_])] = List.empty[(Any, anorm.ParameterValue[_])]) : List[Statement] = {
-		val querySql = query(false) + (if(whereClause.isEmpty) { "" } else { " WHERE " + whereClause + " "}) + queryGrouping + queryOrdering
+		val querySql = selectClause + fromClause + joinClause(false) + 
+			(if(whereClause.isEmpty) { "" } else { " WHERE " + whereClause + " "}) + 
+			groupbyClause + 
+			orderbyClause
+
 		Logger.debug("queryStatements querySql = " + querySql)
 		Logger.debug("queryStatements params = " + params)
 		DB.withConnection({ implicit c =>
