@@ -31,7 +31,22 @@ object Category {
 		Category(id, name, order)
 	}
 
+	def loadAll(): List[Category] = {
+		DB.withConnection { implicit c => loadAll(c) }
+	}
+
 	def loadAll(implicit connection: java.sql.Connection): List[Category] = {
 		SQL("select * from category order by ordering").as(category*)
+	}
+
+	import play.api.libs.json._
+	implicit val CategoryToJson = new Writes[Category] {
+	  def writes(c: Category): JsValue = {
+	    Json.obj(
+	    	"id" -> c.id,
+	    	"name" -> c.name,
+	    	"ordering" -> c.order
+	    )
+	  }
 	}
 }
