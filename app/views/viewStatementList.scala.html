@@ -1,6 +1,6 @@
 @(title: String, stmtsByAuthor: Map[Author, List[Statement]], groupByCategory: Boolean, user: Option[User])
  
-@main(title, user){
+@common.main(title, user){
 <ul class="nav nav-tabs">
 @for( (author, liststmtAll) <- stmtsByAuthor ) {
 	@if(author==stmtsByAuthor.head._1) {
@@ -25,9 +25,6 @@
 					<a class="accordion-toggle" data-toggle="collapse" href="#collapse_@(author.order)_@(category.order)">
 					<h3>@category.order.&nbsp;@category.name</h3>
 					</a>
-					<!--
-					@ratingprogressbarFromStatement(liststmtCategory, "smallprogress", "invisible")
-					-->
 				</div>
 				<div id="collapse_@(author.order)_@(category.order)" class="accordion-body collapse">
 					<div class="accordion-inner">			

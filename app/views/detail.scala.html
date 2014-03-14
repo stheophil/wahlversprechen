@@ -1,6 +1,6 @@
 @(stmt: Statement, stmtRelatedByAllAuthors: List[Statement], user: Option[User])(implicit request: play.api.mvc.RequestHeader)
 
-@main(stmt.title, user){
+@common.main(stmt.title, user){
 @defining(user.isDefined && (user.get.role==Role.Editor || user.get.role==Role.Admin)) { editing => 
 
 <div class="page-header">                

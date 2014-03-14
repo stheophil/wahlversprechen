@@ -1,7 +1,7 @@
 @(cStatement: Int, mapRating: Map[models.Rating.Rating, Int], stmtsRecent: List[Statement], stmtsImportant: List[Statement], user: Option[User])(implicit flash: Flash)
 @import models.Rating._
  
-@main("Wahlversprechen", user){
+@common.main("Wahlversprechen", user){
 
 @flash.get("success").map { message =>
     <div class="alert alert-success">
@@ -20,7 +20,7 @@
 	<h1>wahlversprechen</h1>
 	<p class="lead">Versprochen gebrochen oder verlässliche Regierungsarbeit? Diese Seite dokumentiert alle Wahlversprechen der Regierungsparteien. Wieviele wurden bereits umgesetzt, endeten in einem Kompromiss oder scheiterten komplett und wieviele sind noch offen: </p>
 
-	@ratingprogressbar(cStatement, mapRating, "titleprogress", "titleprogress-glyph")	
+	@common.progressBar(cStatement, mapRating, "titleprogress", "titleprogress-glyph")	
 	</div>
     <div class="col-md-4 visible-md visible-lg" style="position: relative; padding: 0px">
       <img src="/assets/img/reichstag2.jpg" alt="Kuppel des Berliner Reichstags" class="img-thumbnail" style="margin-left: 15px; margin-right: auto">
@@ -46,10 +46,10 @@
 
 <div class="row">
 	<div class="col-sm-6">
-  	@itemlist("Zuletzt aktualisierte Wahlversprechen:", "/aktuell", stmtsRecent)
+  	@common.renderShortStatementList("Zuletzt aktualisierte Wahlversprechen:", "/aktuell", stmtsRecent)
 	</div>
 	<div class="col-sm-6">
-  	@itemlist("Die wichtigsten Wahlversprechen:", "/top", stmtsImportant)
+  	@common.renderShortStatementList("Die wichtigsten Wahlversprechen:", "/top", stmtsImportant)
 	</div>
 </div>
 

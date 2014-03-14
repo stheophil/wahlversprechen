@@ -1,6 +1,6 @@
 @(form: Form[(String,String)])(implicit flash: Flash)
 
-@main("Wahlversprechen Login", None){
+@common.main("Wahlversprechen Login", None){
     <h1>Login</h1>
     
     @form.globalError.map { error =>
