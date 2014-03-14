@@ -52,7 +52,7 @@ object Statement {
 	}
 
 	def find(searchQuery: String) : Map[Author, List[Statement]] =  {
-		val query = selectClause + ", ts_rank_cd(statement.textsearchable, to_tsquery({query})) AS rank " + 
+		val query = selectClause + ", ts_rank_cd(statement.textsearchable, to_tsquery({query}), 1) AS rank " + 
 			fromClause + 
 			joinClause(false) +
 			"WHERE statement.textsearchable @@ to_tsquery({query}) " +
