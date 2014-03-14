@@ -1,0 +1,60 @@
+@(title: String, stmtsByAuthor: Map[Author, List[Statement]], groupByCategory: Boolean, user: Option[User])
+ 
+@main(title, user){
+<ul class="nav nav-tabs">
+@for( (author, liststmtAll) <- stmtsByAuthor ) {
+	@if(author==stmtsByAuthor.head._1) {
+		<li class="active">
+	} else {
+		<li>
+	}
+  	<a href="#@(author.name.filter(!_.isWhitespace))" data-toggle="tab">@(author.name)</a></li>
+}
+</ul>
+<div class="tab-content">  				
+@for( (author, liststmtAll) <- stmtsByAuthor ) {
+	@if(author==stmtsByAuthor.head._1) {
+	<div class="tab-pane active" id="@(author.name.filter(!_.isWhitespace))">
+	} else {
+	<div class="tab-pane" id="@(author.name.filter(!_.isWhitespace))">
+	}
+	@groupByCategory match {
+		case true => {
+			@for( (category, liststmtCategory) <- liststmtAll.groupBy( s => s.category ).toList.sortBy(_._1.order) ) {
+				<div class="accordion-heading" style="position: relative;">
+					<a class="accordion-toggle" data-toggle="collapse" href="#collapse_@(author.order)_@(category.order)">
+					<h3>@category.order.&nbsp;@category.name</h3>
+					</a>
+					<!--
+					@ratingprogressbarFromStatement(liststmtCategory, "smallprogress", "invisible")
+					-->
+				</div>
+				<div id="collapse_@(author.order)_@(category.order)" class="accordion-body collapse">
+					<div class="accordion-inner">			
+					@common.renderStatementList(liststmtCategory)
+					</div>
+				</div>
+			}
+		}
+		case false => {
+			@common.renderStatementList(liststmtAll)
+		}
+	}
+	</div>	
+}
+</div>
+
+<script type="text/javascript">
+/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+var disqus_shortname = '@Formatter.disqus_shortname'; // required: replace example with your forum shortname
+
+/* * * DON'T EDIT BELOW THIS LINE * * */
+(function () {
+var s = document.createElement('script'); s.async = true;
+s.type = 'text/javascript';
+s.src = 'http://' + disqus_shortname + '.disqus.com/count.js';
+(document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+}());
+</script>
+
+}

@@ -51,29 +51,29 @@ object Application extends Controller with Secured {
 	
 	def recent = CachedAction("recent") { implicit request => 		
 		val mapstmtByAuthor = Statement.byEntryDate(None, None).groupBy(_.author)
-		Ok(views.html.list("Alle Wahlversprechen nach letzter Aktualisierung", mapstmtByAuthor, user(request)))
+		Ok(views.html.viewStatementList("Alle Wahlversprechen nach letzter Aktualisierung", mapstmtByAuthor, false, user(request)))
 	}
 
 	def top = CachedAction("top") { implicit request =>  
-		Ok(views.html.listByCategory("Die wichtigsten Wahlversprechen nach Ressorts", Statement.byImportantTag(None, None).groupBy(_.author), user(request)))
+		Ok(views.html.viewStatementList("Die wichtigsten Wahlversprechen nach Ressorts", Statement.byImportantTag(None, None).groupBy(_.author), true, user(request)))
 	}
 
 	def all = CachedAction("all") { implicit request => 
-		Ok(views.html.listByCategory("Alle Wahlversprechen nach Ressorts", Statement.all(), user(request)))
+		Ok(views.html.viewStatementList("Alle Wahlversprechen nach Ressorts", Statement.all(), true, user(request)))
 	}
 
 	def tag(tag: String) = CachedAction("tag." + tag) { implicit request =>
-		Ok(views.html.list("Wahlversprechen mit Tag '"+tag+"'", Statement.byTag(tag, None, None).groupBy(_.author), user(request)))		
+		Ok(views.html.viewStatementList("Wahlversprechen mit Tag '"+tag+"'", Statement.byTag(tag, None, None).groupBy(_.author), false, user(request)))		
 	}
 
 	def category(category: String) = CachedAction("category."+category) { implicit request => 
-		Ok(views.html.list("Wahlversprechen aus dem Ressort '"+category+"'", Statement.byCategory(category, None, None).groupBy(_.author), user(request)))		
+		Ok(views.html.viewStatementList("Wahlversprechen aus dem Ressort '"+category+"'", Statement.byCategory(category, None, None).groupBy(_.author), false, user(request)))		
 	}
 
 	def rating(ratingId: Int) = CachedAction("rating."+ratingId) { implicit request => 
 		if(0<= ratingId && ratingId < Rating.maxId ) {
 			val rating = Rating(ratingId)
-			Ok(views.html.listByCategory("Wahlversprechen mit Bewertung '"+Formatter.name(rating)+"'", Statement.byRating(rating, None, None).groupBy(_.author), user(request)))		
+			Ok(views.html.viewStatementList("Wahlversprechen mit Bewertung '"+Formatter.name(rating)+"'", Statement.byRating(rating, None, None).groupBy(_.author), true, user(request)))		
 		} else {
 			NotFound
 		}
@@ -81,7 +81,7 @@ object Application extends Controller with Secured {
 
 	def search(query: String) = CachedAction("search."+query) { implicit request => 
 		val mapstmtByAuthor = Statement.find(query)
-		Ok(views.html.list("Suchergebnisse", mapstmtByAuthor, user(request) ))
+		Ok(views.html.viewStatementList("Suchergebnisse", mapstmtByAuthor, false, user(request) ))
 	}
 
 	import play.api.libs.json._

@@ -1,0 +1,38 @@
+@(liststmt: List[Statement])
+
+@for(stmt <- liststmt) {
+  <div class="full-list">    
+    <div class="full-list-glyph-wrapper">
+      @if(stmt.rating.isDefined) {
+        <span class="glyphicon @Formatter.glyph(stmt.rating.get)" style="color: @Formatter.color(stmt.rating.get);"></span>
+      }
+    </div>
+    <div class="full-list-content">
+      <h4><a href="@{routes.DetailViewController.view(stmt.id).url}">@(stmt.title)</a></h4>
+      <div>
+        <small class="pull-left">
+          <a class="comment-count" data-disqus-identifier="@(stmt.id)" href="@{routes.DetailViewController.view(stmt.id).url + "#disqus_thread"}">0</a>&nbsp;<a href="/view/@(stmt.id)"><span class="glyphicon glyphicon-comment"></span></a>
+        </small> 
+         <small class="pull-left" style="margin-left:15px">@if(stmt.latestEntry.isDefined) { Aktualisiert am @Formatter.format(stmt.latestEntry.get) }</small>
+         <small class="pull-left" style="margin-left:45px">
+         	@for(t <- stmt.tags) {
+         		<span class="tag">@t.name</span> 
+         	}
+         </small>
+         <div style="clear: both;"></div>
+      </div>
+      <div class="row">
+	  <div class="col-sm-8">
+      @if(stmt.quote.isDefined) { 
+      	<small>
+      	<blockquote>
+        @Formatter.transformBodyToHTML(stmt.quote.get)
+        </blockquote>
+        </small>
+      }
+      </div>
+      <div class="col-sm-4"></div>
+      </div>
+    </div>    
+  </div>
+}
