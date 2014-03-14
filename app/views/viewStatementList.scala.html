@@ -1,6 +1,7 @@
 @(title: String, stmtsByAuthor: Map[Author, List[Statement]], groupByCategory: Boolean, user: Option[User])
  
 @common.main(title, user){
+<h1 class="stmt-list">@title</h1>
 <ul class="nav nav-tabs">
 @for( (author, liststmtAll) <- stmtsByAuthor ) {
 	@if(author==stmtsByAuthor.head._1) {

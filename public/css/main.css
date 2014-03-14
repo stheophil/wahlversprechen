@@ -6,12 +6,21 @@ h1 {
   font-size: 40px;
 }
 
+h1.stmt-list {
+	font-size:24px;
+	margin-top: 0px;
+	margin-bottom: 15px;
+}
+
 h2 { color: #515295; }
 h2 a { color: #515295; }
 
 @media(min-width: 768px) {
 	h1 {
 	  font-size: 50px;
+	}
+	h1.stmt-list {
+	  font-size: 30px;
 	}
 }
 

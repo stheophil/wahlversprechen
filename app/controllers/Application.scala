@@ -81,7 +81,7 @@ object Application extends Controller with Secured {
 
 	def search(query: String) = CachedAction("search."+query) { implicit request => 
 		val mapstmtByAuthor = Statement.find(query)
-		Ok(views.html.viewStatementList("Suchergebnisse", mapstmtByAuthor, false, user(request) ))
+		Ok(views.html.viewStatementList("Suchergebnisse für '" + query + "'", mapstmtByAuthor, false, user(request) ))
 	}
 
 	import play.api.libs.json._
