@@ -1,5 +1,0 @@
-This is the play/scala based application behind http://www.wahlversprechen2013.de. 
-
-It is a simple web app to track election promises. For now, unauthorized users can only contribute by commenting using the embedded Disqus comment system. Authorized users can write editorial updates to each election promise. 
-
-The app can track the promises of coalition parties and the coalition government independently. 
