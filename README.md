@@ -9,9 +9,12 @@ More details in English are available [in a blog post describing the project](ht
 The application is up and running, but several areas need work. 
 
 - The application needs to be internationalized to be generally useful.
+- It needs a simple setup process to get new sites up and running. 
 - I would like to improve the JSON API so people can visualize the data. 
 - There is no real documentation and no real tests
 - The database interface is still based on play.anorm although it has already outgrown anorm's capabilities and is turning into a mess
+
+Other than that it is a great project :-)
 
 # License
 
