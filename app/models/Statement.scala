@@ -243,29 +243,24 @@ object Statement {
 
 	// TODO: This is a poor man's database abstraction layer.
 	// Replace with Slick or sth similar as soon as possible
-	implicit def rowToSeqString: Column[Seq[String]] = Column.nonNull { (value, meta) =>
+	def rowToSeq[JavaType, ScalaType](f : (JavaType) => ScalaType) : Column[Seq[ScalaType]] = Column.nonNull { (value, meta) =>
 	  val MetaDataItem(qualified, nullable, clazz) = meta
 	  value match {
-	    case arr: java.sql.Array => Right(arr.getArray.asInstanceOf[Array[String]].toSeq)
-	    case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Seq[String] for column " + qualified))
+	    case arrSQL: java.sql.Array => {
+	    	val arr = arrSQL.getArray.asInstanceOf[Array[JavaType]]
+	    	if(arr == null) {
+	    		Right(Seq.empty[ScalaType])
+	    	} else {
+	    		Right(arr.filter(_ != null).map(f).toSeq)
+	    	}
+	    }
+	    case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Seq[T] for column " + qualified))
 	  } 
 	}
 
-	implicit def rowToSeqInt: Column[Seq[Int]] = Column.nonNull { (value, meta) =>
-	  val MetaDataItem(qualified, nullable, clazz) = meta
-	  value match {
-	    case arr: java.sql.Array => Right(arr.getArray.asInstanceOf[Array[Integer]].map(_.intValue).toSeq)
-	    case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Seq[Int] for column " + qualified))
-	  } 
-	}
-
-	implicit def rowToSeqBoolean: Column[Seq[Boolean]] = Column.nonNull { (value, meta) =>
-	  val MetaDataItem(qualified, nullable, clazz) = meta
-	  value match {
-	    case arr: java.sql.Array => Right(arr.getArray.asInstanceOf[Array[java.lang.Boolean]].map(_.booleanValue).toSeq)
-	    case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Seq[Int] for column " + qualified))
-	  } 
-	}
+	implicit def rowToSeqString: Column[Seq[String]] = rowToSeq[String, String](s => s)
+	implicit def rowToSeqInt: Column[Seq[Int]] = rowToSeq[Integer, Int](_.intValue)
+	implicit def rowToSeqBoolean: Column[Seq[Boolean]] = rowToSeq[java.lang.Boolean, Boolean](_.booleanValue)
 
 	private val stmt = {
 			get[Long]("statement.id") ~
@@ -322,7 +317,7 @@ object Statement {
 		JOIN author ON author.id=statement.author_id
 		LEFT JOIN statement statement2 ON statement2.id = statement.merged_id
 		LEFT JOIN statement_tags ON statement.id = statement_tags.stmt_id 
-		JOIN tag on statement_tags.tag_id = tag.id """ + 
+		LEFT JOIN tag on statement_tags.tag_id = tag.id """ + 
 		(if(!withEntriesOnly) { "LEFT " } else "") + 
 		"JOIN entry on statement.id = entry.stmt_id "
 	}
