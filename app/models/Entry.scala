@@ -70,10 +70,6 @@ object Entry {
 					'content -> content,
 					'date -> date,
 					'user_id -> user_id).executeUpdate()
-
-         	SQL("update statement set latestEntry = {date} where id = {stmt_id}").on(					
-					'date -> date,
-					'stmt_id -> stmt_id).executeUpdate()
 		}
 	}
 }
