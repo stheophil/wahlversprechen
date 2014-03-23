@@ -18,7 +18,7 @@ object InitialData {
   
   def date(str: String) = new java.text.SimpleDateFormat("yyyy-MM-dd").parse(str)
   
-  def insert() = {    
+  def insert() = {
     if(User.findAll.isEmpty) {
       var ausers = new collection.mutable.ArrayBuffer[User];
       Array(

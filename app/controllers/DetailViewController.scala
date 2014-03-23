@@ -80,7 +80,7 @@ object DetailViewController extends Controller with Secured {
 		updateItemForm.bindFromRequest.fold(
 			formWithErrors => BadRequest(""),
 			{ case (title, rating, quote, quote_src, tags, merged_id) => {
-				Logger.info("Update item " + stmt_id + " (" + title + ", " + rating + ", " + quote + ", " + quote_src + ")" )
+				Logger.debug("Update item " + stmt_id + " (" + title + ", " + rating + ", " + quote + ", " + quote_src + ")" )
 				if(title.isDefined) Statement.setTitle(stmt_id, title.get)
 				if(rating.isDefined) Statement.setRating(stmt_id, rating.get, new java.util.Date())
 				if(quote.isDefined) Statement.setQuote(stmt_id, quote.get)
@@ -111,7 +111,7 @@ object DetailViewController extends Controller with Secured {
 			{ case (content) => {
 				Entry.load(entry_id) match {
 					case Some(entry) => {						
-						Logger.info("Update entry with text '"+content+"'")
+						Logger.debug("Update entry with text '"+content+"'")
 						Entry.edit(entry.id, content)
 						Cache.remove("view."+entry.stmt_id)
 						Ok("")
