@@ -166,7 +166,7 @@ object Statement {
 		val id: Long = SQL("select nextval('stmt_id_seq')").as(scalar[Long].single)
 		val rated = rating map { r => new Date() };
 		// Insert the project
-		SQL("insert into statement values ({id}, {title}, {author_id}, {cat_id}, {quote}, {quote_src}, NULL, {rating}, {rated}, {merged_id})").on(
+		SQL("insert into statement values ({id}, {title}, {author_id}, {cat_id}, {quote}, {quote_src}, {rating}, {rated}, {merged_id})").on(
 				'id -> id,
 				'title -> title,
 				'author_id -> author.id,

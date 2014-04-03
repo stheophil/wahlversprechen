@@ -16,8 +16,8 @@ trait WithTestDatabase extends AroundExample {
 
   val testDb = Map(
     "db.default.url" -> "jdbc:postgresql://localhost/wahlversprechen_test?user=sebastian",
-    "logger.application" -> "INFO",
-    "logger.play" -> "INFO")
+    "logger.application" -> "ERROR",
+    "logger.play" -> "ERROR")
 
   def around[T: AsResult](t: => T) = {
     val app = FakeApplication(additionalConfiguration = testDb)
@@ -89,6 +89,5 @@ trait WithTestDatabase extends AroundExample {
       }
     }
     
-  }
-  
+  } 
 }
