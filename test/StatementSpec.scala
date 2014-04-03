@@ -50,31 +50,37 @@ import play.api.Logger
     "find statements by entry date" in {
       val stmts = models.Statement.all()
       models.Statement.byEntryDate(None, None)
+      models.Statement.byEntryDate(models.Author.load("Koalitionsvertrag"), Some(3))
       false
     }
     "find statements by important tag" in {      
       models.Statement.byImportantTag(None, None)
+      models.Statement.byImportantTag(models.Author.load("Koalitionsvertrag"), Some(3))
       val stmts = models.Statement.all()
       false
     }    
     "find statements by tag" in {      
       val stmtsByTag = models.Statement.byTag("comma-separated-list", None, None)
+      models.Statement.byTag("comma-separated-list", models.Author.load("Koalitionsvertrag"), Some(3))
+
       (stmtsByTag.size === 6) &&
       (stmtsByTag.forall( _.tags.map(_.name).contains("comma-separated-list")))
     }    
     "find statements by category" in {    
-      models.Statement.byCategory("", None, None)
+      models.Statement.byCategory("Föreign Äffärs", None, None)
+      models.Statement.byCategory("Föreign Äffärs", models.Author.load("Koalitionsvertrag"), Some(3))
       val stmts = models.Statement.all()
       false
     }
     "find statements by rating" in {      
       models.Statement.byRating(models.Rating.Unrated, None, None)
+      models.Statement.byRating(models.Rating.Unrated, models.Author.load("Koalitionsvertrag"), Some(3))
       val stmts = models.Statement.all()
       false
     }
     "count ratings by author" in {
       val stmts = models.Statement.all()
-      // models.Statement.countRatings(Author.load(""))
+      models.Statement.countRatings(models.Author.load("Koalitionsvertrag").get)
       false
     }
   }  

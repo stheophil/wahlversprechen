@@ -55,7 +55,7 @@ object Statement {
 		val query = selectClause + ", ts_rank_cd(statement.textsearchable, to_tsquery({query}), 1) AS rank " + 
 			fromClause + 
 			joinClause(false) +
-			"WHERE statement.textsearchable @@ to_tsquery({query}) " +
+			"WHERE statement.textsearchable @@ plainto_tsquery({query}) " +
 			groupbyClause +
 			"order by rank DESC"
 
