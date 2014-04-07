@@ -7,32 +7,24 @@ import play.api.test._
 import play.api.test.Helpers._
 import play.api.Logger
 
-/**
- * add your integration spec here.
- * An integration test will fire up a whole play application in a real (or headless) browser
- */
- class StatementSpec extends Specification with WithTestDatabase  {
+class StatementSpec extends Specification with WithFilledTestDatabase  {
   val author = "Koalitionsvertrag"
 
-  // TODO: import sheet[2-4]
   // TODO: create some entries
 
   "models.Statement" should {
     "return all statements by author" in {
       val stmts = models.Statement.all()
-      (stmts.map(_._2.size) must beEqualTo((3, 3, 3)))
+      (stmts.map(_._2.size) must beEqualTo(List(3, 3, 3)))
     }
     "return statements by id" in {
       val stmts = models.Statement.all()
-      // val stmtById = models.Statement.load(stmts.values.head.head.id)
-      // stmtById must beEqualTo(stmts.values.head.head)
-      false
+      val stmtById = models.Statement.load(stmts.values.head.head.id)
+      stmtById.get must beEqualTo(stmts.values.head.head)
     }
-    "return all linked statements by id" in {      
-      val stmts = models.Statement.all()
-      // val stmtsById = models.Statement.loadAll(stmts.values.head.head.id)
-      // stmtsById must beEqualTo(stmts.values.head.head)
-      false
+    "return all linked statements by id" in {
+      val stmtsById = models.Statement.loadAll(7)
+      stmtsById.size must beEqualTo(3)
     }
     "load entries for a statement" in {      
       val stmts = models.Statement.all()
@@ -61,16 +53,19 @@ import play.api.Logger
     }    
     "find statements by tag" in {      
       val stmtsByTag = models.Statement.byTag("comma-separated-list", None, None)
-      models.Statement.byTag("comma-separated-list", models.Author.load("Koalitionsvertrag"), Some(3))
+      val stmtsByTag2 = models.Statement.byTag("comma-separated-list", models.Author.load("Koalitionsvertrag"), Some(1))
 
       (stmtsByTag.size === 6) &&
-      (stmtsByTag.forall( _.tags.map(_.name).contains("comma-separated-list")))
+      (stmtsByTag.forall( _.tags.map(_.name).contains("comma-separated-list"))) and 
+      (stmtsByTag2.size === 1) &&
+      (stmtsByTag2.forall( _.tags.map(_.name).contains("comma-separated-list")))
     }    
     "find statements by category" in {    
-      models.Statement.byCategory("Föreign Äffärs", None, None)
-      models.Statement.byCategory("Föreign Äffärs", models.Author.load("Koalitionsvertrag"), Some(3))
-      val stmts = models.Statement.all()
-      false
+      val stmts1 = models.Statement.byCategory("Föreign Äffärs", None, None)
+      val stmts2 = models.Statement.byCategory("Föreign Äffärs", models.Author.load("Koalitionsvertrag"), Some(1))
+      (stmts1.size must beEqualTo(6)) &&
+      (stmts1.forall( _.category.name.equals("Föreign Äffärs"))) && 
+      (stmts2.size must beEqualTo(1))
     }
     "find statements by rating" in {      
       models.Statement.byRating(models.Rating.Unrated, None, None)
@@ -83,5 +78,7 @@ import play.api.Logger
       models.Statement.countRatings(models.Author.load("Koalitionsvertrag").get)
       false
     }
+    // TODO: Test editing
+    // TODO: Test meta tags on detail page
   }  
 }

@@ -88,6 +88,21 @@ trait WithTestDatabase extends AroundExample {
         }
       }
     }
-    
   } 
+}
+
+trait WithFilledTestDatabase extends WithTestDatabase {
+  val sheet2 = "12ooSGJrHN6l3mvwMsA10fEetYhIIjLA_ZL57pXxJSxc"
+  val sheet3 = "1DJbUAIz33ogxR_bhgiXTFYdE4z1-QkYvLSTltz1Yd24"
+  val sheet4 = "1us0DafZsza8zH3mG8cYZNTPnl-iM8g2WXMzU1-h4an4"
+
+  override def around[T: AsResult](t: => T) = {
+    // TODO: Load data locally and not from Google
+    super.around{
+      controllers.Import.loadSpreadSheet("CDU Wahlprogramm", sheet2)
+      controllers.Import.loadSpreadSheet("FDP Wahlprogramm", sheet3)      
+      controllers.Import.loadSpreadSheet("Koalitionsvertrag", sheet4)
+      t
+    }
+  }
 }
