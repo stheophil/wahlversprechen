@@ -1,6 +1,10 @@
 @(stmt: Statement, stmtRelatedByAllAuthors: List[Statement], user: Option[User])(implicit request: play.api.mvc.RequestHeader)
 
-@common.main(stmt.title, user){
+@common.main(stmt.title, user, Formatter.facebookMeta(
+    routes.DetailViewController.view(stmt.id).absoluteURL(false),
+    Formatter.transformToText(stmt.quote.getOrElse("")),
+    Formatter.icon(stmt.rating.getOrElse(Rating.Unrated))
+)){
 @defining(user.isDefined && (user.get.role==Role.Editor || user.get.role==Role.Admin)) { editing => 
 
 <div class="page-header">                

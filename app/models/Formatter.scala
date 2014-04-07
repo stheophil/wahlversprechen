@@ -66,6 +66,14 @@ object Formatter {
 		new java.text.SimpleDateFormat("dd.MM.yy", lang.toLocale).format(date)
 	}
 
+	def facebookMeta(url: String, description: String, img: String) : Html = {
+		Html(
+		    "<meta property=\"og:url\" content=\"" + url + "\">\n" +
+		    "<meta property=\"og:description\" content=\"" + description + "\">\n" +
+		    "<meta property=\"og:image\" content=\"" + img + "\">\n"
+		)
+	}
+
 	private object FilterHeadlineFromMarkdown extends Decorator {		
 	    override def allowVerbatimXml():Boolean = false		    
 	    override def decorateImg(alt:String, src:String, title:Option[String]):String = ""		    
@@ -75,22 +83,56 @@ object Formatter {
 	    override def decorateCodeBlockOpen():String = "<div 'display: none'>"
 	    override def decorateCodeBlockClose():String = "<div 'display: none'>"
 	}
-	private object markdownToHTMLWithoutHeadlines extends Transformer {
-		 override def deco() : Decorator = FilterHeadlineFromMarkdown
-	}
 
 	private object FilterXMLFromMarkdown extends Decorator {		
 	    override def allowVerbatimXml():Boolean = false		    
 	}
-	private object markdownToHTML extends Transformer {
-		 override def deco() : Decorator = FilterXMLFromMarkdown
+
+	private object FilterPlainTextFromMarkdown extends Decorator {
+   		override def allowVerbatimXml():Boolean = false
+		override def decorateBreak():String = ""
+   	   	override def decorateCode(code:String):String = code
+    	override def decorateEmphasis(text:String):String = text
+    	override def decorateStrong(text:String):String = text
+    	override def decorateLink(text:String, url:String, title:Option[String]):String = text
+    	override def decorateImg(alt:String, src:String, title:Option[String]):String = ""
+    	override def decorateRuler():String = ""
+    	override def decorateHeaderOpen(headerNo:Int):String = ""
+    	override def decorateHeaderClose(headerNo:Int):String = ""
+    	override def decorateCodeBlockOpen():String = ""
+    	override def decorateCodeBlockClose():String = ""
+        override def decorateParagraphOpen():String = ""
+		override def decorateParagraphClose():String = ""
+		override def decorateBlockQuoteOpen():String = ""
+		override def decorateBlockQuoteClose():String = ""
+		override def decorateItemOpen():String = ""
+		override def decorateItemClose():String = ""
+		override def decorateUListOpen():String = ""
+		override def decorateUListClose():String = ""
+		override def decorateOListOpen():String = ""
+		override def decorateOListClose():String = ""
 	}
 
+	private object markdownToHTMLWithoutHeadlines extends Transformer {
+		 override def deco() : Decorator = FilterHeadlineFromMarkdown
+	}
 	def transformBodyToHTML(markdown: String) : Html = {
 		Html(markdownToHTMLWithoutHeadlines(markdown))
 	}
 
+	private object markdownToHTML extends Transformer {
+		 override def deco() : Decorator = FilterXMLFromMarkdown
+	}
 	def transformToHTML(markdown: String) : Html = {
 		Html(markdownToHTML(markdown))
 	}
+
+	private object markdownToText extends Transformer {
+		 override def deco() : Decorator = FilterPlainTextFromMarkdown
+	}
+	def transformToText(markdown: String) : String = {
+		markdownToText(markdown)
+	}
+	
+	
 }

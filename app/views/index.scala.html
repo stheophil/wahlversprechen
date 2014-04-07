@@ -1,19 +1,12 @@
-@(cStatement: Int, mapRating: Map[models.Rating.Rating, Int], stmtsRecent: List[Statement], stmtsImportant: List[Statement], user: Option[User])(implicit flash: Flash)
+@(cStatement: Int, mapRating: Map[models.Rating.Rating, Int], stmtsRecent: List[Statement], stmtsImportant: List[Statement], user: Option[User])(implicit request: play.api.mvc.RequestHeader)
+
 @import models.Rating._
- 
-@common.main("Wahlversprechen", user){
 
-@flash.get("success").map { message =>
-    <div class="alert alert-success">
-        @message
-    </div>
-}
-
-@flash.get("error").map { message =>
-    <div class="alert alert-danger">
-        @message
-    </div>
-}
+@common.main("Wahlversprechen", user, Formatter.facebookMeta(
+    routes.Application.index.absoluteURL(false),
+    "Versprochen gebrochen oder verlässliche Regierungsarbeit? wahlversprechen2013.de dokumentiert alle Wahlversprechen der Regierungsparteien. Wieviele wurden bereits umgesetzt, endeten in einem Kompromiss oder scheiterten komplett und wieviele sind noch offen?",
+    routes.Assets.at("img/reichstag2.jpg").absoluteURL(false)
+)){
 
 <div class="row">
 	<div class="col-sm-12 col-md-8">
