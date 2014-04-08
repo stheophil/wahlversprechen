@@ -103,7 +103,7 @@ object Application extends Controller with Secured {
 	}
 
 	def updatesAsFeed = CachedAction("updatesAsFeed", 60 * 60 ) { implicit request =>
-		Ok(views.xml.entryList("wahlversprechen2013.de: Alle Aktualisierungen", routes.Application.recent.url, Entry.loadRecent(10)))			
+		Ok(views.xml.entryList("wahlversprechen2013.de: Alle Aktualisierungen", routes.Application.recent.absoluteURL(false), Entry.loadRecent(10)))			
 	}
 	
 	def loader_io = Action {
