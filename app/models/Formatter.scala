@@ -66,11 +66,13 @@ object Formatter {
 		new java.text.SimpleDateFormat("dd.MM.yy", lang.toLocale).format(date)
 	}
 
-	def facebookMeta(url: String, description: String, img: String) : Html = {
+	def socialMetaTags(url: String, description: String, img: String) : Html = {
 		Html(
 		    "<meta property=\"og:url\" content=\"" + url + "\">\n" +
 		    "<meta property=\"og:description\" content=\"" + description + "\">\n" +
-		    "<meta property=\"og:image\" content=\"" + img + "\">\n"
+		    "<meta property=\"twitter:description\" content=\"" + description + "\">\n" +
+		    "<meta property=\"og:image\" content=\"" + img + "\">\n" + 
+		    "<meta property=\"twitter:image\" content=\"" + img + "\">\n"
 		)
 	}
 
