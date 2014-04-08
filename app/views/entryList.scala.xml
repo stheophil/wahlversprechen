@@ -5,7 +5,9 @@
       <link>@url</link>
       <description></description>
       <language>de-DE</language>
-      <pubDate>@{new java.util.Date().toString()}</pubDate>
+      <pubDate>@{
+         new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z").format(new java.util.Date());
+      }</pubDate>
       <docs>http://blogs.law.harvard.edu/tech/rss</docs>
       <generator>Generated using Play Framework 2.1</generator>
       <managingEditor>mail@@@Formatter.url</managingEditor>
@@ -14,7 +16,7 @@
          @defining(Statement.load(entry.stmt_id).get) { stmt => 
          <item>
             <title>@if(stmt.rating.isDefined) { 
-                  <em>[@Formatter.name(stmt.rating.get)]</em>
+                  [@Formatter.name(stmt.rating.get)]
                }
                @stmt.title
             </title>
@@ -25,7 +27,7 @@
                }
                @{Xml( Formatter.transformToHTML(entry.content).body )}
             </description>
-            <pubDate>@entry.date.toString</pubDate>
+            <pubDate>@{ new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z").format(entry.date) }</pubDate>
             <guid>@{ routes.DetailViewController.view(entry.stmt_id).absoluteURL(false)+ "#" + entry.id}</guid>
          </item>
          }
