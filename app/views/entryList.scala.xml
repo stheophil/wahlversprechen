@@ -5,9 +5,7 @@
       <link>@url</link>
       <description></description>
       <language>de-DE</language>
-      <pubDate>@{
-         new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z").format(new java.util.Date());
-      }</pubDate>
+      <pubDate>@{Formatter.formatRFC822(new java.util.Date())}</pubDate>
       <docs>http://blogs.law.harvard.edu/tech/rss</docs>
       <generator>Generated using Play Framework 2.1</generator>
       <managingEditor>mail@@@Formatter.url</managingEditor>
@@ -27,7 +25,7 @@
                }
                @{Xml( Formatter.transformToHTML(entry.content).body )}
             </description>
-            <pubDate>@{ new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z").format(entry.date) }</pubDate>
+            <pubDate>@{ Formatter.formatRFC822(entry.date) }</pubDate>
             <guid>@{ routes.DetailViewController.view(entry.stmt_id).absoluteURL(false)+ "#" + entry.id}</guid>
          </item>
          }

@@ -66,6 +66,10 @@ object Formatter {
 		new java.text.SimpleDateFormat("dd.MM.yy", lang.toLocale).format(date)
 	}
 
+	def formatRFC822(date: Date) : String = {
+		new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z").format(date);
+	}
+
 	def socialMetaTags(url: String, description: String, img: String) : Html = {
 		Html(
 		    "<meta property=\"og:url\" content=\"" + url + "\">\n" +

@@ -79,6 +79,5 @@ class StatementSpec extends Specification with WithFilledTestDatabase  {
       false
     }
     // TODO: Test editing
-    // TODO: Test meta tags on detail page
   }  
 }
