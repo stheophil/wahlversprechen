@@ -62,7 +62,7 @@ object DetailViewController extends Controller with Secured {
 	val updateItemForm = Form(
 		tuple(
 			"title" -> optional(nonEmptyText),
-			"rating" -> optional(number),
+			"rating" -> optional(number(min=0, max=Rating.maxId-1)),
 			"quote" -> optional(text),
 			"quote_src" -> optional(text),
 			"tags" -> optional(text),
@@ -82,7 +82,7 @@ object DetailViewController extends Controller with Secured {
 			{ case (title, rating, quote, quote_src, tags, merged_id) => {
 				Logger.debug("Update item " + stmt_id + " (" + title + ", " + rating + ", " + quote + ", " + quote_src + ")" )
 				if(title.isDefined) Statement.setTitle(stmt_id, title.get)
-				if(rating.isDefined) Statement.setRating(stmt_id, rating.get, new java.util.Date())
+				if(rating.isDefined) Statement.setRating(stmt_id, Rating(rating.get), new java.util.Date())
 				if(quote.isDefined) Statement.setQuote(stmt_id, quote.get)
 				if(quote_src.isDefined) Statement.setQuoteSrc(stmt_id, quote_src.get)
 				Cache.remove("view."+stmt_id)

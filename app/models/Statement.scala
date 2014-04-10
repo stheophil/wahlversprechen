@@ -224,11 +224,22 @@ object Statement {
 		}
 	}
 
-	def setRating(stmt_id: Long, rating: Int, date: Date) {
+	def setRating(stmt_id: Long, rating: Rating, date: Date) {
 		// TODO rating not in models.Rating -> erase rating, assert author is not rated
-		DB.withConnection { implicit c => 
-			SQL("update statement set rating = {rating}, rated = {rated} where id = {stmt_id}").
-				on('rating -> (if(0<=rating && rating<models.Rating.maxId) { Some(rating) } else { None }),
+		DB.withTransaction { implicit c => 
+			SQL("UPDATE statement SET rating = {rating}, rated = {rated} WHERE id = {stmt_id}").
+				on('rating -> rating,
+					'rated -> date,
+					'stmt_id -> stmt_id 
+				).executeUpdate
+
+			// This table only stores the history for visualizing it
+			// Using it as a normalized data store for the ratings was too complicated
+			// Getting the current rating for all statements already requires a SELECT +
+			// INNER JOIN on statement_rating, 
+			// see http://stackoverflow.com/questions/586781/postgresql-fetch-the-row-which-has-the-max-value-for-a-column
+			SQL("INSERT INTO statement_rating VALUES ({stmt_id}, {rating}, {rated})").
+				on('rating -> rating,
 					'rated -> date,
 					'stmt_id -> stmt_id 
 				).executeUpdate
