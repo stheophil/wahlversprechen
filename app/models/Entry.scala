@@ -60,7 +60,7 @@ object Entry {
 		SQL("delete from entry where stmt_id = {stmt_id}").on('stmt_id -> stmt_id).executeUpdate()
 	}
 
-	def create(stmt_id: Long, content: String, date: Date, user_id: Long) {
+	def create(stmt_id: Long, content: String, date: Date, user_id: Long) : Long = {
 		DB.withTransaction { implicit c =>
 			val id = SQL("select nextval('entry_id_seq')").as(scalar[Long].single)
 
@@ -70,6 +70,8 @@ object Entry {
 					'content -> content,
 					'date -> date,
 					'user_id -> user_id).executeUpdate()
+
+			id
 		}
 	}
 }

@@ -228,7 +228,7 @@ object Statement {
 		// TODO rating not in models.Rating -> erase rating, assert author is not rated
 		DB.withTransaction { implicit c => 
 			SQL("UPDATE statement SET rating = {rating}, rated = {rated} WHERE id = {stmt_id}").
-				on('rating -> rating,
+				on('rating -> rating.id,
 					'rated -> date,
 					'stmt_id -> stmt_id 
 				).executeUpdate
@@ -239,7 +239,7 @@ object Statement {
 			// INNER JOIN on statement_rating, 
 			// see http://stackoverflow.com/questions/586781/postgresql-fetch-the-row-which-has-the-max-value-for-a-column
 			SQL("INSERT INTO statement_rating VALUES ({stmt_id}, {rating}, {rated})").
-				on('rating -> rating,
+				on('rating -> rating.id,
 					'rated -> date,
 					'stmt_id -> stmt_id 
 				).executeUpdate
