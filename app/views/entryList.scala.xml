@@ -21,7 +21,7 @@
             <link>@{ routes.DetailViewController.view(entry.stmt_id).absoluteURL(false)+ "#" + entry.id}</link>
             <description>
                @if(stmt.rating.isDefined) { 
-                  <img src="@Formatter.icon(stmt.rating.get)" alt="@Formatter.name(stmt.rating.get)"/>
+                  <img src="@Formatter.icon(stmt.rating.get)" alt="@Formatter.name(stmt.rating.get)" width="30px" height="30px"/>
                }
                @{Xml( Formatter.transformToHTML(entry.content).body )}
             </description>
