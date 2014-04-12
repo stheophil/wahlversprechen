@@ -4,6 +4,8 @@ import models._
 
 import org.specs2.mutable._
 
+import play.api.Play.current
+import play.api.db._
 import play.api.mvc.Results._
 import play.api.test._
 import play.api.test.Helpers._
@@ -83,6 +85,20 @@ class StatementSpec extends Specification with WithFilledTestDatabase  {
       val stmts = Statement.all()
       Statement.countRatings(Author.load("Koalitionsvertrag").get)
       false
+    }
+    "update rating" in {
+      val stmt = Statement.all().values.head.head
+      DB.withConnection { implicit c => 
+        Statement.setRating(c, stmt.id, Rating.PromiseKept, new java.util.Date()) must beEqualTo(true)
+        Statement.load(stmt.id).get.rating must beEqualTo(Some(Rating.PromiseKept))
+      }
+    }
+    "not update rating for invalid id" in {
+      val stmt = Statement.all().values.head.head
+      DB.withConnection { implicit c => 
+        Statement.setRating(c, -1, Rating.PromiseKept, new java.util.Date()) must beEqualTo(false)
+        Statement.load(stmt.id).get must beEqualTo(stmt)
+      }
     }
     // TODO: Test editing
   }  

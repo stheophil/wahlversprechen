@@ -203,36 +203,28 @@ object Statement {
 		}
 	}
 
-	def setTitle(stmt_id: Long, title: String) {
-		DB.withConnection { implicit c => 
-			SQL("update statement set title = {title} where id = {stmt_id}").
-				on('title -> title, 'stmt_id -> stmt_id).executeUpdate
-		}
+	def setTitle(implicit connection: java.sql.Connection, stmt_id: Long, title: String) : Boolean = {
+		0 < SQL("update statement set title = {title} where id = {stmt_id}").
+			on('title -> title, 'stmt_id -> stmt_id).executeUpdate
 	}
 
-	def setQuote(stmt_id: Long, quote: String) {
-		DB.withConnection { implicit c => 
-			SQL("update statement set quote = {quote} where id = {stmt_id}").
-				on('quote -> quote, 'stmt_id -> stmt_id).executeUpdate
-		}
+	def setQuote(implicit connection: java.sql.Connection, stmt_id: Long, quote: String) : Boolean = {
+		0 < SQL("update statement set quote = {quote} where id = {stmt_id}").
+			on('quote -> quote, 'stmt_id -> stmt_id).executeUpdate
 	}
 
-	def setQuoteSrc(stmt_id: Long, quote_src: String) {
-		DB.withConnection { implicit c => 
-			SQL("update statement set quote_src = {quote_src} where id = {stmt_id}").
-				on('quote_src -> quote_src, 'stmt_id -> stmt_id).executeUpdate
-		}
+	def setQuoteSrc(implicit connection: java.sql.Connection, stmt_id: Long, quote_src: String) : Boolean = {
+		0 < SQL("update statement set quote_src = {quote_src} where id = {stmt_id}").
+			on('quote_src -> quote_src, 'stmt_id -> stmt_id).executeUpdate
 	}
 
-	def setRating(stmt_id: Long, rating: Rating, date: Date) {
-		// TODO rating not in models.Rating -> erase rating, assert author is not rated
-		DB.withTransaction { implicit c => 
-			SQL("UPDATE statement SET rating = {rating}, rated = {rated} WHERE id = {stmt_id}").
-				on('rating -> rating.id,
-					'rated -> date,
-					'stmt_id -> stmt_id 
-				).executeUpdate
-
+	def setRating(implicit connection: java.sql.Connection, stmt_id: Long, rating: Rating, date: Date) : Boolean = {
+		if( 0 < SQL("UPDATE statement SET rating = {rating}, rated = {rated} WHERE id = {stmt_id}").
+			on('rating -> rating.id,
+				'rated -> date,
+				'stmt_id -> stmt_id 
+			).executeUpdate ) {
+				
 			// This table only stores the history for visualizing it
 			// Using it as a normalized data store for the ratings was too complicated
 			// Getting the current rating for all statements already requires a SELECT +
@@ -242,14 +234,25 @@ object Statement {
 				on('rating -> rating.id,
 					'rated -> date,
 					'stmt_id -> stmt_id 
-				).executeUpdate
+			).executeUpdate
+
+			true
+		} else {
+			false
 		}
+
 	}
 
-	def setMergedID(implicit connection: java.sql.Connection, stmt_id: Int, merged_id: Long) {
-		// TODO assert author of merged_id is rated, author of stmt_id is not rated
-		SQL("update statement set merged_id = {merged_id} where id = {stmt_id}").
-				on('merged_id -> merged_id, 'stmt_id -> stmt_id).executeUpdate
+	def setMergedID(implicit connection: java.sql.Connection, stmt_id: Long, merged_id: Long) : Boolean = {
+		0 < SQL("""WITH rated_stmt AS 
+			(SELECT statement.id as stmt_id FROM statement, author WHERE statement.author_id = author.id AND author.rated), 
+				unrated_stmt AS 
+			(SELECT statement.id AS stmt_id FROM statement, author WHERE statement.author_id = author.id AND NOT author.rated) 
+				UPDATE statement SET merged_id = {merged_id} 
+				WHERE statement.id = {stmt_id} 
+					AND {stmt_id} IN (SELECT stmt_id FROM unrated_stmt) 
+					AND {merged_id} IN (SELECT stmt_id FROM rated_stmt)
+			""").on('merged_id -> merged_id, 'stmt_id -> stmt_id).executeUpdate
 	}
 
 	// TODO: This is a poor man's database abstraction layer.

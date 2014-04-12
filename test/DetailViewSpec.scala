@@ -6,12 +6,50 @@ import org.specs2.mutable._
 import play.api.test._
 import play.api.test.Helpers._
 
+import scala.reflect.runtime.universe._
 /**
  * Add your spec here.
  * You can mock out a whole application including requests, plugins etc.
  * For more information, consult the wiki.
  */
 class DetailViewSpec extends Specification with WithFilledTestDatabase  {
+    def verifyInvalidUpdate[T](url: (T) => String, load: (T) => T, invalid_args: Map[T, List[(String, Any)]], session: (String, String)) {
+        for((t, args) <- invalid_args) {
+            for((param, value) <- args) {
+                val update = route(FakeRequest(PUT, url(t)).
+                    withSession(session).
+                    withFormUrlEncodedBody(param -> value.toString)
+                ).get
+
+                status(update) must equalTo(BAD_REQUEST)
+                load(t) must equalTo(t)
+            }
+        }
+    }
+
+    def verifyValidUpdate[T](url: (T) => String, load: (T) => T, valid_args: Map[T, List[(String, List[Any], (T) => Any)]], session: (String, String)) {
+        for((t, args) <- valid_args) {
+            for((param, values, fun) <- args) {
+                for( value <- values ) {
+                    val tBeforeUpdate = load(t)
+
+                    val update = route(FakeRequest(PUT, url(t)).
+                        withSession(session).
+                        withFormUrlEncodedBody(param -> value.toString)
+                    ).get
+
+                    status(update) must equalTo(OK)
+
+                    val tAfterUpdate = load(t)
+                    fun(tAfterUpdate) must equalTo(value)
+                    for((paramOther, valuesOther, funOther) <- args if paramOther != param) {
+                        funOther(tBeforeUpdate) must equalTo(funOther(tAfterUpdate))
+                    }
+                }
+            }
+        }
+    }
+
   "DetailView" should {
     "render the detail page" in {
         val home = route(FakeRequest(GET, "/item/4")).get
@@ -22,23 +60,55 @@ class DetailViewSpec extends Specification with WithFilledTestDatabase  {
         contentAsString(home) must contain ("og:description\" content=\"&quot;That is a quote with a markdown link&quot;\"")
         contentAsString(home) must contain ("That is a quote with a <a href=\"http://www.wikipedia.org\">markdown link</a>")
     }
-    "update an item with a rating" in {
+    "return BAD_REQUEST on invalid update input and not change the statement" in {
         val user = User.findAll().find(_.role == Role.Admin).get
-        
-        for(i <- -1 to Rating.maxId) {
-            val stmtPrev = Statement.load(2).get
-            val update = route(FakeRequest(PUT, "/item/2").
-                withSession("email" -> user.email).
-                withFormUrlEncodedBody("rating" -> i.toString)            
-            ).get
-            if(-1 == i || i == Rating.maxId) {
-                status(update) must equalTo(BAD_REQUEST)
-                Statement.load(2).get must equalTo(stmtPrev)
-            } else {
-                status(update) must equalTo(OK)
-                Statement.load(2).get.rating.get.id must beEqualTo(i)
-            }
-        }
+        val stmtsUnrated = Statement.all().find(!_._1.rated).get._2
+        val stmtsRated = Statement.all().find(_._1.rated).get._2
+
+        verifyInvalidUpdate[Statement]( 
+            s => { "/item/" + s.id }, 
+            s => {
+                Statement.load(s.id).get
+            },
+            Map( 
+                stmtsUnrated.last -> 
+                List(
+                    "rating" -> -1, 
+                    "rating" -> Rating.maxId,
+                    // "title" -> "",
+                    "merged_id" -> stmtsUnrated.head.id
+                ),
+                stmtsRated.last -> 
+                List(
+                    "merged_id" -> stmtsUnrated.head.id,
+                    "merged_id" -> stmtsRated.head.id
+                )
+            ), 
+            "email" -> user.email
+        )
+    }
+    "return OK on valid update input and change the statement" in {
+        val user = User.findAll().find(_.role == Role.Admin).get
+        val stmtsUnrated = Statement.all().find(!_._1.rated).get._2
+        val stmtsRated = Statement.all().find(_._1.rated).get._2
+
+        verifyValidUpdate[Statement]( 
+            s => { "/item/" + s.id }, 
+            s => {
+                Statement.load(s.id).get
+            },
+            Map( 
+                stmtsUnrated.head -> 
+                List(
+                    ("rating", List(0, Rating.maxId - 1), _.rating.get.id),
+                    ("title", List("Some title"), _.title),
+                    ("quote", List("And I can also set the Quote."), _.quote.get),
+                    ("quote_src", List("And I can also set the Quote Source."), _.quote_src.get),
+                    ("merged_id", List(stmtsRated.head.id), _.merged_id.get)
+                )
+            ),
+            "email" -> user.email
+        )
     }
   }
 }

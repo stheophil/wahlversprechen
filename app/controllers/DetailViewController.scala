@@ -6,11 +6,14 @@ import models.Rating._
 import play.api.cache._
 import play.api.data._
 import play.api.data.Forms._
+import play.api.db._
 import play.api.mvc._
 import play.api.Logger
 import play.api.Play.current
 
 import views._
+
+class ValidationException extends RuntimeException
 
 object DetailViewController extends Controller with Secured {
 	// Entry page / entry editing  
@@ -61,35 +64,38 @@ object DetailViewController extends Controller with Secured {
 
 	val updateItemForm = Form(
 		tuple(
-			"title" -> optional(nonEmptyText),
+			"title" -> optional(text),
 			"rating" -> optional(number(min=0, max=Rating.maxId-1)),
 			"quote" -> optional(text),
 			"quote_src" -> optional(text),
-			"tags" -> optional(text),
-			"merged_id" -> optional(number).verifying(id => 
-				if(id.isDefined) {
-					val stmt = Statement.load(id.get)
-					stmt.isDefined && stmt.get.author.rated
-				} else {
-					true
-				}
-			) 
-	))
+			"merged_id" -> optional(number)
+		) 
+	)
 
 	def update(stmt_id: Long) = IsEditor { user => implicit request =>
-		updateItemForm.bindFromRequest.fold(
-			formWithErrors => BadRequest(""),
-			{ case (title, rating, quote, quote_src, tags, merged_id) => {
-				Logger.debug("Update item " + stmt_id + " (" + title + ", " + rating + ", " + quote + ", " + quote_src + ")" )
-				if(title.isDefined) Statement.setTitle(stmt_id, title.get)
-				if(rating.isDefined) Statement.setRating(stmt_id, Rating(rating.get), new java.util.Date())
-				if(quote.isDefined) Statement.setQuote(stmt_id, quote.get)
-				if(quote_src.isDefined) Statement.setQuoteSrc(stmt_id, quote_src.get)
-				Cache.remove("view."+stmt_id)
+		try {
+			updateItemForm.bindFromRequest.fold(
+				formWithErrors => throw new ValidationException(),
+				{ case (title, rating, quote, quote_src, merged_id) => {
+					Logger.debug("Update item " + stmt_id + " (" + title + ", " + rating + ", " + quote + ", " + quote_src + ", " + merged_id + ")" )
 
-				Ok("")
-			}}
-		)
+					DB.withTransaction{ implicit c => 
+						if(!title.map( Statement.setTitle(c, stmt_id, _) ).getOrElse(true) ||
+						!rating.map( r => Statement.setRating(c, stmt_id, Rating(r), new java.util.Date()) ).getOrElse(true) ||
+						!quote.map( Statement.setQuote(c, stmt_id, _) ).getOrElse(true) ||
+						!quote_src.map( Statement.setQuoteSrc(c, stmt_id, _) ).getOrElse(true) ||
+						!merged_id.map( Statement.setMergedID(c, stmt_id, _) ).getOrElse(true))
+						{
+							throw new ValidationException()
+						}
+						Cache.remove("view."+stmt_id)
+						Ok("")						
+					}
+				}}
+			)
+		} catch {
+			case e: ValidationException => BadRequest("")
+		} 
 	}
 
 	def delete(stmt_id: Long) = IsAdmin { user => implicit request =>
