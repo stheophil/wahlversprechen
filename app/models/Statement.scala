@@ -182,7 +182,6 @@ object Statement {
 
 	def edit(implicit connection: java.sql.Connection, id: Long, title: String, cat: Category, quote: Option[String], quote_src: Option[String], rating: Option[Rating], merged_id: Option[Long]) {	
 		val rated = rating map { r => new Date() };
-		// Insert the project
 		SQL("update statement set title={title}, cat_id={cat_id}, quote={quote}, quote_src= {quote_src}, rating={rating}, rated={rated}, merged_id={merged_id} where id = {id}").on(
 				'id -> id,
 				'title -> title,

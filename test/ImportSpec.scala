@@ -74,20 +74,19 @@ import play.api.http.Status
 
       // TODO: Test SetMergedID incl ForeignKey Exception with sheet3/sheet4
       // TODO: When a statement is updated, the authors should match
-      // TODO: Ratings should be untouched, not reset like at the moment
 
       (stmtsNew.filter(_.title != titleChanged) must beEqualTo(stmts.filter(_.title != titleChanged))) and 
       (categoriesNew.filter(_.name != categoryNew) must beEqualTo(categories.filter(_.name != categoryNew))) and 
-      (tagsNew.map(_.name) must beEqualTo(tags.map(_.name) ++ tagNew)) and
+      (tagsNew.map(_.name).sorted must beEqualTo((tags.map(_.name) ++ tagNew).sorted)) and
       (ostmtNew must beSome) and
-      (ostmtNew.get.quote must beEqualTo(quoteNew)) and
-      (ostmtNew.get.quote_src must beEqualTo(quotesrcNew)) and
-      (ostmtNew.get.rating must beEqualTo(models.Rating.Unrated)) and 
-      (ostmtNew.get.rated === None) and
-      (ostmtNew.get.latestEntry must beEqualTo(None)) and
-      (ostmtNew.get.merged_id must beEqualTo(None)) and
+      (ostmtNew.get.quote.get must beEqualTo(quoteNew)) and
+      (ostmtNew.get.quote_src.get must beEqualTo(quotesrcNew)) and
+      (ostmtNew.get.rating must beNone) and 
+      (ostmtNew.get.rated must beNone) and
+      (ostmtNew.get.latestEntry must beNone) and
+      (ostmtNew.get.merged_id must beNone) and
       (ostmtNew.get.category.name must beEqualTo(categoryNew)) and
-      (ostmtNew.get.tags.map(_.name).intersect(tagNew) must beEqualTo(tagNew)) 
+      (ostmtNew.get.tags.map(_.name).sorted.intersect(tagNew.sorted) must beEqualTo(tagNew.sorted)) 
     }
   }  
 }

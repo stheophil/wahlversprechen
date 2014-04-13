@@ -94,14 +94,14 @@ object Import extends Controller {
 							case Some(id) => {
 								Logger.info("Update statement " + importrow.title + " with category " + importrow.category)
 								cUpdated += 1
-								Statement.edit(c, id, importrow.title, category, importrow.quote, importrow.quote_source, if(author.rated) Some(Rating.Unrated) else None, None)
+								Statement.edit(c, id, importrow.title, category, importrow.quote, importrow.quote_source, None, None)
 								Tag.eraseAll(c, id)
 								id
 							}
 							case None => {
 								cInserted += 1
 								Logger.info("Create statement " + importrow.title + " with category " + importrow.category)					
-								Statement.create(c, importrow.title, author, category, importrow.quote, importrow.quote_source, if(author.rated) Some(Rating.Unrated) else None, None).id
+								Statement.create(c, importrow.title, author, category, importrow.quote, importrow.quote_source, None, None).id
 							}
 						}
 					}
