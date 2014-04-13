@@ -7,11 +7,7 @@ import play.api.test._
 import play.api.test.Helpers._
 
 import scala.reflect.runtime.universe._
-/**
- * Add your spec here.
- * You can mock out a whole application including requests, plugins etc.
- * For more information, consult the wiki.
- */
+
 class DetailViewSpec extends Specification with WithFilledTestDatabase  {
     def verifyInvalidUpdate[T](url: (T) => String, load: (T) => T, invalid_args: Map[T, List[(String, Any)]], session: (String, String)) {
         for((t, args) <- invalid_args) {
@@ -21,8 +17,8 @@ class DetailViewSpec extends Specification with WithFilledTestDatabase  {
                     withFormUrlEncodedBody(param -> value.toString)
                 ).get
 
-                status(update) must equalTo(BAD_REQUEST)
-                load(t) must equalTo(t)
+                status(update) aka ("status after setting " + param + " to " + value + " ")  must equalTo(BAD_REQUEST)
+                load(t) aka ("load(t) after setting " + param + " to " + value + " ") must equalTo(t)
             }
         }
     }
@@ -38,12 +34,12 @@ class DetailViewSpec extends Specification with WithFilledTestDatabase  {
                         withFormUrlEncodedBody(param -> value.toString)
                     ).get
 
-                    status(update) must equalTo(OK)
+                    status(update) aka ("status after setting " + param + " to " + value + " ") must equalTo(OK)
 
                     val tAfterUpdate = load(t)
-                    fun(tAfterUpdate) must equalTo(value)
+                    fun(tAfterUpdate) aka ("fun(tAfterUpdate) after setting " + param + " to " + value + " ") must equalTo(value)
                     for((paramOther, valuesOther, funOther) <- args if paramOther != param) {
-                        funOther(tBeforeUpdate) must equalTo(funOther(tAfterUpdate))
+                        funOther(tBeforeUpdate)  aka (paramOther + " after setting " + param + " to " + value + " ") must equalTo(funOther(tAfterUpdate))
                     }
                 }
             }
