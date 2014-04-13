@@ -13,7 +13,7 @@ import play.api.mvc._
 import scala.collection.JavaConversions._
 
 object Import extends Controller {
-	def loadSpreadSheet(author_name: String, spreadsheet: String) : Result = {		
+	def loadSpreadSheet(author_name: String, spreadsheet: String) : SimpleResult = {		
 		class ImportException(message: String) extends java.lang.Exception(message)
 		case class ImportRow(title: String, category: String, quote: Option[String], quote_source: Option[String], tags: Option[String], links: Option[String])
 		

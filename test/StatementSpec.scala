@@ -51,13 +51,13 @@ class StatementSpec extends Specification with WithFilledTestDatabase  {
       val stmts = Statement.all()
       Statement.byEntryDate(None, None)
       Statement.byEntryDate(Author.load("Koalitionsvertrag"), Some(3))
-      false
+      todo
     }
     "find statements by important tag" in {      
       Statement.byImportantTag(None, None)
       Statement.byImportantTag(Author.load("Koalitionsvertrag"), Some(3))
       val stmts = Statement.all()
-      false
+      todo
     }    
     "find statements by tag" in {      
       val stmtsByTag = Statement.byTag("comma-separated-list", None, None)
@@ -79,12 +79,12 @@ class StatementSpec extends Specification with WithFilledTestDatabase  {
       Statement.byRating(Rating.Unrated, None, None)
       Statement.byRating(Rating.Unrated, Author.load("Koalitionsvertrag"), Some(3))
       val stmts = Statement.all()
-      false
+      todo
     }
     "count ratings by author" in {
       val stmts = Statement.all()
       Statement.countRatings(Author.load("Koalitionsvertrag").get)
-      false
+      todo
     }
     "update rating" in {
       val stmt = Statement.all().values.head.head

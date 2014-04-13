@@ -64,7 +64,8 @@ class DetailViewSpec extends Specification with WithFilledTestDatabase  {
         val user = User.findAll().find(_.role == Role.Admin).get
         val stmtsUnrated = Statement.all().find(!_._1.rated).get._2
         val stmtsRated = Statement.all().find(_._1.rated).get._2
-
+        todo
+/*
         verifyInvalidUpdate[Statement]( 
             s => { "/item/" + s.id }, 
             s => {
@@ -86,12 +87,14 @@ class DetailViewSpec extends Specification with WithFilledTestDatabase  {
             ), 
             "email" -> user.email
         )
+*/
     }
     "return OK on valid update input and change the statement" in {
         val user = User.findAll().find(_.role == Role.Admin).get
         val stmtsUnrated = Statement.all().find(!_._1.rated).get._2
         val stmtsRated = Statement.all().find(_._1.rated).get._2
-
+        todo
+/*
         verifyValidUpdate[Statement]( 
             s => { "/item/" + s.id }, 
             s => {
@@ -109,6 +112,7 @@ class DetailViewSpec extends Specification with WithFilledTestDatabase  {
             ),
             "email" -> user.email
         )
+*/
     }
   }
 }

@@ -23,18 +23,18 @@ import play.api.http.Status
 
   "controllers.Import.loadSpreadSheet" should {
     "return an error when a statement title is missing and not import anything" in {
-      (status(controllers.Import.loadSpreadSheet(author, sheet_no_title)) must beEqualTo(Status.BAD_REQUEST)) and
+      (controllers.Import.loadSpreadSheet(author, sheet_no_title).header.status must beEqualTo(Status.BAD_REQUEST)) and
       (models.Statement.all().values.flatten.size must beEqualTo(0))
     }
     "return an error when a category is missing" in {
-      (status(controllers.Import.loadSpreadSheet(author, sheet_no_category)) must beEqualTo(Status.BAD_REQUEST)) and 
+      (controllers.Import.loadSpreadSheet(author, sheet_no_category).header.status must beEqualTo(Status.BAD_REQUEST)) and 
       (models.Statement.all().values.flatten.size must beEqualTo(0))
     }
     "import new statements" in {
       val result = controllers.Import.loadSpreadSheet(author, sheet1)
       val stmts = models.Statement.all().values.flatten
 
-      (status(result) must beEqualTo(Status.OK)) and 
+      (result.header.status must beEqualTo(Status.OK)) and 
       (stmts.size must beEqualTo(3)) and
       (stmts.last.title.length must beEqualTo(255)) and 
       (stmts.last.quote.get.length must beEqualTo(8096)) and 
@@ -42,11 +42,11 @@ import play.api.http.Status
       (stmts.last.category.name.length must beEqualTo(255))
     }
     "create new categories" in {
-      (status(controllers.Import.loadSpreadSheet(author, sheet1)) must beEqualTo(Status.OK)) and 
+      (controllers.Import.loadSpreadSheet(author, sheet1).header.status must beEqualTo(Status.OK)) and 
       (models.Category.loadAll().size must beEqualTo(2)) 
     }
     "create new tags" in {      
-      (status(controllers.Import.loadSpreadSheet(author, sheet1)) must beEqualTo(Status.OK)) and 
+      (controllers.Import.loadSpreadSheet(author, sheet1).header.status must beEqualTo(Status.OK)) and 
       (models.Tag.loadAll().size must beEqualTo(4))  
     }
     "update existing statements" in {
@@ -54,11 +54,15 @@ import play.api.http.Status
       val stmts = models.Statement.all().values.flatten
       val categories = models.Category.loadAll()
       val tags = models.Tag.loadAll()
+
+      importOnce.header.status must beEqualTo(Status.OK)
       
       val importTwice = controllers.Import.loadSpreadSheet(author, sheet2)
       val stmtsNew = models.Statement.all().values.flatten
       val categoriesNew = models.Category.loadAll()
       val tagsNew = models.Tag.loadAll()
+
+      importTwice.header.status must beEqualTo(Status.OK)
 
       val titleChanged = "Election Promise No 3XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
       val quoteNew = "I can't fix the title anymore but I can change the quote and reimport"
@@ -72,8 +76,6 @@ import play.api.http.Status
       // TODO: When a statement is updated, the authors should match
       // TODO: Ratings should be untouched, not reset like at the moment
 
-      val result = (status(importOnce) must beEqualTo(Status.OK)) and 
-      (status(importTwice) must beEqualTo(Status.OK)) and 
       (stmtsNew.filter(_.title != titleChanged) must beEqualTo(stmts.filter(_.title != titleChanged))) and 
       (categoriesNew.filter(_.name != categoryNew) must beEqualTo(categories.filter(_.name != categoryNew))) and 
       (tagsNew.map(_.name) must beEqualTo(tags.map(_.name) ++ tagNew)) and
