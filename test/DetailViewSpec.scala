@@ -1,6 +1,7 @@
 package test
 
 import models._
+import org.specs2.execute._
 import org.specs2.mutable._
 
 import play.api.test._
@@ -13,8 +14,8 @@ import scala.reflect.runtime.universe._
  * For more information, consult the wiki.
  */
 class DetailViewSpec extends Specification with WithFilledTestDatabase  {
-    def verifyInvalidUpdate[T](url: (T) => String, load: (T) => T, invalid_args: Map[T, List[(String, Any)]], session: (String, String)) {
-        for((t, args) <- invalid_args) {
+    def verifyInvalidUpdate[T](url: (T) => String, load: (T) => T, invalid_args: Map[T, List[(String, Any)]], session: (String, String)) =
+        Result.unit( for((t, args) <- invalid_args) {
             for((param, value) <- args) {
                 val update = route(FakeRequest(PUT, url(t)).
                     withSession(session).
@@ -24,11 +25,10 @@ class DetailViewSpec extends Specification with WithFilledTestDatabase  {
                 status(update) must equalTo(BAD_REQUEST)
                 load(t) must equalTo(t)
             }
-        }
-    }
+        })
 
-    def verifyValidUpdate[T](url: (T) => String, load: (T) => T, valid_args: Map[T, List[(String, List[Any], (T) => Any)]], session: (String, String)) {
-        for((t, args) <- valid_args) {
+    def verifyValidUpdate[T](url: (T) => String, load: (T) => T, valid_args: Map[T, List[(String, List[Any], (T) => Any)]], session: (String, String)) =
+        Result.unit( for((t, args) <- valid_args) {
             for((param, values, fun) <- args) {
                 for( value <- values ) {
                     val tBeforeUpdate = load(t)
@@ -47,8 +47,7 @@ class DetailViewSpec extends Specification with WithFilledTestDatabase  {
                     }
                 }
             }
-        }
-    }
+        })
 
   "DetailView" should {
     "render the detail page" in {
@@ -64,8 +63,7 @@ class DetailViewSpec extends Specification with WithFilledTestDatabase  {
         val user = User.findAll().find(_.role == Role.Admin).get
         val stmtsUnrated = Statement.all().find(!_._1.rated).get._2
         val stmtsRated = Statement.all().find(_._1.rated).get._2
-        todo
-/*
+
         verifyInvalidUpdate[Statement]( 
             s => { "/item/" + s.id }, 
             s => {
@@ -87,14 +85,12 @@ class DetailViewSpec extends Specification with WithFilledTestDatabase  {
             ), 
             "email" -> user.email
         )
-*/
     }
     "return OK on valid update input and change the statement" in {
         val user = User.findAll().find(_.role == Role.Admin).get
         val stmtsUnrated = Statement.all().find(!_._1.rated).get._2
         val stmtsRated = Statement.all().find(_._1.rated).get._2
-        todo
-/*
+ 
         verifyValidUpdate[Statement]( 
             s => { "/item/" + s.id }, 
             s => {
@@ -112,7 +108,6 @@ class DetailViewSpec extends Specification with WithFilledTestDatabase  {
             ),
             "email" -> user.email
         )
-*/
     }
   }
 }
