@@ -1,0 +1,3 @@
+[submodule "modules/relatedtexts"]
+	path = modules/relatedtexts
+	url = git://github.com/stheophil/RelatedTexts

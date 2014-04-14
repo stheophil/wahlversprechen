@@ -1,5 +1,11 @@
 import play.Project._
 
+lazy val relatedtexts = project.in(file("modules/relatedtexts"))
+
+lazy val wahlversprechen2013 = project.in(file("."))
+    .aggregate(relatedtexts)
+    .dependsOn(relatedtexts)
+
 name := "wahlversprechen2013"
 
 version := "1.0"
