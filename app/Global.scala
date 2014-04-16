@@ -20,15 +20,14 @@ object InitialData {
       // a setup page
       var ausers = new collection.mutable.ArrayBuffer[User];
       Array(
-          ("sebastian@theophil.net", "Sebastian", "secret", Role.Admin),
-          ("test@test.net", "Tester", "secret", Role.Editor),
+          ("test@test.net", "Tester", "secret", Role.Admin),
           ("test2@test.net", "Tester2", "secret", Role.Editor)
       ).foreach(t =>
         ausers += User.create(t._1, t._2, t._3, t._4)
       );
 
       var aauthors = new collection.mutable.ArrayBuffer[Author];
-      Array( ("Koalitionsvertrag", 1, true, "#ffffff", "#999999"), ("CDU Wahlprogramm", 2, false, "#ffffff", "#000000"), ("FDP Wahlprogramm", 3, false, "#444", "#FFE500") ).foreach( 
+      Array( ("Coalition Treaty", 1, true, "#ffffff", "#999999"), ("Funny Party", 2, false, "#ffffff", "#000000"), ("Serious Party", 3, false, "#444", "#FFE500") ).foreach( 
         { case (name, order, rated, color, background) => { 
           aauthors += Author.create(name, order, rated, color, background)
         }}) 
