@@ -99,9 +99,9 @@ trait WithFilledTestDatabase extends WithTestDatabase {
   override def around[T: AsResult](t: => T) = {
     // TODO: Load data locally and not from Google
     super.around{
-      controllers.Import.loadSpreadSheet("CDU Wahlprogramm", sheet2)
-      controllers.Import.loadSpreadSheet("FDP Wahlprogramm", sheet3)      
-      controllers.Import.loadSpreadSheet("Koalitionsvertrag", sheet4)
+      controllers.Import.loadSpreadSheet("Funny Party", sheet2)
+      controllers.Import.loadSpreadSheet("Serious Party", sheet3)      
+      controllers.Import.loadSpreadSheet("Coalition Treaty", sheet4)
       t
     }
   }

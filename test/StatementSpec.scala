@@ -12,7 +12,7 @@ import play.api.test.Helpers._
 import play.api.Logger
 
 class StatementSpec extends Specification with WithFilledTestDatabase  {
-  val author = "Koalitionsvertrag"
+  val author = "Coalition Treaty"
 
   "models.Statement" should {
     "return all statements by author" in {
@@ -50,18 +50,18 @@ class StatementSpec extends Specification with WithFilledTestDatabase  {
     "find statements by entry date" in {
       val stmts = Statement.all()
       Statement.byEntryDate(None, None)
-      Statement.byEntryDate(Author.load("Koalitionsvertrag"), Some(3))
+      Statement.byEntryDate(Author.load(author), Some(3))
       todo
     }
     "find statements by important tag" in {      
       Statement.byImportantTag(None, None)
-      Statement.byImportantTag(Author.load("Koalitionsvertrag"), Some(3))
+      Statement.byImportantTag(Author.load(author), Some(3))
       val stmts = Statement.all()
       todo
     }    
     "find statements by tag" in {      
       val stmtsByTag = Statement.byTag("comma-separated-list", None, None)
-      val stmtsByTag2 = Statement.byTag("comma-separated-list", Author.load("Koalitionsvertrag"), Some(1))
+      val stmtsByTag2 = Statement.byTag("comma-separated-list", Author.load(author), Some(1))
 
       (stmtsByTag.size === 6) &&
       (stmtsByTag.forall( _.tags.map(_.name).contains("comma-separated-list"))) and 
@@ -70,20 +70,20 @@ class StatementSpec extends Specification with WithFilledTestDatabase  {
     }    
     "find statements by category" in {    
       val stmts1 = Statement.byCategory("Föreign Äffärs", None, None)
-      val stmts2 = Statement.byCategory("Föreign Äffärs", Author.load("Koalitionsvertrag"), Some(1))
+      val stmts2 = Statement.byCategory("Föreign Äffärs", Author.load(author), Some(1))
       (stmts1.size must beEqualTo(6)) &&
       (stmts1.forall( _.category.name.equals("Föreign Äffärs"))) && 
       (stmts2.size must beEqualTo(1))
     }
     "find statements by rating" in {      
       Statement.byRating(Rating.Unrated, None, None)
-      Statement.byRating(Rating.Unrated, Author.load("Koalitionsvertrag"), Some(3))
+      Statement.byRating(Rating.Unrated, Author.load(author), Some(3))
       val stmts = Statement.all()
       todo
     }
     "count ratings by author" in {
       val stmts = Statement.all()
-      Statement.countRatings(Author.load("Koalitionsvertrag").get)
+      Statement.countRatings(Author.load(author).get)
       todo
     }
     "update rating" in {

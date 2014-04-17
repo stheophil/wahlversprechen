@@ -14,7 +14,7 @@ import play.api.Logger
 
   "models.User" should {
     "return all records" in {
-      models.User.findAll().size must beEqualTo(3)
+      models.User.findAll().size must beEqualTo(2)
     }
     "return record by id" in {
       val user = models.User.findAll().head
@@ -29,7 +29,7 @@ import play.api.Logger
       val userLoaded = models.User.load(user.id)
       val userAuthenticate = models.User.authenticate("anothertest@test.de", "password")
 
-      (models.User.findAll().size === 4) and
+      (models.User.findAll().size === 3) and
       (userLoaded === Some(user)) and
       (user.password !== "password") and
       (user.salt.length === 20) and
@@ -42,7 +42,7 @@ import play.api.Logger
 
       val userLoaded = models.User.load(user.id)
 
-      (models.User.findAll().size === 4) and
+      (models.User.findAll().size === 3) and
       (userLoaded must beSome) and
       (userLoaded.get.name === userEdited.name) and
       (userLoaded.get.email === userEdited.email) and

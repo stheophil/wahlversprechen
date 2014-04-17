@@ -13,7 +13,7 @@ import play.api.http.Status
  * An integration test will fire up a whole play application in a real (or headless) browser
  */
  class ImportSpec extends Specification with WithTestDatabase  {
-  val author = "Koalitionsvertrag"
+  val author = "Coalition Treaty"
   val sheet_no_title = "1geJD1RzvJbDzdXV1GeUrgzWy5046LD1MYJ_A2Z95UAA"
   val sheet_no_category = "180b9kR1U7kH8pi0C1NJkvGaJAdTuBsDaOD3_xz6v6f8"
   val sheet1 = "1GPzhaarBjNer9lCnQ-8_lwnamPrUp0MW1rkis8UBVw8"
