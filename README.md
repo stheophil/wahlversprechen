@@ -35,17 +35,14 @@ More details in English are available [in a blog post describing the project](ht
 
 That's it. 
 
-# TODOs
+Contributing
 
-The application is up and running, but several areas need work. 
+Please do! All contributions are welcome, but several areas have to be improved
 
-- The application needs to be internationalized to be generally useful.
-- It needs a simple setup process to get new sites up and running. 
+- The application needs to be internationalized to be usable in other countries.
+- There should be a simple setup page that appearing when the site is started for the first time without any data.
 - I would like to improve the JSON API so people can visualize the data. 
-- There is no real documentation and no real tests
-- The database interface is still based on play.anorm although it has already outgrown anorm's capabilities and is turning into a mess
-
-Other than that it is a great project :-)
+- The site needs fancy visualizations for the data that is accumulated, e.g., a timeline of the fulfilled campaign promises.
 
 # License
 
