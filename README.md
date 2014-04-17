@@ -35,7 +35,7 @@ More details in English are available [in a blog post describing the project](ht
 
 That's it. 
 
-Contributing
+# Contributing
 
 Please do! All contributions are welcome, but several areas have to be improved
 
