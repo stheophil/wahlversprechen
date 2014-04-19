@@ -8,8 +8,6 @@ import play.api.data._
 import play.api.data.Forms._
 import play.api.mvc._
 
-import net.theophil.relatedtexts._
-
 import scala.collection.JavaConversions._
 
 import views._

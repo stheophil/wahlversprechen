@@ -1,11 +1,29 @@
+import java.util.concurrent.TimeUnit
 import play.api._
 import play.api.templates._
+import play.api.libs.concurrent._
+import scala.concurrent.duration._
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import models._
 import anorm._
 
 object Global extends GlobalSettings {  
   override def onStart(app: Application) {
+    play.api.Play.mode(app) match {
+      case play.api.Mode.Test => // do not schedule anything for Test
+      case _ => {
+        Logger.info("Scheduling the feed parser daemon")
+        Akka.system(app).scheduler.schedule(
+          Duration.Zero,
+          Duration(2, "hours"),
+          new Runnable {
+            def run() {
+              controllers.FeedDaemon.update()
+            }
+          })
+      }
+    }
     InitialData.insert(app)
   }  
 }
