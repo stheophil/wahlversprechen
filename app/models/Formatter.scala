@@ -67,7 +67,7 @@ object Formatter {
 	}
 
 	def formatRFC822(date: Date) : String = {
-		new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z").format(date);
+		new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", java.util.Locale.US).format(date);
 	}
 
 	def socialMetaTags(url: String, description: String, img: String) : Html = {
@@ -96,27 +96,27 @@ object Formatter {
 
 	private object FilterPlainTextFromMarkdown extends Decorator {
    		override def allowVerbatimXml():Boolean = false
-		override def decorateBreak():String = ""
+		override def decorateBreak():String = "\n"
    	   	override def decorateCode(code:String):String = code
     	override def decorateEmphasis(text:String):String = text
     	override def decorateStrong(text:String):String = text
     	override def decorateLink(text:String, url:String, title:Option[String]):String = text
     	override def decorateImg(alt:String, src:String, title:Option[String]):String = ""
-    	override def decorateRuler():String = ""
+    	override def decorateRuler():String = "\n\n"
     	override def decorateHeaderOpen(headerNo:Int):String = ""
-    	override def decorateHeaderClose(headerNo:Int):String = ""
+    	override def decorateHeaderClose(headerNo:Int):String = "\n"
     	override def decorateCodeBlockOpen():String = ""
-    	override def decorateCodeBlockClose():String = ""
+    	override def decorateCodeBlockClose():String = "\n"
         override def decorateParagraphOpen():String = ""
-		override def decorateParagraphClose():String = ""
+		override def decorateParagraphClose():String = "\n\n"
 		override def decorateBlockQuoteOpen():String = ""
-		override def decorateBlockQuoteClose():String = ""
+		override def decorateBlockQuoteClose():String = "\n"
 		override def decorateItemOpen():String = ""
-		override def decorateItemClose():String = ""
+		override def decorateItemClose():String = "\n"
 		override def decorateUListOpen():String = ""
-		override def decorateUListClose():String = ""
+		override def decorateUListClose():String = "\n"
 		override def decorateOListOpen():String = ""
-		override def decorateOListClose():String = ""
+		override def decorateOListClose():String = "\n"
 	}
 
 	private object markdownToHTMLWithoutHeadlines extends Transformer {

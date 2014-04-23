@@ -1,5 +1,5 @@
 @(title: String, url: String, entries: List[Entry])(implicit request: play.api.mvc.RequestHeader)<?xml version="1.0"?>
-<rss version="2.0">
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
    <channel>
       <title>@title</title>
       <link>@url</link>
@@ -20,11 +20,14 @@
             </title>
             <link>@{ routes.DetailViewController.view(entry.stmt_id).absoluteURL(false)+ "#" + entry.id}</link>
             <description>
+               @{Xml( Formatter.transformToText(entry.content) ) }
+            </description>            
+            <content:encoded><![CDATA[
                @if(stmt.rating.isDefined) { 
                   <img src="@Formatter.icon(stmt.rating.get)" alt="@Formatter.name(stmt.rating.get)" width="30px" height="30px"/>
                }
                @{Xml( Formatter.transformToHTML(entry.content).body )}
-            </description>
+            ]]></content:encoded>
             <pubDate>@{ Formatter.formatRFC822(entry.date) }</pubDate>
             <guid>@{ routes.DetailViewController.view(entry.stmt_id).absoluteURL(false)+ "#" + entry.id}</guid>
          </item>
