@@ -12,13 +12,14 @@ import play.api.Logger
 import play.api.Play.current
 
 import views._
+import CacheFormat._
 
 class ValidationException extends RuntimeException
 
-object DetailViewController extends Controller with Secured {
-	// Entry page / entry editing  
+object DetailViewController extends Controller with Secured with Cached {
+	override val cachePrefix = "view"
 
-	def view(id: Long) = CachedAction("view."+id) { implicit request =>		
+	def view(id: Long) = CachedEternal(id, CacheFormat.HTML) { implicit request =>		
 		Statement.load(id) match {
 			case Some(stmt) => 
 				Ok(views.html.detail(
@@ -38,14 +39,14 @@ object DetailViewController extends Controller with Secured {
 	}
 	
 	import play.api.libs.json._
-	def viewAsJSON(id: Long) = CachedAction("view.json."+id, 60 * 60) { implicit request =>	
+	def viewAsJSON(id: Long) = CachedEternal(id, CacheFormat.JSON) { implicit request =>	
 		Statement.load(id) match {
 			case None => NotFound
 			case Some(stmt) => Ok(Json.toJson(Statement.withEntries(stmt)))
 		}
 	}
 
-	def viewAsFeed(id: Long) = CachedAction("viewAsFeed."+id, 60 * 60) { implicit request =>
+	def viewAsFeed(id: Long) = CachedEternal(id, CacheFormat.RSS) { implicit request =>
 		Statement.load(id) match {
 			case Some(stmt) => 
 					Ok(views.xml.entryList(
@@ -64,7 +65,7 @@ object DetailViewController extends Controller with Secured {
 			formWithErrors => BadRequest(""),
 			{ case (content) => {
 				Entry.create(stmt_id, content, new java.util.Date(), user.id)
-				Cache.remove("view."+stmt_id)
+				invalidateCaches(stmt_id)
 				Ok("")
 			}}
 		)
@@ -96,7 +97,7 @@ object DetailViewController extends Controller with Secured {
 						{
 							throw new ValidationException()
 						}
-						Cache.remove("view."+stmt_id)
+						invalidateCaches(stmt_id)
 						Ok("")						
 					}
 				}}
@@ -108,7 +109,7 @@ object DetailViewController extends Controller with Secured {
 
 	def delete(stmt_id: Long) = IsAdmin { user => implicit request =>
 		Statement.delete(stmt_id)
-		Cache.remove("view."+stmt_id)
+		invalidateCaches(stmt_id)
 		Ok("")
 	}
 
@@ -127,7 +128,7 @@ object DetailViewController extends Controller with Secured {
 					case Some(entry) => {						
 						Logger.debug("Update entry with text '"+content+"'")
 						Entry.edit(entry.id, content)
-						Cache.remove("view."+entry.stmt_id)
+						invalidateCaches(entry.stmt_id)
 						Ok("")
 					}
 					case None => 
@@ -141,7 +142,7 @@ object DetailViewController extends Controller with Secured {
 		Entry.load(entry_id) match {
 			case Some(entry) => {
 				Entry.delete(entry_id)
-				Cache.remove("view."+entry.stmt_id)
+				invalidateCaches(entry.stmt_id)
 				Ok("")
 			}
 			case None => 
@@ -160,6 +161,7 @@ object DetailViewController extends Controller with Secured {
 						case None => Tag.create(name)
 					})
 					Tag.add(id, tag)
+					invalidateCaches(id)
 					Ok("")
 				}
 			}
@@ -168,6 +170,7 @@ object DetailViewController extends Controller with Secured {
 
 	def deleteTag(stmt_id: Long, tagid: Long) = IsEditor { user => implicit request => 
 		Tag.delete(stmt_id, tagid)
+		invalidateCaches(stmt_id)
 		Ok("")
 	}
 }

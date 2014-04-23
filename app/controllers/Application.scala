@@ -1,5 +1,7 @@
 package controllers
 
+import scala.concurrent.duration._
+
 import play.api._
 import play.api.cache._
 import play.api.data._
@@ -12,7 +14,9 @@ import models._
 import models.Rating._
 import views._
 
-object Application extends Controller with Secured {
+object Application extends Controller with Secured with Cached {
+	override val cachePrefix = "app"
+
 	// Authentification
 	val loginForm = Form(
 		tuple(
@@ -85,7 +89,7 @@ object Application extends Controller with Secured {
 	}
 
 	import play.api.libs.json._
-	def itemsByAuthorAsJSON(authorName: String) = CachedAction("items.json." + authorName, 60 * 60 * 24) { implicit request => 
+	def itemsByAuthorAsJSON(authorName: String) = CachedAction("items.json." + authorName) { implicit request => 
 		Author.load(authorName) match {
 			case None => NotFound
 			case Some(author) => {
@@ -102,7 +106,7 @@ object Application extends Controller with Secured {
 		Ok( Json.toJson( Category.loadAll() ) )
 	}
 
-	def updatesAsFeed = CachedAction("updatesAsFeed", 60 * 60 ) { implicit request =>
+	def updatesAsFeed = CachedAction("updatesAsFeed") { implicit request =>
 		Ok(views.xml.entryList("wahlversprechen2013.de: Alle Aktualisierungen", routes.Application.recent.absoluteURL(false), Entry.loadRecent(10)))			
 	}
 	
@@ -111,11 +115,14 @@ object Application extends Controller with Secured {
 	}
 }
 
+trait ControllerBase {
+	def username(request: RequestHeader) = request.session.get("email")
+}
+
 /**
  * Provide security features
  */
-trait Secured {
-	def username(request: RequestHeader) = request.session.get("email")
+trait Secured extends ControllerBase {
 	def user(request: RequestHeader) = username(request) flatMap { User.load(_) }
 
 	def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Application.login)
@@ -155,8 +162,28 @@ trait Secured {
 			Results.Redirect("https://"+request.host + request.uri);
 		}
 	}
+}
 
-	def CachedAction(key: String, duration: Int = 60 * 10)(f: Request[AnyContent] => Result): Action[AnyContent] = {
+object CacheFormat extends Enumeration {
+	type CacheFormat = Value
+	val HTML, JSON, RSS = Value
+};
+import CacheFormat._
+
+trait Cached extends ControllerBase {
+	def cachePrefix: String
+
+	private def cacheId(id: Any, format: CacheFormat) = cachePrefix + "." + format + "." + id
+
+	def invalidateCaches(id: Any) {
+		for( f <- 0 until CacheFormat.maxId ) Cache.remove( cacheId(id, CacheFormat(f)) )
+	}
+
+	def CachedEternal(id: Any, format: CacheFormat)(f: Request[AnyContent] => Result): Action[AnyContent] = {	
+		CachedAction(cacheId(id, format), 0.seconds)(f)
+	}
+
+	def CachedAction(key: String, duration: Duration = 30.minutes)(f: Request[AnyContent] => Result): Action[AnyContent] = {
 	  Action { request =>
 	    username(request) match {
 	    	case Some(user) => {
@@ -164,13 +191,13 @@ trait Secured {
 	    		f(request)
 	    	}
 	    	case None => {
-	    		Logger.debug("Cached request. Key = " + key);
-	    		Cache.getOrElse( key, duration ) { 
+	    		Logger.debug("Cached request. Key = " + key + " duration = " + duration.toSeconds);
+	    		Cache.getOrElse( key, duration.toSeconds.toInt ) { 
 	    			Logger.debug("Added request to cache. Key = " + key);
 	    			f(request) 
 	    		}
 	    	}
 	    }
 	  }
-}
+	}
 }
