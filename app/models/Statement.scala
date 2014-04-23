@@ -368,6 +368,7 @@ object Statement {
 	import play.api.libs.json._
 	implicit val StatementToJson = new Writes[Statement] {
 	  def writes(s: Statement): JsValue = {
+	  	// TODO: Does not write entries
 	    Json.obj(
 	    	"id" -> s.id,
 	    	"title" -> s.title,

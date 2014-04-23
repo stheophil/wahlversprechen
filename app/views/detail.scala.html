@@ -93,8 +93,8 @@
     	}
     </li>
     <li><div class="nav-header">Sharing</div>
-    	@defining( Formatter.encode( routes.DetailViewController.view(stmt.id).absoluteURL(false) ) ) { url => 
-    	@defining( Formatter.encode("Wahlversprechen: \"" + stmt.title+"\"") ) { title => 
+    	@defining( Formatter.FormUrlEncode( routes.DetailViewController.view(stmt.id).absoluteURL(false) ) ) { url => 
+    	@defining( Formatter.FormUrlEncode("Wahlversprechen: \"" + stmt.title+"\"") ) { title => 
        		<a class="facebook" target="_blank" onclick="return !window.open(this.href, 'Facebook', 'width=640,height=300')" href="http://www.facebook.com/sharer/sharer.php?u=@(url)"><img src="@routes.Assets.at("img/social/Facebook32px.gif")"></a>&nbsp;<a class="twitter" target="_blank" onclick="return !window.open(this.href, 'Twitter', 'width=640,height=300')" href="http://twitter.com/intent/tweet?text=@(title)+@(url)"><img src="@routes.Assets.at("img/social/Twitter32px.gif")"></a>&nbsp<a class="google" target="_blank" onclick="return !window.open(this.href, 'Google+', 'width=640,height=300')" href="https://plus.google.com/share?url=@(url)"><img src="@routes.Assets.at("img/social/Google32px.gif")"></a>&nbsp;<a class="tumblr" target="_blank" onclick="return !window.open(this.href, 'Tumblr', 'width=640,height=300')" href="http://www.tumblr.com/share/link?url=@(url)&name=@(title)"><img src="@routes.Assets.at("img/social/Tumblr32px.gif")"></a>
        } }
       <input type="text" class="short-url form-control input-sm" readonly="readonly" value="@{routes.DetailViewController.view(stmt.id).absoluteURL(false)}">

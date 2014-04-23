@@ -15,10 +15,11 @@ GET		/category/:category			controllers.Application.category(category: String)
 GET		/rating/:rating				controllers.Application.rating(rating: Int)
 
 # JSON
-GET 	/json/author/:author 		controllers.Application.authorAsJSON(author: String)
-GET 	/json/tags 					controllers.Application.tagsAsJSON()
-GET 	/json/categories 			controllers.Application.categoriesAsJSON()
-GET     /json/matches               controllers.FeedDaemon.matches()
+GET 	/json/items/:author 		controllers.Application.itemsByAuthorAsJSON(author: String)
+GET 	/json/tags 					controllers.Application.tagsAsJSON
+GET 	/json/categories 			controllers.Application.categoriesAsJSON
+
+GET     /json/matches               controllers.FeedDaemon.matches
 
 # RSS
 GET 	/updates/feed 				controllers.Application.updatesAsFeed
@@ -28,6 +29,7 @@ GET		/item/:id					controllers.DetailViewController.view(id: Long)
 GET		/item/:id/feed				controllers.DetailViewController.viewAsFeed(id: Long)
 
 # Item API
+GET 	/json/item/:id 				controllers.DetailViewController.viewAsJSON(id: Long)
 PUT 	/item/:id					controllers.DetailViewController.update(id: Long)
 POST 	/item/:id					controllers.DetailViewController.addEntry(id: Long)
 DELETE 	/item/:id 					controllers.DetailViewController.delete(id: Long)

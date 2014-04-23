@@ -36,6 +36,14 @@ object DetailViewController extends Controller with Secured {
 				NotFound
 		}
 	}
+	
+	import play.api.libs.json._
+	def viewAsJSON(id: Long) = CachedAction("view.json."+id, 60 * 60) { implicit request =>	
+		Statement.load(id) match {
+			case None => NotFound
+			case Some(stmt) => Ok(Json.toJson(Statement.withEntries(stmt)))
+		}
+	}
 
 	def viewAsFeed(id: Long) = CachedAction("viewAsFeed."+id, 60 * 60) { implicit request =>
 		Statement.load(id) match {

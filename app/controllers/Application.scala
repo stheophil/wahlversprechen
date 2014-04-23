@@ -85,7 +85,7 @@ object Application extends Controller with Secured {
 	}
 
 	import play.api.libs.json._
-	def authorAsJSON(authorName: String) = CachedAction("author.json." + authorName, 60 * 60 * 24) { implicit request => 
+	def itemsByAuthorAsJSON(authorName: String) = CachedAction("items.json." + authorName, 60 * 60 * 24) { implicit request => 
 		Author.load(authorName) match {
 			case None => NotFound
 			case Some(author) => {
