@@ -68,8 +68,8 @@ object FeedDaemon {
         Logger.info("FeedDaemon: Analyzing all "+ feeds.size +" feeds took " + (timeEnd - timeStart) + " ms")
 
         timeStart = new Date().getTime()
-        val jsonMatches = "{ lastGenerated: " + models.Formatter.formatRFC822(new Date()) +
-          ", matches : " + Json.toJson(results).toString() +
+        val jsonMatches = "{ \"lastGenerated\": \"" + models.Formatter.formatRFC822(new Date()) +
+          "\", \"matches\" : " + Json.toJson(results).toString() +
           " }"
 
         Cache.set(keyCachedMatcher, cache)
