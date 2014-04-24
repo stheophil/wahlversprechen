@@ -60,9 +60,9 @@ PUT		/admin/tag/:id				controllers.Admin.updateTag(id: Long)
 DELETE	/admin/tag/:id				controllers.Admin.deleteTag(id: Long)
 
 # Authentication
-GET     /login                      controllers.Application.login
-POST    /login                      controllers.Application.authenticate
-GET     /logout                     controllers.Application.logout
+GET     /login                      controllers.Admin.login
+POST    /login                      controllers.Admin.authenticate
+GET     /logout                     controllers.Admin.logout
 
 # Load Test
 GET /loaderio-a8c18c9612671703651ea5e79d55623e/	controllers.Application.loader_io

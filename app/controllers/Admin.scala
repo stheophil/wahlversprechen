@@ -3,6 +3,7 @@ package controllers
 import models._
 import models.Rating._
 
+import play.api._
 import play.api.Logger
 import play.api.data._
 import play.api.data.Forms._
@@ -12,7 +13,34 @@ import scala.collection.JavaConversions._
 
 import views._
 
+/** Controller that handles the user authentification and 
+	the administrator preferences view where an authenticated
+	user can change usernames, passwords, tags, authors etc
+*/
 object Admin extends Controller with Secured {
+	// Authentification
+	val loginForm = Form(
+		tuple(
+			"email" -> text,
+			"password" -> text) verifying ("Ungültige E-Mail oder falsches Passwort", result => result match {
+				case (email, password) => User.authenticate(email, password).isDefined
+			}))
+
+	def login = HTTPS { implicit request =>
+		Ok(html.login(loginForm))
+	}
+
+	def authenticate = Action { implicit request =>
+		loginForm.bindFromRequest.fold(
+			formWithErrors => BadRequest(html.login(formWithErrors)),
+			user => Redirect(routes.Application.index).withSession("email" -> user._1))
+	}
+
+	def logout = Action {
+		Redirect(routes.Admin.login).withNewSession.flashing(
+			"success" -> "Du wurdest erfolgreich ausgeloggt")
+	}
+
 	def prefs = IsAdmin { user => implicit request => 
 		Ok(html.adminPrefs( Author.loadAll(), User.findAll(), Tag.loadAll(), user ))
 	}
@@ -159,5 +187,48 @@ object Admin extends Controller with Secured {
 			formWithErrors => BadRequest(""),
 			{ case (author_name, spreadsheet) => Import.loadSpreadSheet(author_name, spreadsheet) }
 		) // bindFromRequest
+	}
+}
+
+/**
+ * Provide security features
+ */
+trait Secured extends ControllerBase {
+	def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Admin.login)
+
+	def IsAuthenticated(f: => String => Request[AnyContent] => Result) = Security.Authenticated(username, onUnauthorized) { user =>
+		Action(request => f(user)(request))
+	}
+
+	def IsAdmin(f: => User => Request[AnyContent] => Result) = IsAuthenticated { username =>
+		request =>
+			val u = User.load(username)
+			if (u.isDefined && u.get.role == Role.Admin) {
+				f(u.get)(request)
+			} else {
+				Results.Forbidden
+			}
+	}
+
+	def IsEditor(f: => User => Request[AnyContent] => Result) = IsAuthenticated { username =>
+		request =>
+			val u = User.load(username)
+			if (u.isDefined && (u.get.role == Role.Admin || u.get.role == Role.Editor)) {
+				f(u.get)(request)
+			} else {
+				Results.Forbidden
+			}
+	}
+
+	/** Called before every request to ensure that HTTPS is used. */
+	def HTTPS(f: => Request[AnyContent] => Result) = Action { request =>
+		import play.api.Play.current
+		if (Play.isDev || 
+			request.headers.get("x-forwarded-proto").isDefined && 
+			request.headers.get("x-forwarded-proto").get.contains("https")) {
+			f(request)
+		} else {
+			Results.Redirect("https://"+request.host + request.uri);
+		}
 	}
 }

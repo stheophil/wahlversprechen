@@ -14,31 +14,13 @@ import models._
 import models.Rating._
 import views._
 
-object Application extends Controller with Secured with Cached {
+/** Controller that handles all requests accessible from the main 
+	page like the main page itself, the search, the list of most
+	recently changed items, the list of all items etc. They all return
+	possibly filtered lists of [[Statement]] instances.
+*/
+object Application extends Controller with Cached {
 	override val cachePrefix = "app"
-
-	// Authentification
-	val loginForm = Form(
-		tuple(
-			"email" -> text,
-			"password" -> text) verifying ("Ungültige E-Mail oder falsches Passwort", result => result match {
-				case (email, password) => User.authenticate(email, password).isDefined
-			}))
-
-	def login = HTTPS { implicit request =>
-		Ok(html.login(loginForm))
-	}
-
-	def authenticate = Action { implicit request =>
-		loginForm.bindFromRequest.fold(
-			formWithErrors => BadRequest(html.login(formWithErrors)),
-			user => Redirect(routes.Application.index).withSession("email" -> user._1))
-	}
-
-	def logout = Action {
-		Redirect(routes.Application.login).withNewSession.flashing(
-			"success" -> "Du wurdest erfolgreich ausgeloggt")
-	}
 
 	// Index page
 	def index = CachedAction("index") { implicit request =>
@@ -117,51 +99,7 @@ object Application extends Controller with Secured with Cached {
 
 trait ControllerBase {
 	def username(request: RequestHeader) = request.session.get("email")
-}
-
-/**
- * Provide security features
- */
-trait Secured extends ControllerBase {
 	def user(request: RequestHeader) = username(request) flatMap { User.load(_) }
-
-	def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Application.login)
-
-	def IsAuthenticated(f: => String => Request[AnyContent] => Result) = Security.Authenticated(username, onUnauthorized) { user =>
-		Action(request => f(user)(request))
-	}
-
-	def IsAdmin(f: => User => Request[AnyContent] => Result) = IsAuthenticated { username =>
-		request =>
-			val u = User.load(username)
-			if (u.isDefined && u.get.role == Role.Admin) {
-				f(u.get)(request)
-			} else {
-				Results.Forbidden
-			}
-	}
-
-	def IsEditor(f: => User => Request[AnyContent] => Result) = IsAuthenticated { username =>
-		request =>
-			val u = User.load(username)
-			if (u.isDefined && (u.get.role == Role.Admin || u.get.role == Role.Editor)) {
-				f(u.get)(request)
-			} else {
-				Results.Forbidden
-			}
-	}
-
-	/** Called before every request to ensure that HTTPS is used. */
-	def HTTPS(f: => Request[AnyContent] => Result) = Action { request =>
-		import play.api.Play.current
-		if (Play.isDev
-			|| request.headers.get("x-forwarded-proto").isDefined
-			&& request.headers.get("x-forwarded-proto").get.contains("https")) {
-			f(request)
-		} else {
-			Results.Redirect("https://"+request.host + request.uri);
-		}
-	}
 }
 
 object CacheFormat extends Enumeration {
