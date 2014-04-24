@@ -72,12 +72,11 @@ object Formatter {
 	}
 
 	def socialMetaTags(url: String, description: String, img: String) : Html = {
+		// Twitter falls back to open graph tags: https://dev.twitter.com/docs/cards/getting-started#open-graph
 		Html(
-		    "<meta property=\"og:url\" content=\"" + url + "\">\n" +
-		    "<meta property=\"og:description\" content=\"" + description + "\">\n" +
-		    "<meta property=\"twitter:description\" content=\"" + description + "\">\n" +
-		    "<meta property=\"og:image\" content=\"" + img + "\">\n" + 
-		    "<meta property=\"twitter:image\" content=\"" + img + "\">\n"
+			s"""<meta property="og:image" content="$img">
+		    <meta property="og:url" content="$url">
+		    <meta property="og:description" content="$description">"""
 		)
 	}
 
