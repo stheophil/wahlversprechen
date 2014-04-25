@@ -51,8 +51,7 @@ class DetailViewSpec extends Specification with WithFilledTestDatabase  {
         
         status(home) must equalTo(OK)
         contentType(home) must beSome.which(_ == "text/html")
-        contentAsString(home) must contain ("twitter:description\" content=\"&quot;That is a quote with a markdown link&quot;\"")
-        contentAsString(home) must contain ("og:description\" content=\"&quot;That is a quote with a markdown link&quot;\"")
+        contentAsString(home) must contain ("og:description\" content=\"&quot;That is a quote with a markdown link")
         contentAsString(home) must contain ("That is a quote with a <a href=\"http://www.wikipedia.org\">markdown link</a>")
     }
     "return BAD_REQUEST on invalid update input and not change the statement" in {

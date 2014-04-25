@@ -15,18 +15,21 @@ class JSONSpec extends Specification with WithFilledTestDatabase  {
         
         status(home) must equalTo(OK)
         contentType(home) must beSome.which(_ == "application/json")
+        todo
     }
     "return all tags" in {
         val home = route(FakeRequest(GET, "/json/tags")).get
         
         status(home) must equalTo(OK)
         contentType(home) must beSome.which(_ == "application/json")
+        todo
     }
     "return all categories" in {
         val home = route(FakeRequest(GET, "/json/categories")).get
         
         status(home) must equalTo(OK)
         contentType(home) must beSome.which(_ == "application/json")
+        todo
     }
     "return a single statement" in {
     	val stmt = Statement.all().values.head.head
@@ -34,6 +37,7 @@ class JSONSpec extends Specification with WithFilledTestDatabase  {
         
         status(home) must equalTo(OK)
         contentType(home) must beSome.which(_ == "application/json")
+        todo
     }
   }
 }
