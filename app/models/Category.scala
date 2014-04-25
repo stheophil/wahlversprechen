@@ -5,6 +5,11 @@ import anorm.SqlParser._
 import play.api.db._
 import play.api.Play.current
 
+/**
+  * Category of a [[Statement]], e.g., 'Foreign Affairs', 'Department of Labor' etc
+  * @param name its name
+  * @param order lists of categories are sorted by 'order' in ascending order
+  */
 case class Category(id: Long, name: String, order: Long)
 
 object Category {
@@ -21,13 +26,8 @@ object Category {
 	}
 
 	def create(implicit connection: java.sql.Connection, name: String, order: Long): Category = {
-		val id: Long = SQL("select nextval('cat_id_seq')").as(scalar[Long].single)
-
-		SQL("insert into category values ({id}, {name}, {order})").on(
-			'id -> id,
-			'name -> name,
-			'order -> order).executeUpdate()
-
+		val id = SQL("INSERT INTO category VALUES (DEFAULT, {name}, {order}) RETURNING id").on(
+			'name -> name, 'order -> order).as(scalar[Long].single)
 		Category(id, name, order)
 	}
 
@@ -36,7 +36,7 @@ object Category {
 	}
 
 	def loadAll(implicit connection: java.sql.Connection): List[Category] = {
-		SQL("select * from category order by ordering").as(category*)
+		SQL("SELECT * FROM category ORDER BY ordering").as(category*)
 	}
 
 	import play.api.libs.json._
