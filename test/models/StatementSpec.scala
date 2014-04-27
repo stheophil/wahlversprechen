@@ -1,0 +1,234 @@
+package models
+
+import org.specs2.mutable._
+
+import play.api.Play.current
+import play.api.db._
+import helpers.WithTestDatabase
+import java.util.Date
+import org.specs2.specification.Scope
+
+class StatementSpec extends Specification with WithTestDatabase {
+  trait TestStatements extends Scope {
+    val userA = User.create("user.a@test.de", "user a", "secret", Role.Editor)
+
+    val authorA = Author.create("Author A", 1, false, "#ffffff", "#000000")
+    val authorB = Author.create("Author B", 2, false, "#ffffff", "#000000")
+
+    val catA = Category.create("category A", 1)
+    val catB = Category.create("category B", 2)
+
+    var statementA = Statement.create("Statement A", authorA, catA, None, None, None, None)
+    val statementB = Statement.create("Statement B", authorB, catB, None, None, None, None)
+    val statementC = Statement.create("Statement C", authorB, catB, None, None, None, Some(statementB.id))
+
+    val statementsByAuthor = Map(
+      authorA -> List(statementA),
+      authorB -> List(statementB, statementC)
+    )
+
+    val mergedStatements = Map(
+      statementA -> Seq(),
+      statementB -> Seq(statementB, statementC),
+      statementC -> Seq()
+    )
+
+    val statementsByCategory = Map(
+      catA -> Seq(statementA),
+      catB -> Seq(statementB, statementC)
+    )
+  }
+
+  "all" should {
+    "return all stored statements by author" in new TestStatements {
+      Statement.all must beEqualTo(statementsByAuthor)
+    }
+
+    "return empty map when no statements are in database" in {
+      Statement.all must beEmpty
+    }
+  }
+
+  "load" should {
+    "return statements by id" in new TestStatements {
+      Statement.load(statementA.id) must beSome(statementA)
+    }
+
+    "return None when given invalid id" in {
+      Statement.load(4123) must beNone
+    }
+  }
+
+  "loadAll" should {
+    "return all merged statements" in new TestStatements {
+      Statement.loadAll(statementB.id) must containAllOf(mergedStatements.get(statementB).get)
+    }
+
+    "return empty list when given invalid id" in {
+      Statement.loadAll(4123) must beEmpty
+    }
+  }
+
+  "withEntries" should {
+    // TODO should be optimized
+    "return a statement with loaded entries" in new TestStatements {
+      val author = User.create("user@test.de", "testuser", "secret", Role.Editor)
+      val entryAId = Entry.create(statementA.id, "content A", new Date(), author.id)
+      val entryBId = Entry.create(statementA.id, "content B", new Date(), author.id)
+
+      val loadedStatement = Statement.withEntries(statementA)
+
+      val expectedEntries = Seq(Entry.load(entryAId).get, Entry.load(entryBId).get)
+
+      loadedStatement.entries must containAllOf(expectedEntries)
+    }
+  }
+
+  "find" should {
+    "return statements matching case-insensitively given text" in new TestStatements {
+      val statement = Statement.create("test statement", authorA, catB, Some("some text so test searching"), None, None, None)
+
+      Statement.find("some text") must havePair(authorA -> List(statement))
+    }
+
+    "return empty map when nothing was found" in {
+      Statement.find("some text") must beEmpty
+    }
+
+    "find statements by entry date" in {
+      todo
+    }
+
+    "find statements by important tag" in {
+      todo
+    }
+
+    "find statements by rating" in {
+      todo
+    }
+
+    "count ratings by author" in {
+      todo
+    }
+  }
+
+  "byCategory" should {
+    "find statements by category" in new TestStatements {
+      Statement.byCategory(catA.name, None, None) must contain(statementA)
+      Statement.byCategory(catB.name, None, None) must containAllOf(Seq(statementB, statementC))
+    }
+
+    "find statements by category and author" in new TestStatements {
+      Statement.byCategory(catA.name, Some(authorA), None) must contain(statementA)
+      Statement.byCategory(catA.name, Some(authorB), None) must beEmpty
+    }
+
+    "limit result size when required" in new TestStatements {
+      Statement.byCategory(catB.name, None, Some(1)) must containAllOf(Seq(statementB))
+    }
+  }
+
+  class TaggedTestStatements extends Before with TestStatements {
+    lazy val tagA = Tag.create("tag A")
+    lazy val tagB = Tag.create("tag B")
+
+    override def before: Any = {
+      Tag.add(statementA.id, tagA)
+      Tag.add(statementA.id, tagB)
+      Tag.add(statementB.id, tagA)
+    }
+  }
+
+  "byTag" should {
+    "find statements by tag" in new TaggedTestStatements {
+      Statement.byTag(tagA.name, None, None).map(_.id) must containAllOf(Seq(statementA.id, statementB.id))
+      Statement.byTag(tagB.name, None, None).map(_.id) must contain(statementA.id)
+    }
+
+    "find statements by tag and author" in new TaggedTestStatements {
+      Statement.byTag(tagA.name, Some(authorA), None).map(_.id) must contain(statementA.id)
+      Statement.byTag(tagB.name, Some(authorB), None).map(_.id) must beEmpty
+    }
+
+    "limit result size when required" in new TaggedTestStatements {
+      Statement.byTag(tagA.name, None, Some(1)).map(_.id) must contain(statementA.id)
+    }
+  }
+
+  "byImportantTag" should {
+    "find statements by important tags" in new TaggedTestStatements {
+      Tag.setImportant(tagB.id, true)
+
+      Statement.byImportantTag(None, None).map(_.id) must containTheSameElementsAs(Seq(statementA.id))
+    }
+  }
+
+  "byRating" should {
+    // TODO bug here?
+    "find statements by rating" in new TestStatements {
+      DB.withConnection {
+        implicit c =>
+          Statement.setRating(c, statementA.id, Rating.InTheWorks, new Date())
+          Statement.setRating(c, statementB.id, Rating.InTheWorks, new Date())
+          Statement.setRating(c, statementC.id, Rating.Stalled, new Date())
+      }
+
+      val loadedIds = Statement.byRating(Rating.InTheWorks, None, None).map(_.id)
+
+      loadedIds must containTheSameElementsAs(Seq(statementA.id, statementB.id))
+    }
+  }
+
+  "setRating" should {
+    "change a statements rating" in new TestStatements {
+      DB.withConnection {
+        implicit c =>
+          Statement.setRating(c, statementA.id, Rating.Stalled, new Date())
+
+          Statement.load(statementA.id) must beSome.which(_.rating === Some(Rating.Stalled))
+      }
+    }
+
+    "return 'true' when given valid id" in new TestStatements {
+      DB.withConnection {
+        implicit c =>
+          val result = Statement.setRating(c, statementA.id, Rating.Stalled, new Date())
+
+          result must beEqualTo(true)
+      }
+    }
+
+    "return 'false' when given invalid id" in {
+      DB.withConnection {
+        implicit c =>
+          val result = Statement.setRating(c, 123, Rating.Stalled, new Date())
+
+          result must beEqualTo(false)
+      }
+    }
+  }
+
+  "delete" should {
+    "remove a statement from the database" in new TestStatements {
+      Statement.delete(statementA.id)
+
+      Statement.load(statementA.id) must beNone
+    }
+  }
+
+  "edit" should {
+    "change a statements properties" in new TestStatements {
+      DB.withConnection {
+        implicit c =>
+          Statement.edit(c, statementA.id, "new title", catB, Some("test quote"), None, Some(Rating.PromiseKept), None)
+
+          Statement.load(statementA.id) must beSome.which(
+            stmt => stmt.title === "new title" and
+              stmt.category === catB and
+              stmt.quote === Some("test quote") and
+              stmt.rating === Some(Rating.PromiseKept)
+          )
+      }
+    }
+  }
+}

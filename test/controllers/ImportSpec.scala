@@ -1,12 +1,8 @@
-package test
+package controllers
 
 import org.specs2.mutable._
-
-import play.api.mvc.Results._
-import play.api.test._
-import play.api.test.Helpers._
-import play.api.Logger
 import play.api.http.Status
+import helpers.WithTestDatabase
 
 /**
  * add your integration spec here.

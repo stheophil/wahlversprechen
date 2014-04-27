@@ -1,23 +1,21 @@
-package test
+package helpers
 
 import org.specs2.specification._
 import org.specs2.execute.AsResult
-import play.api.test._
 import play.api.test.Helpers._
-import play.api.test.{ WithApplication, FakeApplication }
+import play.api.test.FakeApplication
 import org.apache.commons.io.FileUtils
 import play.api.db.DB
-import java.io.File
 import scala.collection.immutable.TreeSet
-import play.api.Logger
 
 // Taken from http://workwithplay.com/blog/2013/06/19/integration-testing/
 trait WithTestDatabase extends AroundExample {
 
   val testDb = Map(
-    "db.default.url" -> "jdbc:postgresql://localhost/wahlversprechen_test?user=sebastian",
-    "logger.application" -> "ERROR",
-    "logger.play" -> "ERROR")
+    "db.default.url" -> "jdbc:postgresql://localhost/wahlversprechen_test"
+//    "logger.application" -> "ERROR",
+//    "logger.play" -> "ERROR"
+  )
 
   def around[T: AsResult](t: => T) = {
     val app = FakeApplication(additionalConfiguration = testDb)
@@ -84,11 +82,11 @@ trait WithTestDatabase extends AroundExample {
     private def runQueries(queries: Array[String])(implicit app: FakeApplication) {
       DB.withTransaction { conn =>
         queries.foreach { q =>
-          conn.createStatement.execute(q) 
+          conn.createStatement.execute(q)
         }
       }
     }
-  } 
+  }
 }
 
 trait WithFilledTestDatabase extends WithTestDatabase {
@@ -100,7 +98,7 @@ trait WithFilledTestDatabase extends WithTestDatabase {
     // TODO: Load data locally and not from Google
     super.around{
       controllers.Import.loadSpreadSheet("Funny Party", sheet2)
-      controllers.Import.loadSpreadSheet("Serious Party", sheet3)      
+      controllers.Import.loadSpreadSheet("Serious Party", sheet3)
       controllers.Import.loadSpreadSheet("Coalition Treaty", sheet4)
       t
     }
