@@ -24,6 +24,16 @@ class AuthorSpec extends Specification with WithTestDatabase {
     }
   }
 
+  "loadRated" should {
+    "return rated author" in {
+      Author.create("unrated author 1", 1, false, "#000000", "#ffffff")
+      val expected = Author.create("rated author", 2, true, "#000000", "#ffffff")
+      Author.create("unrated author 2", 3, false, "#000000", "#ffffff")
+
+      Author.loadRated() must beSome(expected)
+    }
+  }
+
   "edit" should {
     "persist changes" in new Authors {
       Author.edit(bob.id, "Bob Barker", 5, true, "#00ff00", "#ff00ff")
@@ -35,6 +45,18 @@ class AuthorSpec extends Specification with WithTestDatabase {
           user.color === "#00ff00" and
           user.background === "#ff00ff"
       )
+    }
+
+    "return true when an existing author was edited" in new Authors {
+      val result = Author.edit(bob.id, "Bob Barker", 5, true, "#00ff00", "#ff00ff")
+
+      result must beEqualTo(true)
+    }
+
+    "return false when editing non-existing author" in {
+      val bEdited = Author.edit(4124, "New Political Hope", 5, false, "#00000", "#999999")
+
+      bEdited === false
     }
   }
 
