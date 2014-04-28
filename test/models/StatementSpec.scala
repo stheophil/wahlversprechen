@@ -9,6 +9,7 @@ import java.util.Date
 import org.specs2.specification.Scope
 
 class StatementSpec extends Specification with WithTestDatabase {
+
   trait TestStatements extends Scope {
     val userA = User.create("user.a@test.de", "user a", "secret", Role.Editor)
 
@@ -164,18 +165,18 @@ class StatementSpec extends Specification with WithTestDatabase {
   }
 
   "byRating" should {
-    // TODO bug here?
-    "find statements by rating" in new TestStatements {
-      DB.withConnection {
-        implicit c =>
-          Statement.setRating(c, statementA.id, Rating.InTheWorks, new Date())
-          Statement.setRating(c, statementB.id, Rating.InTheWorks, new Date())
-          Statement.setRating(c, statementC.id, Rating.Stalled, new Date())
-      }
+    "find statements by rating" in {
+      val author = Author.create("Author A", 1, true, "#ffffff", "#000000")
+
+      val category = Category.create("category", 1)
+
+      val statementA = Statement.create("Statement A", author, category, None, None, Some(Rating.InTheWorks), None)
+      val statementB = Statement.create("Statement B", author, category, None, None, Some(Rating.InTheWorks), None)
+      Statement.create("Statement C", author, category, None, None, Some(Rating.PromiseBroken), None)
 
       val loadedIds = Statement.byRating(Rating.InTheWorks, None, None).map(_.id)
 
-      loadedIds must containTheSameElementsAs(Seq(statementA.id, statementB.id))
+      loadedIds must containTheSameElementsAs(Seq(statementA, statementB).map(_.id))
     }
   }
 
