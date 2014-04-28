@@ -45,7 +45,11 @@ object InitialData {
         );
 
       var aauthors = new collection.mutable.ArrayBuffer[Author];
-      Array(("Coalition Treaty", 1, true, "#ffffff", "#999999"), ("Funny Party", 2, false, "#ffffff", "#000000"), ("Serious Party", 3, false, "#444", "#FFE500")).foreach(
+      Array(
+        ("Coalition Treaty", 1, true, "#ffffff", "#999999"),
+        ("Funny Party", 2, false, "#ffffff", "#000000"),
+        ("Serious Party", 3, false, "#444", "#FFE500")
+      ).foreach(
       {
         case (name, order, rated, color, background) => {
           aauthors += Author.create(name, order, rated, color, background)
