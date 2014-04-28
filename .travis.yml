@@ -1,6 +1,6 @@
 language: scala
 
-before-script:
+before_script:
   - mv conf/application.conf.travis conf/application.conf
   - psql -c 'create database wahlversprechen_test;' -U postgres
   - psql -c 'create user travis with password \'travis\';' -U postgres
