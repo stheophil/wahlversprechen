@@ -195,8 +195,9 @@ object Statement {
 
 	def delete(id: Long) {
 		DB.withTransaction { implicit c =>
+			// TODO: Change FOREIGN KEY constraint to CASCADE delete
 			Tag.eraseAll(c, id)
-			Entry.deleteAll(c, id)
+			SQL("DELETE FROM entry WHERE stmt_id = {id}").on('id -> id).executeUpdate()
 			SQL("UPDATE STATEMENT SET merged_id = NULL WHERE merged_id = {id} ").on('id -> id).executeUpdate
 			SQL("DELETE FROM STATEMENT WHERE id = {id}").on('id -> id).executeUpdate
 		}

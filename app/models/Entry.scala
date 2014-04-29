@@ -6,6 +6,13 @@ import play.api.db._
 import play.api.Play.current
 import java.util.Date
 
+/**
+  * A blog-like entry belonging to a [[Statement]], appears on the detail page for a statement. 
+  * @param stmt_id the id of the statement this text belongs to 
+  * @param content the text in Markdown syntax
+  * @param date the date when this entry was written
+  * @param the user who wrote this entry
+  */
 case class Entry(id: Long, stmt_id: Long, content: String, date: Date, user: User)
 
 object Entry {
@@ -21,57 +28,46 @@ object Entry {
 
 	def load(id: Long): Option[Entry] = {
 		DB.withConnection { implicit c =>
-			SQL("select * from entry where id = {id} ORDER by date DESC").on('id -> id).as(entry.singleOpt)
+			SQL("SELECT * FROM entry WHERE id = {id} ORDER BY date DESC").on('id -> id).as(entry.singleOpt)
 		}
 	}
 
 	def loadByStatement(stmt_id: Long): List[Entry] = {
 		DB.withConnection { implicit c =>
-			SQL("select * from entry where stmt_id = {stmt_id} ORDER by date DESC").on('stmt_id -> stmt_id).as(entry*)
+			SQL("SELECT * FROM entry WHERE stmt_id = {stmt_id} ORDER BY date DESC").on('stmt_id -> stmt_id).as(entry*)
 		}
 	}
 
 	def loadRecent(limit: Long): List[Entry] = {
 		DB.withConnection { implicit c =>
-			SQL("select * from entry ORDER by date DESC limit {limit}").on('limit -> limit).as(entry*)
+			SQL("SELECT * FROM entry ORDER BY date DESC LIMIT {limit}").on('limit -> limit).as(entry*)
 		}
 	}
 
 	def contentAsMarkdown(id: Long) : Option[String] = {
 		DB.withConnection { implicit c => 
-			SQL("select content from entry where id = {id}").on('id -> id).as(scalar[String].singleOpt)
+			SQL("SELECT content FROM entry WHERE id = {id}").on('id -> id).as(scalar[String].singleOpt)
 		}
 	}
 
-	def edit(id: Long, content: String) {
-		DB.withTransaction { implicit c =>
-			SQL("update entry set content = {content} where id = {id}").on(
+	def edit(id: Long, content: String) : Boolean = {
+		DB.withConnection { implicit c =>
+			0 < SQL("UPDATE entry SET content = {content} WHERE id = {id}").on(
 				'content -> content, 'id -> id).executeUpdate()
 		}
 	}
 
-	def delete(id: Long) {
-		DB.withTransaction { implicit c =>
-			SQL("delete from entry where id = {id}").on('id -> id).executeUpdate()
+	def delete(id: Long) : Boolean = {
+		DB.withConnection { implicit c =>
+			0 < SQL("DELETE FROM entry WHERE id = {id}").on('id -> id).executeUpdate()
 		}	
 	}
 
-	def deleteAll(implicit c: java.sql.Connection, stmt_id: Long) {		
-		SQL("delete from entry where stmt_id = {stmt_id}").on('stmt_id -> stmt_id).executeUpdate()
-	}
-
 	def create(stmt_id: Long, content: String, date: Date, user_id: Long) : Long = {
-		DB.withTransaction { implicit c =>
-			val id = SQL("select nextval('entry_id_seq')").as(scalar[Long].single)
-
-			SQL("insert into entry values ({id}, {stmt_id}, {content}, {date}, {user_id})").on(
-					'id -> id,
-					'stmt_id -> stmt_id,
-					'content -> content,
-					'date -> date,
-					'user_id -> user_id).executeUpdate()
-
-			id
+		DB.withConnection { implicit c =>
+			SQL("INSERT INTO entry VALUES (DEFAULT, {stmt_id}, {content}, {date}, {user_id}) RETURNING id").on(
+				'stmt_id -> stmt_id, 'content -> content, 'date -> date, 'user_id -> user_id
+			).as(scalar[Long].single)
 		}
 	}
 }

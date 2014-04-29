@@ -6,7 +6,7 @@ import play.api.db._
 import play.api.Play.current
 
 /**
-  *	Describes an author of a [[Statement]], e.g., of a campaign promise.
+  *	Describes an author of a [[Statement]], i.e., who made this statement.
   * @param name the author's name
   * @param order lists of authors will be ordered by this value in ascending order
   * @param rated when true, this author is the root author. [[Statement]]s by non-rated authors
