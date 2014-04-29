@@ -12,9 +12,9 @@ import scala.collection.immutable.TreeSet
 trait WithTestDatabase extends AroundExample {
 
   val testDb = Map(
-    "db.default.url" -> "jdbc:postgresql://localhost/wahlversprechen_test"
-//    "logger.application" -> "ERROR",
-//    "logger.play" -> "ERROR"
+    "db.default.url" -> "jdbc:postgresql://localhost/wahlversprechen_test",
+    "logger.application" -> "ERROR",
+    "logger.play" -> "ERROR"
   )
 
   def around[T: AsResult](t: => T) = {
