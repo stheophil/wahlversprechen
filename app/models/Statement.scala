@@ -171,11 +171,13 @@ object Statement {
 
 	def create(implicit connection: java.sql.Connection, title: String, author: Author, cat: Category, quote: Option[String], quote_src: Option[String], rating: Option[Rating], merged_id: Option[Long]): Statement = {
 
+    if(author.rated) require(rating.isDefined && merged_id.isEmpty)
+
 		require(author.rated || merged_id.isDefined || !rating.isDefined)
 
 		// Get the project id
 		val id: Long = SQL("select nextval('stmt_id_seq')").as(scalar[Long].single)
-		val rated = rating map { r => new Date() };
+		val rated = rating map { r => new Date() }
 		// Insert the project
 		SQL("insert into statement values ({id}, {title}, {author_id}, {cat_id}, {quote}, {quote_src}, {rating}, {rated}, {merged_id})").on(
 				'id -> id,

@@ -10,6 +10,25 @@ import org.specs2.specification.Scope
 
 class StatementSpec extends Specification with WithTestDatabase {
 
+  "create" should {
+    "throw exception when creating unrated statement from rated author" in {
+      val ratedAuthor = Author.create("rated author", 1, true, "#000000", "#ffffff")
+      val category = Category.create("some category", 1)
+
+      Statement.create("title", ratedAuthor, category, None, None, None, None) must throwA[IllegalArgumentException]
+    }
+
+    "throw exception when creating merged statement from rated author" in {
+      val ratedAuthor = Author.create("rated author", 1, true, "#000000", "#ffffff")
+      val category = Category.create("some category", 1)
+      val statement = Statement.create("title", ratedAuthor, category, None, None, Some(Rating.InTheWorks), None)
+
+      {
+        Statement.create("title", ratedAuthor, category, None, None, Some(Rating.InTheWorks), Some(statement.id))
+      } must throwA[IllegalArgumentException]
+    }
+  }
+
   trait TestStatements extends Scope {
     val userA = User.create("user.a@test.de", "user a", "secret", Role.Editor)
 
