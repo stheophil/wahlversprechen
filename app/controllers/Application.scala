@@ -17,7 +17,7 @@ import views._
 /** Controller that handles all requests accessible from the main 
 	page like the main page itself, the search, the list of most
 	recently changed items, the list of all items etc. They all return
-	possibly filtered lists of [[Statement]] instances.
+	possibly filtered lists of [[models.Statement]] instances.
 */
 object Application extends Controller with Cached {
 	override val cachePrefix = "app"

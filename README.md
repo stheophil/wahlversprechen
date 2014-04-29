@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/MarcHauptmann/wahlversprechen.svg?branch=master)](https://travis-ci.org/MarcHauptmann/wahlversprechen)
+[![Build Status](https://travis-ci.org/stheophil/wahlversprechen.svg?branch=master)](https://travis-ci.org/stheophil/wahlversprechen)
 
 # Tracking Election Promises 
 

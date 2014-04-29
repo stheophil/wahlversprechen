@@ -14,6 +14,30 @@ object Rating extends Enumeration {
 	val PromiseKept, Compromise, PromiseBroken, Stalled, InTheWorks, Unrated = Value
 }
 
+/** A statement, e.g. a campaign promise, that can be rated. <br/>
+ *	
+ * '''Invariants'''
+ *
+ *  1. If `author.rated`, `rating` must be set and `merged_id` must not be set. 
+ *	   [[Author]]s form a hierarchy with a single rated Author on top. Statements
+ *	   belonging to subordinate (non-rated) Authors may link to the statements of 
+ *	   the single rated Author.
+ *  1. If `!author.rated`, `rating` or `merged_id` may be set. If `rating` is set, 
+ *	   this rating will be displayed by all views. Otherwise, if `merged_id` is set,
+ *	   the rating of the [[Statement]] referred to by `merged_id` will be displayed.
+ *
+ *	@param title the title as simple text (no Markdown)
+ *	@param author who made this statement
+ *	@param category a category, eg, "Foreign Affairs", "Commerce" etc
+ *	@param quote an exact quote of this statement, eg, from an election program (supports Markdown syntax)
+ *	@param quote_src the source of the quote (also supports Markdown)
+ *	@param entries a list of updates to this statement
+ *	@param latestEntry date when latest entry was written
+ *	@param tags a list of tags
+ *	@param rating the current rating
+ *	@param rated time of last rating
+ *	@param merged_id id of another [[Statement]] this statement is linked to 
+ */
 case class Statement(id: Long, title: String, author: Author, category: Category,
 	quote: Option[String], quote_src: Option[String],
 	entries: List[Entry], latestEntry: Option[Date],
@@ -22,19 +46,6 @@ case class Statement(id: Long, title: String, author: Author, category: Category
 	merged_id: Option[Long])
 
 object Statement {
-	/* Invariants:
-		1. Statement with rated Author
-			always has rating and no merged_id
-		2. Statement with non-rated Author
-			may have rating and merged_id:
-			- if merged_id == null
-				-> display rating (may be null)
-			- else
-				if rating == null
-					-> display rating of statement referred to by merged_id
-				else
-					-> display rating
-	*/
 	def all(): Map[Author, List[Statement]] = {
 		queryStatements().groupBy( _.author )
 	}
@@ -322,6 +333,8 @@ object Statement {
 		author.id, author.name, author.ordering, author.rated, author.color, author.background,
 		ARRAY_AGG(tag.id) AS tag_id, ARRAY_AGG(tag.name) AS tag_name, ARRAY_AGG(tag.important) AS tag_important """
 
+	// TODO: Use this for tag array instead: ARRAY_AGG(DISTINCT (tag.id, tag.name, tag.important)) AS tags
+
 	val fromClause = "FROM statement "
 
 	// Huge join but takes only 70ms vs 20ms without aggregating the tags too on the Heroku instance
@@ -368,7 +381,7 @@ object Statement {
 	import play.api.libs.json._
 	implicit val StatementToJson = new Writes[Statement] {
 	  def writes(s: Statement): JsValue = {
-	  	// TODO: Does not write entries
+	  	// TODO: Does not write entries or list or ratings
 	    Json.obj(
 	    	"id" -> s.id,
 	    	"title" -> s.title,
