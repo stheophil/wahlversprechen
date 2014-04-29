@@ -39,11 +39,11 @@ class AuthorSpec extends Specification with WithTestDatabase {
       Author.edit(bob.id, "Bob Barker", 5, true, "#00ff00", "#ff00ff")
 
       Author.load(bob.id) must beSome.which(
-        user => user.name === "Bob Barker" and
-          user.order === 5 and
-          user.rated === true and
-          user.color === "#00ff00" and
-          user.background === "#ff00ff"
+        author => author.name === "Bob Barker" and
+          author.order === 5 and
+          author.rated === true and
+          author.color === "#00ff00" and
+          author.background === "#ff00ff"
       )
     }
 
