@@ -22,7 +22,7 @@ class ImportSpec extends Specification with WithTestDatabase {
     override def before: Any = {
       User.create("test@test.net", "Tester", "secret", Role.Admin)
 
-      Author.create("Coalition Treaty", 1, true, "#ffffff", "#999999")
+      Author.create("Coalition Treaty", 1, false, "#ffffff", "#999999")
     }
   }
 
