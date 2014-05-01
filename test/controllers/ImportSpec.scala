@@ -91,7 +91,7 @@ class ImportSpec extends Specification with WithTestDatabase {
         (ostmtNew.get.latestEntry must beNone) and
         (ostmtNew.get.merged_id must beNone) and
         (ostmtNew.get.category.name must beEqualTo(categoryNew)) and
-        (ostmtNew.get.tags.map(_.name).sorted.intersect(tagNew.sorted) must beEqualTo(tagNew.sorted))
+        (ostmtNew.get.tags.map(_.name) must containAllOf(tagNew))
     }
   }
 }

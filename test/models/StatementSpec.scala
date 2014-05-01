@@ -78,6 +78,20 @@ class StatementSpec extends Specification with WithTestDatabase {
     "return None when given invalid id" in {
       Statement.load(4123) must beNone
     }
+
+    // see issue #9: Tags shown several times when Statement has multiple entries
+    "not have multiple tags" in new TestStatements {
+      val tag1 = Tag.create("some tag")
+      Tag.add(statementA.id, tag1)
+
+      val entry1 = Entry.create(statementA.id, "some content", 2014 \ 4 \ 1, userA.id)
+      val entry2 = Entry.create(statementA.id, "some content", 2014 \ 4 \ 1, userA.id)
+      val entry3 = Entry.create(statementA.id, "some content", 2014 \ 4 \ 1, userA.id)
+
+      val Some(loadedStatement) = Statement.load(statementA.id)
+
+      loadedStatement.tags must haveSize(1)
+    }
   }
 
   "loadAll" should {

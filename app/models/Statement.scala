@@ -41,7 +41,7 @@ object Rating extends Enumeration {
 case class Statement(id: Long, title: String, author: Author, category: Category,
 	quote: Option[String], quote_src: Option[String],
 	entries: List[Entry], latestEntry: Option[Date],
-	tags: List[Tag],
+	tags: Set[Tag],
 	rating: Option[Rating], rated: Option[Date],
 	merged_id: Option[Long])
 
@@ -193,7 +193,7 @@ object Statement {
 				'rated -> rated,
 				'merged_id -> merged_id).executeUpdate()
 
-		Statement(id, title, author, cat, quote, quote_src, List[Entry](), None, List[Tag](), rating, rated, merged_id)
+		Statement(id, title, author, cat, quote, quote_src, List[Entry](), None, Set[Tag](), rating, rated, merged_id)
 	}
 
 	def edit(implicit connection: java.sql.Connection, id: Long, title: String, cat: Category, quote: Option[String], quote_src: Option[String], rating: Option[Rating], merged_id: Option[Long]) {
@@ -323,7 +323,7 @@ object Statement {
 					quote, quote_src,
 					List[Entry](),
 					latestEntry,
-					(tag_id, tag_name, tag_important).zipped.map( (id, name, important) => Tag(id, name, important) ).toList.sortBy(_.name),
+					(tag_id, tag_name, tag_important).zipped.map( (id, name, important) => Tag(id, name, important) ).toSet,
 					(if(merged_id.isDefined && !rating.isDefined) merged_rating else rating) map { r => if (0 <= r && r < Rating.maxId) Rating(r) else Rating.Unrated },
 					(if(merged_id.isDefined && !rating.isDefined) merged_rated else rated),
 					merged_id
