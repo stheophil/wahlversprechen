@@ -15,14 +15,14 @@ object Rating extends Enumeration {
 }
 
 /** A statement, e.g. a campaign promise, that can be rated. <br/>
- *	
+ *
  * '''Invariants'''
  *
- *  1. If `author.rated`, `rating` must be set and `merged_id` must not be set. 
+ *  1. If `author.rated`, `rating` must be set and `merged_id` must not be set.
  *	   [[Author]]s form a hierarchy with a single rated Author on top. Statements
- *	   belonging to subordinate (non-rated) Authors may link to the statements of 
+ *	   belonging to subordinate (non-rated) Authors may link to the statements of
  *	   the single rated Author.
- *  1. If `!author.rated`, `rating` or `merged_id` may be set. If `rating` is set, 
+ *  1. If `!author.rated`, `rating` or `merged_id` may be set. If `rating` is set,
  *	   this rating will be displayed by all views. Otherwise, if `merged_id` is set,
  *	   the rating of the [[Statement]] referred to by `merged_id` will be displayed.
  *
@@ -36,7 +36,7 @@ object Rating extends Enumeration {
  *	@param tags a list of tags
  *	@param rating the current rating
  *	@param rated time of last rating
- *	@param merged_id id of another [[Statement]] this statement is linked to 
+ *	@param merged_id id of another [[Statement]] this statement is linked to
  */
 case class Statement(id: Long, title: String, author: Author, category: Category,
 	quote: Option[String], quote_src: Option[String],
@@ -170,8 +170,11 @@ object Statement {
 	}
 
 	def create(implicit connection: java.sql.Connection, title: String, author: Author, cat: Category, quote: Option[String], quote_src: Option[String], rating: Option[Rating], merged_id: Option[Long]): Statement = {
+    if(author.rated) {
+      val message: String = "a statement with rated author must be rated and and not merged"
 
-    if(author.rated) require(rating.isDefined && merged_id.isEmpty)
+      require(rating.isDefined && merged_id.isEmpty, message)
+    }
 
 		require(author.rated || merged_id.isDefined || !rating.isDefined)
 

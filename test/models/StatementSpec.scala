@@ -4,22 +4,23 @@ import org.specs2.mutable._
 
 import play.api.Play.current
 import play.api.db._
-import helpers.WithTestDatabase
 import java.util.Date
 import org.specs2.specification.Scope
+import helpers.DateFactory._
+import helpers.WithTestDatabase
 
 class StatementSpec extends Specification with WithTestDatabase {
 
   "create" should {
     "throw exception when creating unrated statement from rated author" in {
-      val ratedAuthor = Author.create("rated author", 1, true, "#000000", "#ffffff")
+      val ratedAuthor = Author.create("rated author", 1, rated = true, "#000000", "#ffffff")
       val category = Category.create("some category", 1)
 
       Statement.create("title", ratedAuthor, category, None, None, None, None) must throwA[IllegalArgumentException]
     }
 
     "throw exception when creating merged statement from rated author" in {
-      val ratedAuthor = Author.create("rated author", 1, true, "#000000", "#ffffff")
+      val ratedAuthor = Author.create("rated author", 1, rated = true, "#000000", "#ffffff")
       val category = Category.create("some category", 1)
       val statement = Statement.create("title", ratedAuthor, category, None, None, Some(Rating.InTheWorks), None)
 
@@ -32,8 +33,8 @@ class StatementSpec extends Specification with WithTestDatabase {
   trait TestStatements extends Scope {
     val userA = User.create("user.a@test.de", "user a", "secret", Role.Editor)
 
-    val authorA = Author.create("Author A", 1, false, "#ffffff", "#000000")
-    val authorB = Author.create("Author B", 2, false, "#ffffff", "#000000")
+    val authorA = Author.create("Author A", 1, rated = false, "#ffffff", "#000000")
+    val authorB = Author.create("Author B", 2, rated = false, "#ffffff", "#000000")
 
     val catA = Category.create("category A", 1)
     val catB = Category.create("category B", 2)
@@ -176,8 +177,8 @@ class StatementSpec extends Specification with WithTestDatabase {
   }
 
   "byImportantTag" should {
-    "find statements by important tags" in new TaggedTestStatements {
-      Tag.setImportant(tagB.id, true)
+    "finds only statements with important tags" in new TaggedTestStatements {
+      Tag.setImportant(tagB.id, important = true)
 
       Statement.byImportantTag(None, None).map(_.id) must containTheSameElementsAs(Seq(statementA.id))
     }
@@ -185,7 +186,7 @@ class StatementSpec extends Specification with WithTestDatabase {
 
   "byRating" should {
     "find statements by rating" in {
-      val author = Author.create("Author A", 1, true, "#ffffff", "#000000")
+      val author = Author.create("Author A", 1, rated = true, "#ffffff", "#000000")
 
       val category = Category.create("category", 1)
 
@@ -196,6 +197,21 @@ class StatementSpec extends Specification with WithTestDatabase {
       val loadedIds = Statement.byRating(Rating.InTheWorks, None, None).map(_.id)
 
       loadedIds must containTheSameElementsAs(Seq(statementA, statementB).map(_.id))
+    }
+  }
+
+  "byEntryDate" should {
+    "find statements by entry date" in new TestStatements {
+      // latest entry for statementA is '2014 \ 10 \ 10'
+      Entry.create(statementA.id, "some content", 2014 \ 10 \ 10, userA.id)
+      Entry.create(statementA.id, "some content", 2014 \ 10 \ 7, userA.id)
+      Entry.create(statementA.id, "some content", 2014 \ 10 \ 6, userA.id)
+
+      // latest entry for statementB is '2014 \ 10 \ 11'
+      Entry.create(statementB.id, "some content", 2014 \ 10 \ 11, userA.id)
+      Entry.create(statementB.id, "some content", 2014 \ 10 \ 9, userA.id)
+
+      Statement.byEntryDate(None, None).map(_.id) should beEqualTo(List(statementB.id, statementA.id))
     }
   }
 
