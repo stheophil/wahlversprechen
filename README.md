@@ -17,12 +17,13 @@ More details in English are available [in a blog post describing the project](ht
 - Start the PostgresSQL console psql and create a new database: `CREATE DATABASE your_database_name;`
 
 **Configuring the wahlversprechen web application**
+
 - Clone the repository
 - Copy `conf/application.conf.template` to `conf/application.conf`. In `conf/application.conf` edit the following settings:
-- Set `db.default.url="jdbc:postgresql://localhost/your_database_name"`  
- _(if your database is running on another machine, replace localhost with that machine's name, obviously)_
-- Set `db.default.user` to your user name  
- _(or the database user if you have configured one)_
+- Set `db.default.url="jdbc:postgresql://localhost/your_database_name"` _(if your database is running on another machine, replace localhost with that machine's name, obviously)_
+- Set `db.default.user` to your user name _(or the database user if you have configured one)_
+- Set `application.secret`
+
 
 **Start Play**
 - From the terminal, `cd` to the folder you've cloned the wahlversprechen repository into. 
