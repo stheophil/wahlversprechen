@@ -43,20 +43,21 @@ class StatementSpec extends Specification with WithTestDatabase {
     val statementB = Statement.create("Statement B", authorB, catB, None, None, None, None)
     val statementC = Statement.create("Statement C", authorB, catB, None, None, None, Some(statementB.id))
 
-    val statementsByAuthor = Map(
-      authorA -> List(statementA),
-      authorB -> List(statementB, statementC)
-    )
+    val allStatements = Set(statementA, statementB, statementC)
+
+    private def statementsFrom(author: Author): List[Statement] =
+      allStatements.filter(_.author == author).toList
+
+    val statementsByAuthor: Map[Author, List[Statement]] = {
+      val authors: Set[Author] = allStatements.map(_.author)
+
+      authors.map(author => (author, statementsFrom(author))).toMap
+    }
 
     val mergedStatements = Map(
       statementA -> Seq(),
       statementB -> Seq(statementB, statementC),
       statementC -> Seq()
-    )
-
-    val statementsByCategory = Map(
-      catA -> Seq(statementA),
-      catB -> Seq(statementB, statementC)
     )
   }
 
@@ -279,6 +280,24 @@ class StatementSpec extends Specification with WithTestDatabase {
               stmt.rating === Some(Rating.PromiseKept)
           )
       }
+    }
+  }
+
+  "tags" should {
+    "be ordered by name" in {
+      val author = Author.create("Author A", 1, rated = false, "#ffffff", "#000000")
+      val category = Category.create("category", 1)
+      val statement = Statement.create("atatement", author, category, None, None, None, None)
+
+      val tagA = Tag.create("a")
+      val tagB = Tag.create("b")
+      val tagC = Tag.create("c")
+
+      Tag.add(statement.id, tagB, tagC, tagA)
+
+      val Some(loadedStatement) = Statement.load(statement.id)
+
+      loadedStatement.tags must beEqualTo(List(tagA, tagB, tagC))
     }
   }
 }

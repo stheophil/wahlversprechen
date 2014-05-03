@@ -33,17 +33,23 @@ object Rating extends Enumeration {
  *	@param quote_src the source of the quote (also supports Markdown)
  *	@param entries a list of updates to this statement
  *	@param latestEntry date when latest entry was written
- *	@param tags a list of tags
+ *	@param tagSet a set of tags for this statement
  *	@param rating the current rating
  *	@param rated time of last rating
- *	@param merged_id id of another [[Statement]] this statement is linked to
+ *	@param merged_id id of another this statement is linked to
  */
 case class Statement(id: Long, title: String, author: Author, category: Category,
 	quote: Option[String], quote_src: Option[String],
 	entries: List[Entry], latestEntry: Option[Date],
-	tags: Set[Tag],
+	tagSet: Set[Tag],
 	rating: Option[Rating], rated: Option[Date],
-	merged_id: Option[Long])
+	merged_id: Option[Long]) {
+
+  /**
+   * @return the statements [[Tag Tags]] ordered by [[Tag.name name]]
+   */
+  def tags: List[Tag] = tagSet.toList.sortBy(_.name)
+}
 
 object Statement {
 	def all(): Map[Author, List[Statement]] = {
@@ -171,7 +177,7 @@ object Statement {
 
 	def create(implicit connection: java.sql.Connection, title: String, author: Author, cat: Category, quote: Option[String], quote_src: Option[String], rating: Option[Rating], merged_id: Option[Long]): Statement = {
     if(author.rated) {
-      val message: String = "a statement with rated author must be rated and and not merged"
+      val message: String = "a statement with rated author must be rated and and not linked"
 
       require(rating.isDefined && merged_id.isEmpty, message)
     }

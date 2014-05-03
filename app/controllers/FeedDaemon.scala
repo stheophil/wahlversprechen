@@ -53,7 +53,7 @@ object FeedDaemon {
             stmt.id,
             stmt.title,
             removeMarkdownLink(stmt.title + " " + stmt.quote.getOrElse("")),
-            stmt.tags.map(_.name).toSeq
+            stmt.tags.map(_.name)
           )
       }.toSeq
     }
