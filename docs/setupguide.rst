@@ -20,8 +20,8 @@ wahlversprechen Configuration
 - Copy `conf/application.conf.template` to `conf/application.conf`. In `conf/application.conf` edit the following settings:
 - Set `db.default.url="jdbc:postgresql://localhost/your_database_name"`  
  _(if your database is running on another machine, replace localhost with that machine's name, obviously)_
-- Set `db.default.user` to your user name  
- _(or the database user if you have configured one)_
+- Set `db.default.user` to your user name _(or the database user if you have configured one)_
+- Set `application.secret`
 
 Start Play
 ===========
