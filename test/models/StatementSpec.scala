@@ -4,17 +4,37 @@ import org.specs2.mutable._
 
 import play.api.Play.current
 import play.api.db._
-import helpers.WithTestDatabase
 import java.util.Date
 import org.specs2.specification.Scope
+import helpers.DateFactory._
+import helpers.WithTestDatabase
 
 class StatementSpec extends Specification with WithTestDatabase {
+
+  "create" should {
+    "throw exception when creating unrated statement from rated author" in {
+      val ratedAuthor = Author.create("rated author", 1, rated = true, "#000000", "#ffffff")
+      val category = Category.create("some category", 1)
+
+      Statement.create("title", ratedAuthor, category, None, None, None, None) must throwA[IllegalArgumentException]
+    }
+
+    "throw exception when creating merged statement from rated author" in {
+      val ratedAuthor = Author.create("rated author", 1, rated = true, "#000000", "#ffffff")
+      val category = Category.create("some category", 1)
+      val statement = Statement.create("title", ratedAuthor, category, None, None, Some(Rating.InTheWorks), None)
+
+      {
+        Statement.create("title", ratedAuthor, category, None, None, Some(Rating.InTheWorks), Some(statement.id))
+      } must throwA[IllegalArgumentException]
+    }
+  }
 
   trait TestStatements extends Scope {
     val userA = User.create("user.a@test.de", "user a", "secret", Role.Editor)
 
-    val authorA = Author.create("Author A", 1, false, "#ffffff", "#000000")
-    val authorB = Author.create("Author B", 2, false, "#ffffff", "#000000")
+    val authorA = Author.create("Author A", 1, rated = false, "#ffffff", "#000000")
+    val authorB = Author.create("Author B", 2, rated = false, "#ffffff", "#000000")
 
     val catA = Category.create("category A", 1)
     val catB = Category.create("category B", 2)
@@ -23,20 +43,21 @@ class StatementSpec extends Specification with WithTestDatabase {
     val statementB = Statement.create("Statement B", authorB, catB, None, None, None, None)
     val statementC = Statement.create("Statement C", authorB, catB, None, None, None, Some(statementB.id))
 
-    val statementsByAuthor = Map(
-      authorA -> List(statementA),
-      authorB -> List(statementB, statementC)
-    )
+    val allStatements = Set(statementA, statementB, statementC)
+
+    private def statementsFrom(author: Author): List[Statement] =
+      allStatements.filter(_.author == author).toList
+
+    val statementsByAuthor: Map[Author, List[Statement]] = {
+      val authors: Set[Author] = allStatements.map(_.author)
+
+      authors.map(author => (author, statementsFrom(author))).toMap
+    }
 
     val mergedStatements = Map(
       statementA -> Seq(),
       statementB -> Seq(statementB, statementC),
       statementC -> Seq()
-    )
-
-    val statementsByCategory = Map(
-      catA -> Seq(statementA),
-      catB -> Seq(statementB, statementC)
     )
   }
 
@@ -57,6 +78,20 @@ class StatementSpec extends Specification with WithTestDatabase {
 
     "return None when given invalid id" in {
       Statement.load(4123) must beNone
+    }
+
+    // see issue #9: Tags shown several times when Statement has multiple entries
+    "not have multiple tags" in new TestStatements {
+      val tag1 = Tag.create("some tag")
+      Tag.add(statementA.id, tag1)
+
+      val entry1 = Entry.create(statementA.id, "some content", 2014 \ 4 \ 1, userA.id)
+      val entry2 = Entry.create(statementA.id, "some content", 2014 \ 4 \ 1, userA.id)
+      val entry3 = Entry.create(statementA.id, "some content", 2014 \ 4 \ 1, userA.id)
+
+      val Some(loadedStatement) = Statement.load(statementA.id)
+
+      loadedStatement.tags must haveSize(1)
     }
   }
 
@@ -157,8 +192,8 @@ class StatementSpec extends Specification with WithTestDatabase {
   }
 
   "byImportantTag" should {
-    "find statements by important tags" in new TaggedTestStatements {
-      Tag.setImportant(tagB.id, true)
+    "finds only statements with important tags" in new TaggedTestStatements {
+      Tag.setImportant(tagB.id, important = true)
 
       Statement.byImportantTag(None, None).map(_.id) must containTheSameElementsAs(Seq(statementA.id))
     }
@@ -166,7 +201,7 @@ class StatementSpec extends Specification with WithTestDatabase {
 
   "byRating" should {
     "find statements by rating" in {
-      val author = Author.create("Author A", 1, true, "#ffffff", "#000000")
+      val author = Author.create("Author A", 1, rated = true, "#ffffff", "#000000")
 
       val category = Category.create("category", 1)
 
@@ -177,6 +212,21 @@ class StatementSpec extends Specification with WithTestDatabase {
       val loadedIds = Statement.byRating(Rating.InTheWorks, None, None).map(_.id)
 
       loadedIds must containTheSameElementsAs(Seq(statementA, statementB).map(_.id))
+    }
+  }
+
+  "byEntryDate" should {
+    "find statements by entry date" in new TestStatements {
+      // latest entry for statementA is '2014 \ 10 \ 10'
+      Entry.create(statementA.id, "some content", 2014 \ 10 \ 10, userA.id)
+      Entry.create(statementA.id, "some content", 2014 \ 10 \ 7, userA.id)
+      Entry.create(statementA.id, "some content", 2014 \ 10 \ 6, userA.id)
+
+      // latest entry for statementB is '2014 \ 10 \ 11'
+      Entry.create(statementB.id, "some content", 2014 \ 10 \ 11, userA.id)
+      Entry.create(statementB.id, "some content", 2014 \ 10 \ 9, userA.id)
+
+      Statement.byEntryDate(None, None).map(_.id) should beEqualTo(List(statementB.id, statementA.id))
     }
   }
 
@@ -230,6 +280,24 @@ class StatementSpec extends Specification with WithTestDatabase {
               stmt.rating === Some(Rating.PromiseKept)
           )
       }
+    }
+  }
+
+  "tags" should {
+    "be ordered by name" in {
+      val author = Author.create("Author A", 1, rated = false, "#ffffff", "#000000")
+      val category = Category.create("category", 1)
+      val statement = Statement.create("atatement", author, category, None, None, None, None)
+
+      val tagA = Tag.create("a")
+      val tagB = Tag.create("b")
+      val tagC = Tag.create("c")
+
+      Tag.add(statement.id, tagB, tagC, tagA)
+
+      val Some(loadedStatement) = Statement.load(statement.id)
+
+      loadedStatement.tags must beEqualTo(List(tagA, tagB, tagC))
     }
   }
 }

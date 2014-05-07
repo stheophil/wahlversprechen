@@ -13,7 +13,9 @@
       <div>
         <small class="pull-left"><a href="/category/@stmt.category.name">@stmt.category.name</a></small> 
         <small class="pull-left" style="margin-left:15px">
-          <a class="comment-count" data-disqus-identifier="@(stmt.id)" href="@{routes.DetailViewController.view(stmt.id).url + "#disqus_thread"}">0</a>&nbsp;<a href="@{routes.DetailViewController.view(stmt.id).url}"><span class="glyphicon glyphicon-comment"></span></a>
+          <a class="comment-count" data-disqus-identifier="@(stmt.id)" href="@{routes.DetailViewController.view(stmt.id).url}#disqus_thread">0</a>
+          &nbsp;
+          <a href="@{routes.DetailViewController.view(stmt.id).url}#disqus_thread"><span class="glyphicon glyphicon-comment"></span></a>
         </small> 
         <small class="pull-right">@if(stmt.latestEntry.isDefined) { Aktualisiert am @Formatter.format(stmt.latestEntry.get) }</small> 
         <div style="clear: both;"></div>

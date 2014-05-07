@@ -51,9 +51,13 @@ object Tag {
 			SQL("select id, name, important from tag order by name").as(tag*)
 	}
 
-	def add(stmt_id: Long, tag: Tag) {
+	def add(stmt_id: Long, tag: Tag): Unit = {
 		DB.withConnection{ implicit c => add(c, stmt_id, tag) }
 	}
+
+  def add(stmt_id: Long, tags: Tag*): Unit = {
+    tags.foreach(tag => add(stmt_id, tag))
+  }
 
 	def add(implicit connection: java.sql.Connection, stmt_id: Long, tag: Tag) {
 			SQL("insert into statement_tags values ({tag_id}, {stmt_id})").on(
