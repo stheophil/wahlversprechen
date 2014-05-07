@@ -34,8 +34,8 @@ Start Play
 Importing Test Data
 ====================
 
-- Open `localhost:9001/login <http://localhost:9001/login>`_ and login with user name ``test@test.net``_ and password ``secret``.
-- Now go to `localhost:9001/admin/import <https://localhost:9001/admin/import>`_ and import some test data from a publicly shared Google Sheet. You can use e.g. `0AuS3i7YOiV-wdHM1dHhTY3lfTUJTa1VBNzJ0eDdpekE` which is `this sheet <https://docs.google.com/spreadsheet/pub?key=0AuS3i7YOiV-wdHM1dHhTY3lfTUJTa1VBNzJ0eDdpekE&output=html>`_. Or you can create your own test data as long as the table has the exact same column names. 
+- Open `localhost:9001/login <http://localhost:9001/login>`_ and login with user name ``test@test.net`` and password ``secret``.
+- Now go to `localhost:9001/admin/import <https://localhost:9001/admin/import>`_ and import some test data from a publicly shared Google Sheet. You can use e.g. ``0AuS3i7YOiV-wdHM1dHhTY3lfTUJTa1VBNzJ0eDdpekE`` which is `this sheet <https://docs.google.com/spreadsheet/pub?key=0AuS3i7YOiV-wdHM1dHhTY3lfTUJTa1VBNzJ0eDdpekE&output=html>`_. Or you can create your own test data as long as the table has the exact same column names. 
 - You can make some changes to the site using the Admin preferences at `localhost:9001/admin/prefs <https://localhost:9001/admin/prefs>`_
 
 That's it. 
