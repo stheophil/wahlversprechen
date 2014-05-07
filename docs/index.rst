@@ -11,6 +11,10 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   setupguide
+   dataimport
+   dataexport
+   herokudeployment
 
 
 Indices and tables
