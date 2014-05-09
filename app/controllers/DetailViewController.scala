@@ -24,10 +24,10 @@ object DetailViewController extends Controller with Secured with Cached {
 			case Some(stmt) => 
 				Ok(views.html.detail(
 					Statement.withEntries(stmt), 
-					if(stmt.author.rated) {
+					if(stmt.author.top_level) {
 						Statement.loadAll(id)
-					} else if(stmt.merged_id.isDefined) {
-						Statement.loadAll(stmt.merged_id.get)
+					} else if(stmt.linked_id.isDefined) {
+						Statement.loadAll(stmt.linked_id.get)
 					} else {
 						List(stmt)
 					}, 
@@ -77,7 +77,7 @@ object DetailViewController extends Controller with Secured with Cached {
 			"rating" -> optional(number(min=0, max=Rating.maxId-1)),
 			"quote" -> optional(text),
 			"quote_src" -> optional(text),
-			"merged_id" -> optional(number)
+			"linked_id" -> optional(number)
 		) 
 	)
 
@@ -85,15 +85,15 @@ object DetailViewController extends Controller with Secured with Cached {
 		try {
 			updateItemForm.bindFromRequest.fold(
 				formWithErrors => throw new ValidationException(),
-				{ case (title, rating, quote, quote_src, merged_id) => {
-					Logger.debug("Update item " + stmt_id + " (" + title + ", " + rating + ", " + quote + ", " + quote_src + ", " + merged_id + ")" )
+				{ case (title, rating, quote, quote_src, linked_id) => {
+					Logger.debug("Update item " + stmt_id + " (" + title + ", " + rating + ", " + quote + ", " + quote_src + ", " + linked_id + ")" )
 
 					DB.withTransaction{ implicit c => 
 						if(!title.map( Statement.setTitle(c, stmt_id, _) ).getOrElse(true) ||
-						!rating.map( r => Statement.setRating(c, stmt_id, Rating(r), new java.util.Date()) ).getOrElse(true) ||
+						!rating.map( r => Statement.setRating(c, stmt_id, Rating(r)) ).getOrElse(true) ||
 						!quote.map( Statement.setQuote(c, stmt_id, _) ).getOrElse(true) ||
 						!quote_src.map( Statement.setQuoteSrc(c, stmt_id, _) ).getOrElse(true) ||
-						!merged_id.map( Statement.setMergedID(c, stmt_id, _) ).getOrElse(true))
+						!linked_id.map( Statement.setLinkedID(c, stmt_id, _) ).getOrElse(true))
 						{
 							throw new ValidationException()
 						}

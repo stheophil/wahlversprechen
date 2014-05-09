@@ -115,15 +115,7 @@ object Admin extends Controller with Secured {
 				} 
 			), 
 			"order" -> number,
-			"rated" -> boolean.verifying(
-				"Es kann momentan nur einen ausgezeichneten Author geben, dessen Wahlversprechen bewertet werten.",
-				rated => { 
-					!rated || (Author.loadRated().map(_.id) match {
-						case None => true
-						case Some(id) => edited == Some(id)
-					})
-				}
-			),
+			"top_level" -> boolean,
 			"color" -> text,
 			"background" -> text 
 			)
@@ -132,8 +124,8 @@ object Admin extends Controller with Secured {
 	def newAuthor() = IsAdmin { user => implicit request => 
 		authorForm(None).bindFromRequest.fold(
 			formWithErrors => BadRequest(formWithErrors.errors.head.message),
-			{ case (name, order, rated, color, background) => {
-				Author.create(name, order, rated, color, background) 
+			{ case (name, order, top_level, color, background) => {
+				Author.create(name, order, top_level, color, background) 
 				Ok("")
 			} }
 		) // bindFromRequest
@@ -142,8 +134,8 @@ object Admin extends Controller with Secured {
 	def editAuthor(id: Long) = IsAdmin { user => implicit request => 
 		authorForm(Some(id)).bindFromRequest.fold(
 			formWithErrors => BadRequest(formWithErrors.errors.head.message),
-			{ case (name, order, rated, color, background) => {
-				Author.edit(id, name, order, rated, color, background) 
+			{ case (name, order, top_level, color, background) => {
+				Author.edit(id, name, order, top_level, color, background) 
 				Ok("")
 			} }
 		) // bindFromRequest

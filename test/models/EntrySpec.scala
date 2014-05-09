@@ -16,7 +16,7 @@ class EntrySpec extends Specification with WithTestDatabase {
     val authorA = Author.create("Author A", 1, false, "#ffffff", "#000000")
     val catA = Category.create("category A", 1)
     
-    val statementA = Statement.create("Statement A", authorA, catA, None, None, None, None)
+    val statementA = Statement.create("Statement A", authorA, catA, None, None)
 
     val contentA = "Content in [markdown](http://someurl.com) syntax."
     val entryA = Entry.load( Entry.create(statementA.id, contentA, new Date(), userA.id) ).get

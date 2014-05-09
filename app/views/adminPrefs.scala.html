@@ -14,7 +14,7 @@
         <td>@a.order</td>
         <td>@a.name</td>
         <td>
-        <input type="checkbox" name="rated" value="Bewerted" @if(a.rated) {checked} disabled>
+        <input type="checkbox" name="top_level" value="Top Level" @if(a.top_level) {checked} disabled>
         </td>
         <td>
         <span class='label' style="color: @{a.color}; background-color: @{a.background}">@a.name</span> 
@@ -47,8 +47,8 @@
                     <input type="text" class="form-control" id="name" name="name" value="@a.name">
                   </div>
                   <div class="form-group">
-                    <label for="rated">Bewerted</label>       
-                    <input type="checkbox" name="rated" id="rated" value="true" @if(a.rated) {checked}>
+                    <label for="top_level">Top Level</label>       
+                    <input type="checkbox" name="top_level" id="top_level" value="true" @if(a.top_level) {checked}>
                   </div>
                   <div class="form-group">
                     <label for="color">Textfarbe</label>

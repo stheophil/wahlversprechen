@@ -18,13 +18,13 @@ object Rating extends Enumeration {
  *
  * '''Invariants'''
  *
- *  1. If `author.rated`, `rating` must be set and `merged_id` must not be set.
- *	   [[Author]]s form a hierarchy with a single rated Author on top. Statements
- *	   belonging to subordinate (non-rated) Authors may link to the statements of
- *	   the single rated Author.
- *  1. If `!author.rated`, `rating` or `merged_id` may be set. If `rating` is set,
- *	   this rating will be displayed by all views. Otherwise, if `merged_id` is set,
- *	   the rating of the [[Statement]] referred to by `merged_id` will be displayed.
+ *  1. If `author.top_level`, `rating` must be set and `linked_id` must not be set.
+ *	   [[Author]]s form a two level hierarchy. Top-level authors and non-top-level authors. 
+ * 	   Statements belonging to subordinate Authors may link to the statements of
+ *	   top-level Authors.
+ *  1. If `!author.top_level`, `rating` or `linked_id` may be set. If `rating` is set,
+ *	   this rating will be displayed by all views. Otherwise, if `linked_id` is set,
+ *	   the rating of the [[Statement]] referred to by `linked_id` will be displayed.
  *
  *	@param title the title as simple text (no Markdown)
  *	@param author who made this statement
@@ -36,14 +36,14 @@ object Rating extends Enumeration {
  *	@param tagSet a set of tags for this statement
  *	@param rating the current rating
  *	@param rated time of last rating
- *	@param merged_id id of another this statement is linked to
+ *	@param linked_id id of another this statement is linked to
  */
 case class Statement(id: Long, title: String, author: Author, category: Category,
 	quote: Option[String], quote_src: Option[String],
 	entries: List[Entry], latestEntry: Option[Date],
 	tagSet: Set[Tag],
 	rating: Option[Rating], rated: Option[Date],
-	merged_id: Option[Long]) {
+	linked_id: Option[Long]) {
 
   /**
    * @return the statements [[Tag Tags]] ordered by [[Tag.name name]]
@@ -53,15 +53,21 @@ case class Statement(id: Long, title: String, author: Author, category: Category
 
 object Statement {
 	def all(): Map[Author, List[Statement]] = {
-		queryStatements().groupBy( _.author )
+		DB.withConnection( implicit c => 
+			SQL("SELECT * FROM full_statement").as(stmt*).groupBy( _.author )
+		)
 	}
 
 	def load(id: Long): Option[Statement] = {
-		queryStatements("statement.id = {id}", List('id -> id)).headOption
+		DB.withConnection( implicit c => 
+			SQL("SELECT * FROM full_statement where id = {id}").on('id -> id).as(stmt.singleOpt)
+		)
 	}
 
 	def loadAll(id: Long): List[Statement] = {
-		queryStatements("statement.id = {id} OR statement.merged_id = {id}", List('id -> id))
+		DB.withConnection( implicit c => 
+			SQL("SELECT * FROM full_statement where id = {id} OR linked_id = {id}").on('id -> id).as(stmt*)
+		)
 	}
 
 	def withEntries(stmt: Statement) : Statement = {
@@ -69,17 +75,11 @@ object Statement {
 	}
 
 	def find(searchQuery: String) : Map[Author, List[Statement]] =  {
-		val query = selectClause + ", ts_rank_cd(statement.textsearchable, plainto_tsquery({query}), 1) AS rank " +
-			fromClause +
-			joinClause(false) +
-			"WHERE statement.textsearchable @@ plainto_tsquery({query}) " +
-			groupbyClause +
-			"order by rank DESC"
-
-		Logger.debug(query)
-
 		DB.withConnection( implicit c =>
-			SQL(query).on('query -> searchQuery).as(stmt*)
+			SQL("""SELECT *, ts_rank_cd(textsearchable, plainto_tsquery({query}), 1) AS rank 
+				FROM full_statement 
+				WHERE textsearchable @@ plainto_tsquery({query}) 
+				ORDER BY rank DESC""").on('query -> searchQuery).as(stmt*)
 		).groupBy( _.author )
 	}
 
@@ -105,20 +105,34 @@ object Statement {
 	}
 
 	def filter(category: Option[String] = None, author: Option[Author] = None, rating: Option[Rating] = None, importantTagOnly : Boolean = false, tag : Option[String] = None, limit: Option[Int] = None, withEntriesOnly : Boolean = false) : List[Statement] = {
+		class SQLWhereClause {
+			val conditions = collection.mutable.ListBuffer[String]()
+			def +=( condition: String ) {
+				conditions += condition
+			}
+
+			override def toString() : String = {
+				conditions.foldLeft("")( {
+					case ("", cond) => " WHERE " + cond + " "
+					case (prev, cond) => prev + " AND " + cond + " "
+				})
+			}
+		}
+
 		val params = collection.mutable.ListBuffer[(Any, anorm.ParameterValue[_])]()
 		val conditions = new SQLWhereClause
 
 		if(category.isDefined) {
 			params += ('category -> category.get)
-			conditions += ("category.name = {category}")
+			conditions += ("cat_name = {category}")
 		}
 		if(author.isDefined) {
 			params += ('author_id -> author.get.id)
-			conditions += ("author.id = {author_id}")
+			conditions += ("author_id = {author_id}")
 		}
 		if(rating.isDefined) {
 			params += ('rating -> rating.get.id)
-			conditions += ("(statement.rating = {rating} OR statement2.rating = {rating})")
+			conditions += ("(rating = {rating} OR linked_rating = {rating})")
 		}
 		if(importantTagOnly || tag.isDefined) {
 			val conditionsTag = new SQLWhereClause
@@ -127,27 +141,21 @@ object Statement {
 				params += ('tag -> tag.get)
 				conditionsTag += ("tag.name = {tag}")
 			}
-			conditions += ("""statement.id IN (SELECT statement.id
+			conditions += ("""id IN (SELECT statement.id
 				FROM statement 
 				JOIN statement_tags ON statement_tags.stmt_id = statement.id
 				JOIN tag ON tag.id = statement_tags.tag_id """ + conditionsTag + ")")
 		}
+		if(withEntriesOnly) {
+			conditions += "latestEntry IS NOT NULL"
+		}
 
-		val querySql = selectClause + fromClause + joinClause(withEntriesOnly) +
-			conditions +
-			groupbyClause +
-			(if(withEntriesOnly) {
-				"ORDER BY latestEntry DESC "
-			} else orderbyClause) +
-			(if(limit.isDefined) {
-				if(limit.isDefined)  params += ('limit -> limit.get)
-				"limit {limit}"
-			} else "")
+		val limitClause = limit.map(" LIMIT " + _).getOrElse("") 
+		val orderByClause = if(withEntriesOnly) { " ORDER BY latestEntry DESC "	} else { "" }
 
-		DB.withConnection({ implicit c =>
-			Logger.debug("filter() querySql = " + querySql)
-			SQL(querySql).on(params:_*).as(stmt*)
-		})
+		DB.withConnection( implicit c =>
+			SQL("SELECT * from full_statement" + conditions + orderByClause + limitClause).on(params:_*).as(stmt*)
+		)
 	}
 
 	def countRatings(author: Author) : (Int, Map[Rating,Int]) = {
@@ -162,8 +170,8 @@ object Statement {
 
 		DB.withConnection({ implicit c =>
 			(
-				SQL("select COUNT(*) from statement where author_id = {id}").on('id -> author.id).as(scalar[Long].single).toInt,
-				SQL("select rating, COUNT(rating) as rating_count from statement where author_id = {id} group by rating").
+				SQL("SELECT COUNT(*) FROM statement WHERE author_id = {id}").on('id -> author.id).as(scalar[Long].single).toInt,
+				SQL("SELECT rating, COUNT(rating) AS rating_count FROM statement WHERE author_id = {id} GROUP BY rating").
 					on('id -> author.id).
 					as(ratingCount*).
 					toMap[Rating, Int]
@@ -171,76 +179,68 @@ object Statement {
 		})
 	}
 
-	def create(title: String, author: Author, cat: Category, quote: Option[String], quote_src: Option[String], rating: Option[Rating], merged_id: Option[Long]): Statement = {
-		DB.withTransaction { implicit c => Statement.create(c, title, author, cat, quote, quote_src, rating, merged_id) }
+	def create(title: String, author: Author, cat: Category, quote: Option[String], quote_src: Option[String]): Statement = {
+		DB.withConnection { implicit c => Statement.create(c, title, author, cat, quote, quote_src) }
 	}
 
-	def create(implicit connection: java.sql.Connection, title: String, author: Author, cat: Category, quote: Option[String], quote_src: Option[String], rating: Option[Rating], merged_id: Option[Long]): Statement = {
-    if(author.rated) {
-      val message: String = "a statement with rated author must be rated and and not linked"
-
-      require(rating.isDefined && merged_id.isEmpty, message)
-    }
-
-		require(author.rated || merged_id.isDefined || !rating.isDefined)
-
-		// Get the project id
-		val id: Long = SQL("select nextval('stmt_id_seq')").as(scalar[Long].single)
+	def create(implicit connection: java.sql.Connection, title: String, author: Author, cat: Category, quote: Option[String], quote_src: Option[String]): Statement = {
+		val rating = author.top_level match {
+			case true => Some(Rating.Unrated)
+			case false => None
+		}
 		val rated = rating map { r => new Date() }
-		// Insert the project
-		SQL("insert into statement values ({id}, {title}, {author_id}, {cat_id}, {quote}, {quote_src}, {rating}, {rated}, {merged_id})").on(
-				'id -> id,
-				'title -> title,
+		val id = SQL("INSERT INTO statement VALUES (DEFAULT, {title}, {author_id}, {cat_id}, {quote}, {quote_src}, {rating}, {rated}) RETURNING id").on(
+				'title -> title, 
 				'author_id -> author.id,
 				'cat_id -> cat.id,
 				'quote -> quote,
 				'quote_src -> quote_src,
 				'rating -> { rating map { _.id } },
-				'rated -> rated,
-				'merged_id -> merged_id).executeUpdate()
+				'rated -> rated).as(scalar[Long].single)
 
-		Statement(id, title, author, cat, quote, quote_src, List[Entry](), None, Set[Tag](), rating, rated, merged_id)
+		Statement(id, title, author, cat, quote, quote_src, List[Entry](), None, Set[Tag](), rating, rated, None)
 	}
 
-	def edit(implicit connection: java.sql.Connection, id: Long, title: String, cat: Category, quote: Option[String], quote_src: Option[String], rating: Option[Rating], merged_id: Option[Long]) {
-		val rated = rating map { r => new Date() };
-		SQL("update statement set title={title}, cat_id={cat_id}, quote={quote}, quote_src= {quote_src}, rating={rating}, rated={rated}, merged_id={merged_id} where id = {id}").on(
+	def edit(id: Long, title: String, cat: Category, quote: Option[String], quote_src: Option[String]) : Boolean = {
+		DB.withConnection( implicit c => Statement.edit(c, id, title, cat, quote, quote_src))
+	}
+
+	def edit(implicit connection: java.sql.Connection, id: Long, title: String, cat: Category, quote: Option[String], quote_src: Option[String]) : Boolean = {
+		0 < SQL("UPDATE statement SET title={title}, cat_id={cat_id}, quote={quote}, quote_src= {quote_src} WHERE id = {id}").on(
 				'id -> id,
 				'title -> title,
 				'cat_id -> cat.id,
 				'quote -> quote,
-				'quote_src -> quote_src,
-				'rating -> { rating map { _.id } },
-				'rated -> rated,
-				'merged_id -> merged_id).executeUpdate()
+				'quote_src -> quote_src).executeUpdate()
 	}
 
-	def delete(id: Long) {
+	def delete(id: Long) : Boolean = {
 		DB.withTransaction { implicit c =>
-			// TODO: Change FOREIGN KEY constraint to CASCADE delete
-			Tag.eraseAll(c, id)
-			SQL("DELETE FROM entry WHERE stmt_id = {id}").on('id -> id).executeUpdate()
-			SQL("UPDATE STATEMENT SET merged_id = NULL WHERE merged_id = {id} ").on('id -> id).executeUpdate
-			SQL("DELETE FROM STATEMENT WHERE id = {id}").on('id -> id).executeUpdate
+			0 < SQL("DELETE FROM statement WHERE id = {id}").on('id -> id).executeUpdate
 		}
 	}
 
 	def setTitle(implicit connection: java.sql.Connection, stmt_id: Long, title: String) : Boolean = {
-		0 < SQL("update statement set title = {title} where id = {stmt_id}").
+		0 < SQL("UPDATE statement SET title = {title} WHERE id = {stmt_id}").
 			on('title -> title, 'stmt_id -> stmt_id).executeUpdate
 	}
 
 	def setQuote(implicit connection: java.sql.Connection, stmt_id: Long, quote: String) : Boolean = {
-		0 < SQL("update statement set quote = {quote} where id = {stmt_id}").
+		0 < SQL("UPDATE statement SET quote = {quote} WHERE id = {stmt_id}").
 			on('quote -> quote, 'stmt_id -> stmt_id).executeUpdate
 	}
 
 	def setQuoteSrc(implicit connection: java.sql.Connection, stmt_id: Long, quote_src: String) : Boolean = {
-		0 < SQL("update statement set quote_src = {quote_src} where id = {stmt_id}").
+		0 < SQL("UPDATE statement SET quote_src = {quote_src} WHERE id = {stmt_id}").
 			on('quote_src -> quote_src, 'stmt_id -> stmt_id).executeUpdate
 	}
 
-	def setRating(implicit connection: java.sql.Connection, stmt_id: Long, rating: Rating, date: Date) : Boolean = {
+	def setRating(stmt_id: Long, rating: Rating) : Boolean = {
+		DB.withTransaction( implicit c => setRating(c, stmt_id, rating) )
+	}
+
+	def setRating(implicit connection: java.sql.Connection, stmt_id: Long, rating: Rating) : Boolean = {
+		val date = new java.util.Date()
 		if( 0 < SQL("UPDATE statement SET rating = {rating}, rated = {rated} WHERE id = {stmt_id}").
 			on('rating -> rating.id,
 				'rated -> date,
@@ -264,20 +264,22 @@ object Statement {
 		}
 	}
 
-	def setMergedID(implicit connection: java.sql.Connection, stmt_id: Long, merged_id: Long) : Boolean = {
-		0 < SQL("""WITH rated_stmt AS
-			(SELECT statement.id as stmt_id FROM statement, author WHERE statement.author_id = author.id AND author.rated), 
-				unrated_stmt AS 
-			(SELECT statement.id AS stmt_id FROM statement, author WHERE statement.author_id = author.id AND NOT author.rated) 
-				UPDATE statement SET merged_id = {merged_id} 
-				WHERE statement.id = {stmt_id} 
-					AND {stmt_id} IN (SELECT stmt_id FROM unrated_stmt) 
-					AND {merged_id} IN (SELECT stmt_id FROM rated_stmt)
-			""").on('merged_id -> merged_id, 'stmt_id -> stmt_id).executeUpdate
+	def setLinkedID(stmt_id: Long, linked_id: Long) : Boolean = {
+		DB.withConnection( implicit c => setLinkedID(c, stmt_id, linked_id) )
 	}
 
-	// TODO: This is a poor man's database abstraction layer.
-	// Replace with Slick or sth similar as soon as possible
+	def setLinkedID(implicit connection: java.sql.Connection, stmt_id: Long, linked_id: Long) : Boolean = {
+		0 < SQL("""WITH top_level_stmt AS
+			(SELECT statement.id as stmt_id FROM statement, author WHERE statement.author_id = author.id AND author.top_level), 
+				second_level_stmt AS 
+			(SELECT statement.id AS stmt_id FROM statement, author WHERE statement.author_id = author.id AND NOT author.top_level) 
+				UPDATE statement SET linked_id = {linked_id} 
+				WHERE statement.id = {stmt_id} 
+					AND {stmt_id} IN (SELECT stmt_id FROM second_level_stmt) 
+					AND {linked_id} IN (SELECT stmt_id FROM top_level_stmt)
+			""").on('linked_id -> linked_id, 'stmt_id -> stmt_id).executeUpdate
+	}
+
 	def rowToSeq[JavaType, ScalaType](f : (JavaType) => ScalaType) : Column[Seq[ScalaType]] = Column.nonNull { (value, meta) =>
 	  val MetaDataItem(qualified, nullable, clazz) = meta
 	  value match {
@@ -298,95 +300,43 @@ object Statement {
 	implicit def rowToSeqBoolean: Column[Seq[Boolean]] = rowToSeq[java.lang.Boolean, Boolean](_.booleanValue)
 
 	private val stmt = {
-			get[Long]("statement.id") ~
-			get[String]("statement.title") ~
-			get[Option[String]]("statement.quote") ~
-			get[Option[String]]("statement.quote_src") ~
+			get[Long]("id") ~
+			get[String]("title") ~
+			get[Option[String]]("quote") ~
+			get[Option[String]]("quote_src") ~
 			get[Option[Date]]("latestEntry") ~
-			get[Option[Int]]("statement.rating") ~
-			get[Option[Date]]("statement.rated") ~
-			get[Option[Long]]("statement.merged_id") ~
-			get[Option[Int]]("merged_rating") ~
-			get[Option[Date]]("merged_rated") ~
-			get[Long]("author.id") ~
-			get[String]("author.name") ~
-			get[Long]("author.ordering") ~
-			get[Boolean]("author.rated") ~
-			get[String]("author.color") ~
-			get[String]("author.background") ~
-			get[Long]("category.id") ~
-			get[String]("category.name") ~
-			get[Long]("category.ordering") ~
+			get[Option[Int]]("rating") ~
+			get[Option[Date]]("rated") ~
+			get[Option[Long]]("linked_id") ~
+			get[Option[Int]]("linked_rating") ~
+			get[Option[Date]]("linked_rated") ~
+			get[Long]("author_id") ~
+			get[String]("author_name") ~
+			get[Long]("author_ordering") ~
+			get[Boolean]("author_top_level") ~
+			get[String]("author_color") ~
+			get[String]("author_background") ~
+			get[Long]("cat_id") ~
+			get[String]("cat_name") ~
+			get[Long]("cat_ordering") ~
 			get[Seq[Int]]("tag_id") ~
 			get[Seq[String]]("tag_name") ~
 			get[Seq[Boolean]]("tag_important") map {
-				case id ~ title ~ quote ~ quote_src ~ latestEntry ~ rating ~ rated ~ merged_id  ~ merged_rating ~ merged_rated ~
-					author_id ~ author_name ~ author_order ~ author_rated ~ author_color ~ author_background ~
-				 	category_id ~ category_name ~ category_order ~ tag_id ~ tag_name ~ tag_important =>
+				case id ~ title ~ quote ~ quote_src ~ latestEntry ~ rating ~ rated ~ linked_id  ~ linked_rating ~ linked_rated ~
+					author_id ~ author_name ~ author_order ~ author_top_level ~ author_color ~ author_background ~
+				 	cat_id ~ cat_name ~ cat_ordering ~ tag_id ~ tag_name ~ tag_important =>
 				Statement(id, title,
-					Author(author_id, author_name, author_order, author_rated, author_color, author_background),
-					Category(category_id, category_name, category_order),
+					Author(author_id, author_name, author_order, author_top_level, author_color, author_background),
+					Category(cat_id, cat_name, cat_ordering),
 					quote, quote_src,
 					List[Entry](),
 					latestEntry,
 					(tag_id, tag_name, tag_important).zipped.map( (id, name, important) => Tag(id, name, important) ).toSet,
-					(if(merged_id.isDefined && !rating.isDefined) merged_rating else rating) map { r => if (0 <= r && r < Rating.maxId) Rating(r) else Rating.Unrated },
-					(if(merged_id.isDefined && !rating.isDefined) merged_rated else rated),
-					merged_id
+					(if(linked_id.isDefined && !rating.isDefined) linked_rating else rating) map { r => if (0 <= r && r < Rating.maxId) Rating(r) else Rating.Unrated },
+					(if(linked_id.isDefined && !rating.isDefined) linked_rated else rated),
+					linked_id
 				)
 			} // Rating(rating) would throw java.util.NoSuchElementException
-	}
-
-	val selectClause =
-		"""SELECT statement.id, statement.title, statement.quote, statement.quote_src, MAX(entry.date) AS latestEntry,
-		statement.rating, statement.rated, statement.merged_id, statement2.rating AS merged_rating, statement2.rated AS merged_rated,
-		category.id, category.name, category.ordering,
-		author.id, author.name, author.ordering, author.rated, author.color, author.background,
-		ARRAY_AGG(tag.id) AS tag_id, ARRAY_AGG(tag.name) AS tag_name, ARRAY_AGG(tag.important) AS tag_important """
-
-	// TODO: Use this for tag array instead: ARRAY_AGG(DISTINCT (tag.id, tag.name, tag.important)) AS tags
-
-	val fromClause = "FROM statement "
-
-	// Huge join but takes only 70ms vs 20ms without aggregating the tags too on the Heroku instance
-	private def joinClause(withEntriesOnly: Boolean) : String = {
-		"""JOIN category ON category.id=statement.cat_id
-		JOIN author ON author.id=statement.author_id
-		LEFT JOIN statement statement2 ON statement2.id = statement.merged_id
-		LEFT JOIN statement_tags ON statement.id = statement_tags.stmt_id 
-		LEFT JOIN tag on statement_tags.tag_id = tag.id """ +
-		(if(!withEntriesOnly) { "LEFT " } else "") +
-		"JOIN entry on statement.id = entry.stmt_id "
-	}
-
-	private val groupbyClause = "GROUP BY statement.id, category.id, author.id, statement2.id "
-	private val orderbyClause = "ORDER BY author.ordering ASC, category.ordering ASC, statement.id ASC "
-
-	private def queryStatements(whereClause : String = "", params: List[(Any, anorm.ParameterValue[_])] = List.empty[(Any, anorm.ParameterValue[_])]) : List[Statement] = {
-		val querySql = selectClause + fromClause + joinClause(false) +
-			(if(whereClause.isEmpty) { "" } else { " WHERE " + whereClause + " "}) +
-			groupbyClause +
-			orderbyClause
-
-		Logger.debug("queryStatements querySql = " + querySql)
-		Logger.debug("queryStatements params = " + params)
-		DB.withConnection({ implicit c =>
-			SQL(querySql).on(params:_*).as(stmt*)
-		})
-	}
-
-	private class SQLWhereClause extends {
-		val conditions = collection.mutable.ListBuffer[String]()
-		def +=( condition: String ) {
-			conditions += condition
-		}
-
-		override def toString() : String = {
-			conditions.foldLeft("")( {
-				case ("", cond) => "WHERE " + cond + " "
-				case (prev, cond) => prev + " AND " + cond + " "
-			})
-		}
 	}
 
 	import play.api.libs.json._
@@ -402,7 +352,7 @@ object Statement {
 	    	"category" -> s.category.name,
 	    	"tags" -> s.tags.map( _.name ),
 	    	"rating" -> s.rating.map( _.toString ).getOrElse("").toString,
-	    	"linked_to" -> s.merged_id.map( _.toString ).getOrElse( "" ).toString
+	    	"linked_to" -> s.linked_id.map( _.toString ).getOrElse( "" ).toString
 	    )
 	  }
 	}

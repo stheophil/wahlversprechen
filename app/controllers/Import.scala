@@ -38,7 +38,7 @@ object Import extends Controller {
 				val strQuote = if (custom.getValue("zitat") == null) None else Some(custom.getValue("zitat").trim)
 				val strSource = if (custom.getValue("quelle") == null) None else Some(custom.getValue("quelle").trim)
 				val strTags = if (custom.getValue("tags") == null) None else Some(custom.getValue("tags").trim)
-				val strLinks = if (author.rated && custom.getValue("links") != null) {
+				val strLinks = if (author.top_level && custom.getValue("links") != null) {
 						Some(custom.getValue("links")) }
 					else {
 						None
@@ -94,14 +94,14 @@ object Import extends Controller {
 							case Some(id) => {
 								Logger.info("Update statement " + importrow.title + " with category " + importrow.category)
 								cUpdated += 1
-								Statement.edit(c, id, importrow.title, category, importrow.quote, importrow.quote_source, None, None)
+								Statement.edit(c, id, importrow.title, category, importrow.quote, importrow.quote_source)
 								Tag.eraseAll(c, id)
 								id
 							}
 							case None => {
 								cInserted += 1
 								Logger.info("Create statement " + importrow.title + " with category " + importrow.category)					
-								Statement.create(c, importrow.title, author, category, importrow.quote, importrow.quote_source, None, None).id
+								Statement.create(c, importrow.title, author, category, importrow.quote, importrow.quote_source).id
 							}
 						}
 					}
@@ -109,7 +109,7 @@ object Import extends Controller {
 					importrow.links.foreach(
 							_.split(',').map(_.trim).distinct.foreach( link => {
 								try {
-									Statement.setMergedID(c, java.lang.Integer.parseInt( link ), stmt_id)
+									Statement.setLinkedID(c, java.lang.Integer.parseInt( link ), stmt_id)
 								} catch {
 									case e: NumberFormatException => 
 										Logger.info("Illegal characters in linked statement id: " + link) 

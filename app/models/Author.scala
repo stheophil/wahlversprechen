@@ -9,46 +9,46 @@ import play.api.Play.current
   *	Describes an author of a [[Statement]], i.e., who made this statement.
   * @param name the author's name
   * @param order lists of authors will be ordered by this value in ascending order
-  * @param rated when true, this author is the root author. [[Statement]]s by non-rated authors
-  *				 can reference a [[Statement]] from the single rated author, thus forming a two-level
-  *				 tree. The root author may be e.g. the ruling government or its coalition treaty, 
-  *				 and the subordinate non-rated authors may be the election programs of the governing parties. 
-  *				 You can link the campaign statements of the governing parties to the final coalition treaty of 
-  *				 the government. The coalition treaty is the program the government acts upon and therefore this
-  *				 is the main author to be "rated".
+  * @param top_level when true, this author is a top-level author. Authors form a two-level hierarchy. 
+  *			[[Statement]]s by subordinate authors can link to a [[Statement]] from a top-level author. 
+  *			A top-level author may be e.g. the ruling government or its coalition treaty, 
+  *			 and the subordinate authors may be the election programs of the governing parties. 
+  *			 You can link the campaign statements of the governing parties to the final coalition treaty of 
+  *			 the government. By default, the subordinate statements will display the rating of the 
+  *			 linked top-level statement. This can be overridden for each statement.
   * @param color text color in labels as a hex string, e.g. "#ffffff"
   * @param background background color for labels as a hex string, e.g., "#000000"
 */
-case class Author(id: Long, name: String, order: Long, rated: Boolean, color: String, background: String)
+case class Author(id: Long, name: String, order: Long, top_level: Boolean, color: String, background: String)
 
 object Author {
 	val author = {
 		get[Long]("id") ~
 		get[String]("name") ~
 		get[Long]("ordering") ~
-		get[Boolean]("rated") ~
+		get[Boolean]("top_level") ~
 		get[String]("color") ~
 		get[String]("background") map {
-			case id ~ name ~ ordering ~ rated ~ color ~ background => Author(id, name, ordering, rated, color, background)
+			case id ~ name ~ ordering ~ top_level ~ color ~ background => Author(id, name, ordering, top_level, color, background)
 		}
 	}
 
-	def create(name: String, order: Long, rated: Boolean, color: String, background: String): Author = {
-		DB.withConnection { implicit c => create(c, name, order, rated, color, background) }
+	def create(name: String, order: Long, top_level: Boolean, color: String, background: String): Author = {
+		DB.withConnection { implicit c => create(c, name, order, top_level, color, background) }
 	}
 
-	def create(implicit connection: java.sql.Connection, name: String, order: Long, rated: Boolean, color: String, background: String): Author = {
-		val id = SQL("INSERT INTO author VALUES (DEFAULT, {name}, {order}, {rated}, {color}, {background}) RETURNING id").on(
-			'name -> name, 'order -> order, 'rated -> rated, 'color -> color, 'background -> background
+	def create(implicit connection: java.sql.Connection, name: String, order: Long, top_level: Boolean, color: String, background: String): Author = {
+		val id = SQL("INSERT INTO author VALUES (DEFAULT, {name}, {order}, {top_level}, {color}, {background}) RETURNING id").on(
+			'name -> name, 'order -> order, 'top_level -> top_level, 'color -> color, 'background -> background
 			).as(scalar[Long].single)
-		Author(id, name, order, rated, color, background)
+		Author(id, name, order, top_level, color, background)
 	}
 
-	def edit(id: Long, name: String, order: Long, rated: Boolean, color: String, background: String) : Boolean = {
+	def edit(id: Long, name: String, order: Long, top_level: Boolean, color: String, background: String) : Boolean = {
 		DB.withConnection { implicit c =>
 			0 < SQL("""UPDATE author SET name = {name}, ordering = {ordering}, 
-				rated = {rated}, color = {color}, background = {background} WHERE id = {id}""").on(
-				'id -> id, 'name -> name, 'ordering -> order, 'rated -> rated, 'color -> color, 'background -> background
+				top_level = {top_level}, color = {color}, background = {background} WHERE id = {id}""").on(
+				'id -> id, 'name -> name, 'ordering -> order, 'top_level -> top_level, 'color -> color, 'background -> background
 				).executeUpdate()
 		}
 	}
@@ -65,9 +65,9 @@ object Author {
 		}
 	}
 
-	def loadRated(): Option[Author] = {
+	def loadTopLevel(): Option[Author] = {
 		DB.withConnection { implicit c =>
-			SQL("SELECT * FROM author WHERE rated = TRUE ORDER BY ordering ASC LIMIT 1").as(author.singleOpt)
+			SQL("SELECT * FROM author WHERE top_level = TRUE ORDER BY ordering ASC LIMIT 1").as(author.singleOpt)
 		}
 	}
 

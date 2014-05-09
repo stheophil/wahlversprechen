@@ -11,37 +11,28 @@ import helpers.WithTestDatabase
 
 class StatementSpec extends Specification with WithTestDatabase {
 
-  "create" should {
-    "throw exception when creating unrated statement from rated author" in {
-      val ratedAuthor = Author.create("rated author", 1, rated = true, "#000000", "#ffffff")
-      val category = Category.create("some category", 1)
-
-      Statement.create("title", ratedAuthor, category, None, None, None, None) must throwA[IllegalArgumentException]
-    }
-
-    "throw exception when creating merged statement from rated author" in {
-      val ratedAuthor = Author.create("rated author", 1, rated = true, "#000000", "#ffffff")
-      val category = Category.create("some category", 1)
-      val statement = Statement.create("title", ratedAuthor, category, None, None, Some(Rating.InTheWorks), None)
-
-      {
-        Statement.create("title", ratedAuthor, category, None, None, Some(Rating.InTheWorks), Some(statement.id))
-      } must throwA[IllegalArgumentException]
-    }
-  }
-
   trait TestStatements extends Scope {
     val userA = User.create("user.a@test.de", "user a", "secret", Role.Editor)
 
-    val authorA = Author.create("Author A", 1, rated = false, "#ffffff", "#000000")
-    val authorB = Author.create("Author B", 2, rated = false, "#ffffff", "#000000")
+    val authorA = Author.create("Author A", 1, top_level = true, "#ffffff", "#000000")
+    val authorB = Author.create("Author B", 2, top_level = false, "#ffffff", "#000000")
 
     val catA = Category.create("category A", 1)
     val catB = Category.create("category B", 2)
 
-    var statementA = Statement.create("Statement A", authorA, catA, None, None, None, None)
-    val statementB = Statement.create("Statement B", authorB, catB, None, None, None, None)
-    val statementC = Statement.create("Statement C", authorB, catB, None, None, None, Some(statementB.id))
+    var statementA = { 
+        // authorA is top-level, hence stmt has Rating.Unrated by default
+        // The date returned from Statement.create is not the same as the one
+        // roundtripped through DB. Hence, load statementA from DB.
+        val stmt = Statement.create("Statement A", authorA, catA, None, None)
+        Statement.load(stmt.id).get
+    }
+    val statementB = Statement.create("Statement B", authorB, catB, None, None)
+    val statementC = {
+      val stmt = Statement.create("Statement C", authorB, catB, None, None)
+      Statement.setLinkedID(stmt.id, statementA.id)
+      Statement.load(stmt.id).get
+    }
 
     val allStatements = Set(statementA, statementB, statementC)
 
@@ -55,8 +46,8 @@ class StatementSpec extends Specification with WithTestDatabase {
     }
 
     val mergedStatements = Map(
-      statementA -> Seq(),
-      statementB -> Seq(statementB, statementC),
+      statementA -> Seq(statementA, statementC),
+      statementB -> Seq(),
       statementC -> Seq()
     )
   }
@@ -97,7 +88,7 @@ class StatementSpec extends Specification with WithTestDatabase {
 
   "loadAll" should {
     "return all merged statements" in new TestStatements {
-      Statement.loadAll(statementB.id) must containAllOf(mergedStatements.get(statementB).get)
+      Statement.loadAll(statementA.id) must containAllOf(mergedStatements.get(statementA).get) 
     }
 
     "return empty list when given invalid id" in {
@@ -122,9 +113,9 @@ class StatementSpec extends Specification with WithTestDatabase {
 
   "find" should {
     "return statements matching case-insensitively given text" in new TestStatements {
-      val statement = Statement.create("test statement", authorA, catB, Some("some text so test searching"), None, None, None)
+      val statement = Statement.create("test statement", authorB, catB, Some("some text so test searching"), None)
 
-      Statement.find("some text") must havePair(authorA -> List(statement))
+      Statement.find("some text") must havePair(authorB -> List(statement))
     }
 
     "return empty map when nothing was found" in {
@@ -200,18 +191,13 @@ class StatementSpec extends Specification with WithTestDatabase {
   }
 
   "byRating" should {
-    "find statements by rating" in {
-      val author = Author.create("Author A", 1, rated = true, "#ffffff", "#000000")
-
-      val category = Category.create("category", 1)
-
-      val statementA = Statement.create("Statement A", author, category, None, None, Some(Rating.InTheWorks), None)
-      val statementB = Statement.create("Statement B", author, category, None, None, Some(Rating.InTheWorks), None)
-      Statement.create("Statement C", author, category, None, None, Some(Rating.PromiseBroken), None)
+    "find statements by rating" in new TestStatements {
+      Statement.setRating(statementB.id, Rating.InTheWorks)
+      Statement.setRating(statementC.id, Rating.InTheWorks)
 
       val loadedIds = Statement.byRating(Rating.InTheWorks, None, None).map(_.id)
 
-      loadedIds must containTheSameElementsAs(Seq(statementA, statementB).map(_.id))
+      loadedIds must containTheSameElementsAs(Seq(statementB, statementC).map(_.id))
     }
   }
 
@@ -234,7 +220,7 @@ class StatementSpec extends Specification with WithTestDatabase {
     "change a statements rating" in new TestStatements {
       DB.withConnection {
         implicit c =>
-          Statement.setRating(c, statementA.id, Rating.Stalled, new Date())
+          Statement.setRating(c, statementA.id, Rating.Stalled)
 
           Statement.load(statementA.id) must beSome.which(_.rating === Some(Rating.Stalled))
       }
@@ -243,7 +229,7 @@ class StatementSpec extends Specification with WithTestDatabase {
     "return 'true' when given valid id" in new TestStatements {
       DB.withConnection {
         implicit c =>
-          val result = Statement.setRating(c, statementA.id, Rating.Stalled, new Date())
+          val result = Statement.setRating(c, statementA.id, Rating.Stalled)
 
           result must beEqualTo(true)
       }
@@ -252,7 +238,7 @@ class StatementSpec extends Specification with WithTestDatabase {
     "return 'false' when given invalid id" in {
       DB.withConnection {
         implicit c =>
-          val result = Statement.setRating(c, 123, Rating.Stalled, new Date())
+          val result = Statement.setRating(c, 123, Rating.Stalled)
 
           result must beEqualTo(false)
       }
@@ -271,13 +257,12 @@ class StatementSpec extends Specification with WithTestDatabase {
     "change a statements properties" in new TestStatements {
       DB.withConnection {
         implicit c =>
-          Statement.edit(c, statementA.id, "new title", catB, Some("test quote"), None, Some(Rating.PromiseKept), None)
+          Statement.edit(c, statementA.id, "new title", catB, Some("test quote"), None)
 
           Statement.load(statementA.id) must beSome.which(
             stmt => stmt.title === "new title" and
               stmt.category === catB and
-              stmt.quote === Some("test quote") and
-              stmt.rating === Some(Rating.PromiseKept)
+              stmt.quote === Some("test quote") 
           )
       }
     }
@@ -285,9 +270,9 @@ class StatementSpec extends Specification with WithTestDatabase {
 
   "tags" should {
     "be ordered by name" in {
-      val author = Author.create("Author A", 1, rated = false, "#ffffff", "#000000")
+      val author = Author.create("Author A", 1, top_level = false, "#ffffff", "#000000")
       val category = Category.create("category", 1)
-      val statement = Statement.create("atatement", author, category, None, None, None, None)
+      val statement = Statement.create("atatement", author, category, None, None)
 
       val tagA = Tag.create("a")
       val tagB = Tag.create("b")

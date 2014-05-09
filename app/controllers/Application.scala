@@ -26,7 +26,7 @@ object Application extends Controller with Cached {
 	def index = CachedAction("index") { implicit request =>
 		val optuser = user(request)
 
-		val oauthor = Author.loadRated
+		val oauthor = Author.loadTopLevel
 		val statistics = oauthor match {
 			case Some(author) => Statement.countRatings(author)
 			case None => (1, Map.empty[Rating, Int])

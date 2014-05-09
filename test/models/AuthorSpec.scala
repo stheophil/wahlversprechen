@@ -24,13 +24,13 @@ class AuthorSpec extends Specification with WithTestDatabase {
     }
   }
 
-  "loadRated" should {
-    "return rated author" in {
-      Author.create("unrated author 1", 1, false, "#000000", "#ffffff")
-      val expected = Author.create("rated author", 2, true, "#000000", "#ffffff")
-      Author.create("unrated author 2", 3, false, "#000000", "#ffffff")
+  "loadTopLevel" should {
+    "return top level author" in {
+      Author.create("2nd level author 1", 1, false, "#000000", "#ffffff")
+      val expected = Author.create("top level author", 2, true, "#000000", "#ffffff")
+      Author.create("2nd level author 2", 3, false, "#000000", "#ffffff")
 
-      Author.loadRated() must beSome(expected)
+      Author.loadTopLevel() must beSome(expected)
     }
   }
 
@@ -41,7 +41,7 @@ class AuthorSpec extends Specification with WithTestDatabase {
       Author.load(bob.id) must beSome.which(
         author => author.name === "Bob Barker" and
           author.order === 5 and
-          author.rated === true and
+          author.top_level === true and
           author.color === "#00ff00" and
           author.background === "#ff00ff"
       )

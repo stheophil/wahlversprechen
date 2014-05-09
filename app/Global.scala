@@ -51,8 +51,8 @@ object InitialData {
         ("Serious Party", 3, false, "#444", "#FFE500")
       ).foreach(
       {
-        case (name, order, rated, color, background) => {
-          aauthors += Author.create(name, order, rated, color, background)
+        case (name, order, top_level, color, background) => {
+          aauthors += Author.create(name, order, top_level, color, background)
         }
       })
     }

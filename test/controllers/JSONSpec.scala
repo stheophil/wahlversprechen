@@ -34,7 +34,7 @@ class JSONSpec extends Specification with WithTestDatabase {
     "return a single statement" in {
       val author = Author.create("test author", 1, false, "#ffffff", "#000000")
       val categoty = Category.create("test category", 1)
-      val stmt = Statement.create("test statement", author, categoty, None, None, None, None)
+      val stmt = Statement.create("test statement", author, categoty, None, None)
       val home = route(FakeRequest(GET, "/json/item/" + stmt.id)).get
 
       status(home) must equalTo(OK)

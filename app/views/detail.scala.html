@@ -26,7 +26,7 @@
 	        	<div class="form-group">
 				    <label for="rating" class="sr-only">Bewerte dieses Wahlversprechen:</label>
 				    <select id="rating" class="form-control ajax-update" url="/item/@stmt.id" name="rating" >
-				    	@if(!stmt.author.rated) {
+				    	@if(!stmt.author.top_level) {
 				    		<option value="-1" @if(!stmt.rating.isDefined) { "selected" }>Keine Bewertung</option> 
 				    	}
 				    	@for(rating <- 0 until models.Rating.maxId) {

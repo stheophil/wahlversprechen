@@ -56,7 +56,7 @@ class DetailViewSpec extends Specification with WithTestDatabase {
       val author = Author.create("test author", 1, false, "#ffffff", "#000000")
       val categoty = Category.create("test category", 1)
       val stmt = Statement.create("test statement", author, categoty,
-        Some("some text"), None, None, None)
+        Some("some text"), None)
 
       val Some(site) = route(FakeRequest(GET, s"/item/${stmt.id}"))
 
@@ -67,7 +67,7 @@ class DetailViewSpec extends Specification with WithTestDatabase {
       val author = Author.create("test author", 1, false, "#ffffff", "#000000")
       val categoty = Category.create("test category", 1)
       val stmt = Statement.create("test statement", author, categoty,
-        Some("That is a quote with a [markdown link](http://www.wikipedia.org)"), None, None, None)
+        Some("That is a quote with a [markdown link](http://www.wikipedia.org)"), None)
       val home = route(FakeRequest(GET, s"/item/${stmt.id}")).get
 
       status(home) must equalTo(OK)
@@ -82,17 +82,17 @@ class DetailViewSpec extends Specification with WithTestDatabase {
     val author = Author.create("test author", 1, false, "#ffffff", "#000000")
     val categoty = Category.create("test category", 1)
     val stmt = Statement.create("test statement", author, categoty,
-      Some("some text"), None, None, None)
+      Some("some text"), None)
 
-    val ratedAuthor = Author.create("rated test author", 1, true, "#ffffff", "#000000")
-    val ratedStmt = Statement.create("test statement", ratedAuthor, categoty,
-      Some("some text"), None, Some(Rating.PromiseBroken), None)
+    val topAuthor = Author.create("top level test author", 1, true, "#ffffff", "#000000")
+    val topLevelStatement = Statement.create("test statement", topAuthor, categoty,
+      Some("some text"), None)
   }
 
   "update" should {
     "return BAD_REQUEST on invalid update input and not change the statement" in new TestData {
       val stmtsUnrated = List(stmt)
-      val stmtsRated = List(ratedStmt)
+      val stmtsRated = List(topLevelStatement)
 
       verifyInvalidUpdate[Statement](
         s => {
@@ -107,12 +107,12 @@ class DetailViewSpec extends Specification with WithTestDatabase {
               "rating" -> -1,
               "rating" -> Rating.maxId,
               // "title" -> "",
-              "merged_id" -> stmtsUnrated.head.id
+              "linked_id" -> stmtsUnrated.head.id
             ),
           stmtsRated.last ->
             List(
-              "merged_id" -> stmtsUnrated.head.id,
-              "merged_id" -> stmtsRated.head.id
+              "linked_id" -> stmtsUnrated.head.id,
+              "linked_id" -> stmtsRated.head.id
             )
         ),
         "email" -> user.email
@@ -120,7 +120,7 @@ class DetailViewSpec extends Specification with WithTestDatabase {
     }
     "return OK on valid update input and change the statement" in new TestData {
       val stmtsUnrated = List(stmt)
-      val stmtsRated = List(ratedStmt)
+      val stmtsRated = List(topLevelStatement)
 
       verifyValidUpdate[Statement](
         s => {
@@ -136,7 +136,7 @@ class DetailViewSpec extends Specification with WithTestDatabase {
               ("title", List("Some title"), _.title),
               ("quote", List("And I can also set the Quote."), _.quote.get),
               ("quote_src", List("And I can also set the Quote Source."), _.quote_src.get),
-              ("merged_id", List(stmtsRated.head.id), _.merged_id.get)
+              ("linked_id", List(stmtsRated.head.id), _.linked_id.get)
             )
         ),
         "email" -> user.email
