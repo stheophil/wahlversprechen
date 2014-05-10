@@ -359,9 +359,28 @@ object Statement {
 	}
 
 	import play.api.libs.json._
+	implicit val EntryToJson = new Writes[Entry] {
+	  def writes(e: Entry): JsValue = {
+	    Json.obj(
+	    	"id" -> e.id,
+	    	"content" -> e.content,
+	    	"date" -> Formatter.formatRFC822(e.date),
+	    	"user" -> e.user.name
+	    )
+	  }
+	}
+
+	implicit val RatingToJson = new Writes[(Rating, Date)] {
+	  def writes(r: (Rating, Date)): JsValue = {
+	  	Json.obj( 
+	  		"rating" -> r._1.toString,
+	  		"date" -> Formatter.formatRFC822(r._2) 
+	  	)
+	  }
+	}
+
 	implicit val StatementToJson = new Writes[Statement] {
 	  def writes(s: Statement): JsValue = {
-	  	// TODO: Does not write entries or list or ratings
 	    Json.obj(
 	    	"id" -> s.id,
 	    	"title" -> s.title,
@@ -370,7 +389,8 @@ object Statement {
 	    	"author" -> s.author.name,
 	    	"category" -> s.category.name,
 	    	"tags" -> s.tags.map( _.name ),
-	    	"rating" -> s.rating.map( _.toString ).getOrElse("").toString,
+	    	"ratings" -> s.ratings,
+	    	"entries" -> s.entries,
 	    	"linked_to" -> s.linked_id.map( _.toString ).getOrElse( "" ).toString
 	    )
 	  }
