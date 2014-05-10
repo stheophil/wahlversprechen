@@ -23,7 +23,7 @@ object DetailViewController extends Controller with Secured with Cached {
 		Statement.load(id) match {
 			case Some(stmt) => 
 				Ok(views.html.detail(
-					Statement.withEntries(stmt), 
+					Statement.withEntriesAndRatings(stmt), 
 					if(stmt.author.top_level) {
 						Statement.loadAll(id)
 					} else if(stmt.linked_id.isDefined) {
@@ -42,7 +42,7 @@ object DetailViewController extends Controller with Secured with Cached {
 	def viewAsJSON(id: Long) = CachedEternal(id, CacheFormat.JSON) { implicit request =>	
 		Statement.load(id) match {
 			case None => NotFound
-			case Some(stmt) => Ok(Json.toJson(Statement.withEntries(stmt)))
+			case Some(stmt) => Ok(Json.toJson(Statement.withEntriesAndRatings(stmt)))
 		}
 	}
 

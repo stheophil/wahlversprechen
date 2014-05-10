@@ -27,6 +27,9 @@ object Rating extends Enumeration {
  *	   this rating will be displayed by all views. Otherwise, if `linked_id` is set,
  *	   the rating of the [[Statement]] referred to by `linked_id` will be displayed.
  *
+ *  For performance reasons, Statements loaded from the database contain an empty 
+ *  list of `entries` and `ratings` contains the latest rating only. 
+ *  Load the complete Statement by calling `withEntriesAndRatings`.
  *	@param title the title as simple text (no Markdown)
  *	@param author who made this statement
  *	@param category a category, eg, "Foreign Affairs", "Commerce" etc
@@ -43,8 +46,12 @@ case class Statement(id: Long, title: String, author: Author, category: Category
 	quote: Option[String], quote_src: Option[String],
 	entries: List[Entry], latestEntry: Option[Date],
 	tags: SortedSet[Tag],
-	rating: Option[Rating], rated: Option[Date],
-	linked_id: Option[Long])
+	ratings: List[(Rating, Date)],
+	linked_id: Option[Long]) {
+
+	def rating : Option[Rating] = ratings.headOption.map(_._1)
+	def rated : Option[Date] = ratings.headOption.map(_._2)
+}
 
 object Statement {
 	def all(): Map[Author, List[Statement]] = {
@@ -65,8 +72,20 @@ object Statement {
 		)
 	}
 
-	def withEntries(stmt: Statement) : Statement = {
-		stmt.copy(entries = Entry.loadByStatement(stmt.id))
+	def withEntriesAndRatings(stmt: Statement) : Statement = {
+		val rating = {
+			get[Int]("rating") ~
+			get[Date]("rated") map {
+				case rating ~ rated => (clampRating(rating), rated)
+			}
+		}
+
+		val ratings = DB.withConnection( implicit c =>
+			SQL("""SELECT rating, rated FROM statement_rating 
+				WHERE stmt_id = {id} 
+				ORDER BY rated DESC""").on('id -> stmt.id).as(rating*)
+		)
+		stmt.copy(entries = Entry.loadByStatement(stmt.id), ratings = ratings)
 	}
 
 	def find(searchQuery: String) : Map[Author, List[Statement]] =  {
@@ -179,21 +198,21 @@ object Statement {
 	}
 
 	def create(implicit connection: java.sql.Connection, title: String, author: Author, cat: Category, quote: Option[String], quote_src: Option[String]): Statement = {
-		val rating = author.top_level match {
-			case true => Some(Rating.Unrated)
-			case false => None
+		val ratings = author.top_level match {
+			case true => List((Rating.Unrated, new Date()))
+			case false => List.empty[(Rating, Date)]
 		}
-		val rated = rating map { r => new Date() }
 		val id = SQL("INSERT INTO statement VALUES (DEFAULT, {title}, {author_id}, {cat_id}, {quote}, {quote_src}, {rating}, {rated}) RETURNING id").on(
 				'title -> title, 
 				'author_id -> author.id,
 				'cat_id -> cat.id,
 				'quote -> quote,
 				'quote_src -> quote_src,
-				'rating -> { rating map { _.id } },
-				'rated -> rated).as(scalar[Long].single)
+				'rating -> ratings.headOption.map( _._1.id ),
+				'rated -> ratings.headOption.map( _._2 )
+		).as(scalar[Long].single)
 
-		Statement(id, title, author, cat, quote, quote_src, List.empty[Entry], None, SortedSet.empty[Tag], rating, rated, None)
+		Statement(id, title, author, cat, quote, quote_src, List.empty[Entry], None, SortedSet.empty[Tag], ratings, None)
 	}
 
 	def edit(id: Long, title: String, cat: Category, quote: Option[String], quote_src: Option[String]) : Boolean = {
@@ -293,6 +312,7 @@ object Statement {
 	implicit def rowToSeqString: Column[Seq[String]] = rowToSeq[String, String](s => s)
 	implicit def rowToSeqInt: Column[Seq[Int]] = rowToSeq[Integer, Int](_.intValue)
 	implicit def rowToSeqBoolean: Column[Seq[Boolean]] = rowToSeq[java.lang.Boolean, Boolean](_.booleanValue)
+	private def clampRating(r: Int) = if (0 <= r && r < Rating.maxId) Rating(r) else Rating.Unrated
 
 	private val stmt = {
 			get[Long]("id") ~
@@ -327,11 +347,15 @@ object Statement {
 					List[Entry](),
 					latestEntry,
 					(tag_id, tag_name, tag_important).zipped.map( (id, name, important) => Tag(id, name, important) ).to[SortedSet],
-					(if(linked_id.isDefined && !rating.isDefined) linked_rating else rating) map { r => if (0 <= r && r < Rating.maxId) Rating(r) else Rating.Unrated },
-					(if(linked_id.isDefined && !rating.isDefined) linked_rated else rated),
+					(rating, rated, linked_rating, linked_rated) match {
+						// List of all past ratings loaded on demand only
+						case (Some(r), Some(date), _, _) => List((clampRating(r), date))
+						case (_, _, Some(r), Some(date)) => List((clampRating(r), date))
+						case _ => List.empty[(Rating, Date)]
+					},
 					linked_id
 				)
-			} // Rating(rating) would throw java.util.NoSuchElementException
+			} 
 	}
 
 	import play.api.libs.json._

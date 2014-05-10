@@ -96,18 +96,27 @@ class StatementSpec extends Specification with WithTestDatabase {
     }
   }
 
-  "withEntries" should {
+  "withEntriesAndRatings" should {
     // TODO should be optimized
     "return a statement with loaded entries" in new TestStatements {
       val author = User.create("user@test.de", "testuser", "secret", Role.Editor)
       val entryAId = Entry.create(statementA.id, "content A", new Date(), author.id)
       val entryBId = Entry.create(statementA.id, "content B", new Date(), author.id)
 
-      val loadedStatement = Statement.withEntries(statementA)
+      val loadedStatement = Statement.withEntriesAndRatings(statementA)
 
       val expectedEntries = Seq(Entry.load(entryAId).get, Entry.load(entryBId).get)
 
       loadedStatement.entries must containAllOf(expectedEntries)
+    }
+    "return a statement with all ratings" in new TestStatements {
+      Statement.setRating( statementA.id, Rating.PromiseKept )
+      Statement.setRating( statementA.id, Rating.InTheWorks )
+      Statement.setRating( statementB.id, Rating.PromiseBroken )
+      
+      val loadedStatement = Statement.withEntriesAndRatings(statementA)
+
+      loadedStatement.ratings.map( _._1 ) must beEqualTo(List(Rating.InTheWorks, Rating.PromiseKept))
     }
   }
 
