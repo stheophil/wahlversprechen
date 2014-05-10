@@ -156,13 +156,21 @@ class StatementSpec extends Specification with WithTestDatabase {
   }
 
   class TaggedTestStatements extends Before with TestStatements {
+    lazy val tagZ = Tag.create("Z tag")
     lazy val tagA = Tag.create("tag A")
     lazy val tagB = Tag.create("tag B")
 
     override def before: Any = {
+      Tag.add(statementA.id, tagZ)
       Tag.add(statementA.id, tagA)
       Tag.add(statementA.id, tagB)
       Tag.add(statementB.id, tagA)
+    }
+  }
+
+  "tags" should {
+    "be ordered alphabetically" in new TaggedTestStatements {
+      Statement.load(statementA.id).get.tags.toList must beEqualTo( List(tagA, tagB, tagZ) )
     }
   }
 
@@ -265,24 +273,6 @@ class StatementSpec extends Specification with WithTestDatabase {
               stmt.quote === Some("test quote") 
           )
       }
-    }
-  }
-
-  "tags" should {
-    "be ordered by name" in {
-      val author = Author.create("Author A", 1, top_level = false, "#ffffff", "#000000")
-      val category = Category.create("category", 1)
-      val statement = Statement.create("atatement", author, category, None, None)
-
-      val tagA = Tag.create("a")
-      val tagB = Tag.create("b")
-      val tagC = Tag.create("c")
-
-      Tag.add(statement.id, tagB, tagC, tagA)
-
-      val Some(loadedStatement) = Statement.load(statement.id)
-
-      loadedStatement.tags must beEqualTo(List(tagA, tagB, tagC))
     }
   }
 }

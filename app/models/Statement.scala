@@ -2,6 +2,7 @@ package models
 
 import java.util.Date
 
+import collection.SortedSet
 import anorm._
 import anorm.SqlParser._
 import play.api.db._
@@ -33,7 +34,7 @@ object Rating extends Enumeration {
  *	@param quote_src the source of the quote (also supports Markdown)
  *	@param entries a list of updates to this statement
  *	@param latestEntry date when latest entry was written
- *	@param tagSet a set of tags for this statement
+ *	@param tags a set of tags for this statement, ordered by name
  *	@param rating the current rating
  *	@param rated time of last rating
  *	@param linked_id id of another this statement is linked to
@@ -41,15 +42,9 @@ object Rating extends Enumeration {
 case class Statement(id: Long, title: String, author: Author, category: Category,
 	quote: Option[String], quote_src: Option[String],
 	entries: List[Entry], latestEntry: Option[Date],
-	tagSet: Set[Tag],
+	tags: SortedSet[Tag],
 	rating: Option[Rating], rated: Option[Date],
-	linked_id: Option[Long]) {
-
-  /**
-   * @return the statements [[Tag Tags]] ordered by [[Tag.name name]]
-   */
-  def tags: List[Tag] = tagSet.toList.sortBy(_.name)
-}
+	linked_id: Option[Long])
 
 object Statement {
 	def all(): Map[Author, List[Statement]] = {
@@ -198,7 +193,7 @@ object Statement {
 				'rating -> { rating map { _.id } },
 				'rated -> rated).as(scalar[Long].single)
 
-		Statement(id, title, author, cat, quote, quote_src, List[Entry](), None, Set[Tag](), rating, rated, None)
+		Statement(id, title, author, cat, quote, quote_src, List.empty[Entry], None, SortedSet.empty[Tag], rating, rated, None)
 	}
 
 	def edit(id: Long, title: String, cat: Category, quote: Option[String], quote_src: Option[String]) : Boolean = {
@@ -331,7 +326,7 @@ object Statement {
 					quote, quote_src,
 					List[Entry](),
 					latestEntry,
-					(tag_id, tag_name, tag_important).zipped.map( (id, name, important) => Tag(id, name, important) ).toSet,
+					(tag_id, tag_name, tag_important).zipped.map( (id, name, important) => Tag(id, name, important) ).to[SortedSet],
 					(if(linked_id.isDefined && !rating.isDefined) linked_rating else rating) map { r => if (0 <= r && r < Rating.maxId) Rating(r) else Rating.Unrated },
 					(if(linked_id.isDefined && !rating.isDefined) linked_rated else rated),
 					linked_id

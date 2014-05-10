@@ -8,6 +8,8 @@ import play.api.Play.current
 case class Tag(id: Long, name: String, important: Boolean)
 
 object Tag {
+	implicit val ordering = Ordering.by[Tag, String](_.name.toLowerCase)
+
 	val tag = {
 		get[Long]("id") ~
 		get[String]("name") ~
