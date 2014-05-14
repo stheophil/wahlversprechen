@@ -18,4 +18,4 @@ CREATE INDEX relatedurl_asc_index ON relatedurl (stmt_id ASC, url ASC);
 
 DROP INDEX relatedurl_asc_index;
 DROP TABLE relatedurl;
-DROP SEQUENCE releatedurl_id_seq;
+DROP SEQUENCE relatedurl_id_seq;
