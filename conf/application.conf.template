@@ -57,7 +57,13 @@ logger.play=INFO
 # Logger provided to your application:
 logger.application=DEBUG
 
-disqus.shortname="disqus name"
-twitter = "twitter account"
-mail = "e-mail address"
-url = "site url"
+# These will be displayed on the site:
+application.disqus=""
+application.twitter = ""
+application.mail = ""
+application.root_url = ""
+
+# The RSS feeds that will be regularly parsed for items related to the campaign promises
+# application.feeds = []
+# The number of best matches to store after each run
+# application.match_count = 25

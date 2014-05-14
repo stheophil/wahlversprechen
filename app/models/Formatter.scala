@@ -55,10 +55,10 @@ object Formatter {
 		controllers.routes.Assets.at("img/ratings/" + file + ".png").absoluteURL(false)
 	}
 
-	def url : String = Play.configuration.getString("url").get
-	def twitter : String = Play.configuration.getString("twitter").get
-	def mail : String = Play.configuration.getString("mail").get
-	def disqus_shortname : String = Play.configuration.getString("disqus.shortname").get
+	def url : String = Play.configuration.getString("application.root_url").get
+	def twitter : String = Play.configuration.getString("application.twitter").get
+ 	def mail : String = Play.configuration.getString("application.mail").get
+	def disqus_shortname : String = Play.configuration.getString("application.disqus").get
 
 	def FormUrlEncode(str: String) = java.net.URLEncoder.encode(str, "UTF-8")
 	def MIMEEncode(str: String) = play.utils.UriEncoding.encodePathSegment(str, "UTF-8")
