@@ -46,7 +46,7 @@ object RelatedUrl {
 
   def load(stmt_id: Long) : List[RelatedUrl] = {
     DB.withConnection { implicit c =>
-      SQL("SELECT * FROM relatedurl WHERE stmt_id = {stmt_id}").on('stmt_id -> stmt_id).as(relatedurl*)
+      SQL("SELECT * FROM relatedurl WHERE stmt_id = {stmt_id} ORDER BY confidence DESC").on('stmt_id -> stmt_id).as(relatedurl*)
     }
   }
 
@@ -61,7 +61,7 @@ object RelatedUrl {
 
   def update(id: Long, date: Date) : Boolean = {
     DB.withConnection{ implicit c =>
-      0 < SQL("UPDATE relatedurl SET lastseen = {date) WHERE id = {id}").on('date -> date, 'id -> id).executeUpdate()
+      0 < SQL("UPDATE relatedurl SET lastseen = {date} WHERE id = {id}").on('date -> date, 'id -> id).executeUpdate()
     }
   }
 }

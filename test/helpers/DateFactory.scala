@@ -1,6 +1,6 @@
 package helpers
 
-import java.util.{Date, Calendar}
+import java.util.{TimeZone, Date, Calendar}
 
 /**
  * Helper object to create [[Date]] instances via a nice syntax in test cases.
@@ -32,7 +32,11 @@ object DateFactory {
     calendar.set(Calendar.YEAR, ymd.year)
     calendar.set(Calendar.MONTH, ymd.month)
     calendar.set(Calendar.DAY_OF_MONTH, ymd.day)
-
+    calendar.set(Calendar.HOUR, 0)
+    calendar.set(Calendar.MINUTE, 0)
+    calendar.set(Calendar.SECOND, 0)
+    calendar.set(Calendar.MILLISECOND, 0)
+    calendar.setTimeZone(TimeZone.getTimeZone("UTC"))
     calendar.getTime
   }
 }
