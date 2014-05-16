@@ -13,7 +13,7 @@ import models._
 import net.theophil.relatedtexts._
 
 object FeedDaemon {
-  private val fileCachedMatcher = "tmp/wahlversprechen_cachedMatcher"
+  private val fileCachedMatcher = "/tmp/wahlversprechen_cachedMatcher"
   private val keyStatements = "FeedDaemon.statements"
 
   private def removeMarkdownLink(text: String) : String = {
