@@ -13,7 +13,7 @@ import models._
 import net.theophil.relatedtexts._
 
 object FeedDaemon {
-  private val keyCachedMatcher = "FeedDaemon.cachedMatcher"
+  private val fileCachedMatcher = "tmp/wahlversprechen_cachedMatcher"
   private val keyStatements = "FeedDaemon.statements"
 
   private def removeMarkdownLink(text: String) : String = {
@@ -35,8 +35,9 @@ object FeedDaemon {
 
     case class InputStatement(id: Long, title: String, override val text: String, override val keywords: Seq[String]) extends Analyzable
 
-		val cachedMatcher = Cache.get(keyCachedMatcher).map( _.asInstanceOf[FeedMatcherCache[InputStatement]] )
-    val statements = Cache.getOrElse(keyStatements, 60 * 60 * 4) {
+		val cachedMatcher = FeedMatcherCache.fromFile[InputStatement](fileCachedMatcher)
+
+    val statements = Cache.getOrElse(keyStatements, 60 * 60 * 24) {
       models.Statement.all().flatMap(_._2).map {
         stmt =>
           InputStatement(
@@ -69,7 +70,7 @@ object FeedDaemon {
           }
         }
 
-        Cache.set(keyCachedMatcher, cache)
+        cache.serialize(fileCachedMatcher)
         timeEnd = new Date().getTime()
         Logger.info("FeedDaemon: Converting output to JSON and storing in cache took " + (timeEnd - timeStart) + " ms")
       }
