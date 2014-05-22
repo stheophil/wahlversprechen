@@ -47,6 +47,19 @@ class RelatedUrlSpec  extends Specification with WithTestDatabase {
     }
   }
 
+  "loadRecent" should {
+    "return all urls in a date range" in new RelatedUrls {
+      val url3 = RelatedUrl.create(statementA.id, "The most rercent", "http://someurl.com", 9.6, new Date(), RelatedCategory.Article)
+      RelatedUrl.loadRecent(1, None).map(_.id) must beEqualTo( List(url3.id) )
+    }
+
+    "return a limited number of urls in a date range" in new RelatedUrls {
+      val url3 = RelatedUrl.create(statementA.id, "The most rercent", "http://someurl.com", 9.6, new Date(), RelatedCategory.Article)
+      val url4 = RelatedUrl.create(statementA.id, "The most rercent", "http://someurl.com", 11, new Date(), RelatedCategory.Article)
+      RelatedUrl.loadRecent(1, Some(1)).map(_.id) must beEqualTo( List(url4.id) )
+    }
+  }
+
   "update" should {
     "update date" in new RelatedUrls {
       val date : Date = 2014 \ 1 \ 1

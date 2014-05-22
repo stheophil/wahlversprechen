@@ -4,7 +4,7 @@ import anorm._
 import anorm.SqlParser._
 import play.api.db._
 import play.api.Play.current
-import java.util.Date
+import java.util.{Calendar, Date}
 
 object RelatedCategory extends Enumeration {
   type RelatedCategory = Value
@@ -22,6 +22,7 @@ import RelatedCategory._
  * @param urltype type of this url, always [[RelatedCategory.Article]] at the moment
  */
 case class RelatedUrl(id: Long, stmt_id: Long, title: String, url: String, confidence: Double, lastseen: Date, urltype: RelatedCategory)
+case class RelatedUrlGroup(stmt_id: Long, stmt_title: String, category: String, articles: List[RelatedUrl])
 
 object RelatedUrl {
   val relatedurl = {
@@ -48,6 +49,48 @@ object RelatedUrl {
     DB.withConnection { implicit c =>
       SQL("SELECT * FROM relatedurl WHERE stmt_id = {stmt_id} ORDER BY confidence DESC").on('stmt_id -> stmt_id).as(relatedurl*)
     }
+  }
+
+  def loadRecent(daysSince: Int, limit: Option[Int]) : List[RelatedUrl] = {
+    val cal = Calendar.getInstance()
+    cal.add(Calendar.DAY_OF_YEAR, - daysSince)
+
+    DB.withConnection { implicit c =>
+      val query = "SELECT * FROM relatedurl WHERE relatedurl.lastseen >= {day} ORDER BY confidence DESC"
+      val queryLimit = query + " LIMIT {limit}"
+      limit match {
+        case None => SQL(query).on('day -> cal.getTime).as(relatedurl *)
+        case Some(l) => SQL(queryLimit).on('day -> cal.getTime, 'limit -> l).as(relatedurl *)
+      }
+    }
+  }
+
+  def loadRecentGroups(daysSince: Int, limit: Option[Int]) : List[RelatedUrlGroup] = {
+    val cal = Calendar.getInstance()
+    cal.add(Calendar.DAY_OF_YEAR, - daysSince)
+
+    val relatedUrlWithStatement = long("stmt_id")~str("stmt_title") ~ str("category") ~ relatedurl map {
+      case stmt_id~stmt_title~category~relatedurl => (stmt_id, stmt_title, category, relatedurl)
+    }
+
+    val listRelatedUrlWithStatement = 
+      DB.withConnection { implicit c =>
+        val query = """SELECT statement.id AS stmt_id, statement.title AS stmt_title, 
+        category.name AS category, relatedurl.*
+        FROM relatedurl 
+        JOIN statement ON statement.id = relatedurl.stmt_id
+        JOIN category on statement.cat_id = category.id
+        WHERE relatedurl.lastseen >= {day} ORDER BY confidence DESC"""
+        val queryLimit = query + " LIMIT {limit}"
+        limit match {
+          case None => SQL(query).on('day -> cal.getTime).as(relatedUrlWithStatement*)
+          case Some(l) => SQL(queryLimit).on('day -> cal.getTime, 'limit -> l).as(relatedUrlWithStatement*)
+        }
+      }
+
+    listRelatedUrlWithStatement.groupBy(_._1).values.map(
+      list => RelatedUrlGroup(list.head._1, list.head._2, list.head._3, list.map(_._4).sortBy(_.confidence)(Ordering[Double].reverse))
+    ).toList.sortBy(_.articles.head.confidence)(Ordering[Double].reverse)
   }
 
   def create(stmt_id: Long, title: String, url: String, confidence: Double, date: Date, urltype: RelatedCategory): RelatedUrl = {

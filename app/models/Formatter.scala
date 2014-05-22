@@ -71,6 +71,11 @@ object Formatter {
 		new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", java.util.Locale.US).format(date);
 	}
 
+  def favicon(strUrl: String) : String = {
+    val url = new java.net.URL(strUrl)
+    "http://www.google.com/s2/favicons?domain=" + url.getHost
+  }
+
 	def socialMetaTags(url: String, description: String, img: String) : Html = {
 		// Twitter falls back to open graph tags: https://dev.twitter.com/docs/cards/getting-started#open-graph
 		Html(

@@ -110,6 +110,24 @@ small a:hover {
 	display: none;
 }
 
+ .relatedurl {
+     margin-top: 10px;
+     padding-left: 0px;
+ }
+
+.relatedurl li {
+    list-style-type: none;
+    line-height: 22px;
+}
+
+.relatedurl li a {
+    font-style: italic;
+}
+
+.relatedurl .favicon {
+    margin-bottom: 0.5em;
+}
+
 /* itemlist */ 
 .item-list, .full-list {
 	 position: relative;

@@ -1,4 +1,4 @@
-@(cStatement: Int, mapRating: Map[models.Rating.Rating, Int], stmtsRecent: List[Statement], stmtsImportant: List[Statement], user: Option[User])(implicit request: play.api.mvc.RequestHeader)
+@(cStatement: Int, mapRating: Map[models.Rating.Rating, Int], stmtsRecent: List[Statement], relatedurlgrps: List[RelatedUrlGroup], user: Option[User])(implicit request: play.api.mvc.RequestHeader)
 
 @import models.Rating._
 
@@ -42,7 +42,35 @@
   	@common.renderShortStatementList("Zuletzt aktualisierte Wahlversprechen:", "/aktuell", stmtsRecent)
 	</div>
 	<div class="col-sm-6">
-  	@common.renderShortStatementList("Die wichtigsten Wahlversprechen:", "/top", stmtsImportant)
+        <h2>Aktuell in den Medien:</h2>
+        @for(group <- relatedurlgrps) {
+            <div class="item-list">  
+                <div class="item-list-glyph-wrapper">                    
+                </div>
+                <div class="item-list-content">
+                  <h4><a href="@{routes.DetailViewController.view(group.stmt_id).url}">
+                      @group.stmt_title
+                  </a></h4>
+                  <div>
+                    <small class="pull-left"><a href="/category/@group.category">@group.category</a></small>
+                    <small class="pull-left" style="margin-left:15px">
+                      <a class="comment-count" data-disqus-identifier="group.stmt_id" href="@{routes.DetailViewController.view(group.stmt_id).url}#disqus_thread">0</a>
+                      &nbsp;
+                      <a href="@{routes.DetailViewController.view(group.stmt_id).url}#disqus_thread"><span class="glyphicon glyphicon-comment"></span></a>
+                    </small>
+                      <small class="pull-right">Gesehen am @Formatter.format(group.articles.head.lastseen)</small>
+                    <div style="clear: both;"></div>
+                  </div>
+                  <ul class = "relatedurl"> 
+                    @for(relatedurl <- group.articles) {
+                       <li><img src="@Formatter.favicon(relatedurl.url)" class="favicon" width="16px" height="16px"/>&nbsp;<a href="@relatedurl.url">@relatedurl.title</a></li>
+                      <!-- confidence: @relatedurl.confidence -->
+                    }
+                  </ul>
+                </div>    
+            </div>
+        }
+        <!--<a href="#">Alle Anzeigen ...</a>-->
 	</div>
 </div>
 

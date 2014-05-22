@@ -32,7 +32,7 @@ object Application extends Controller with Cached {
 			case None => (1, Map.empty[Rating, Int])
 		}
 		Logger.debug("Statements: " + statistics._1 + " Statistics: " + statistics._2.toString)
-		Ok(views.html.index(statistics._1, statistics._2, Statement.byEntryDate(oauthor, Some(5)), Statement.byImportantTag(oauthor, Some(5)), user(request)))
+		Ok(views.html.index(statistics._1, statistics._2, Statement.byEntryDate(oauthor, Some(5)), RelatedUrl.loadRecentGroups(7, Some(10)), user(request)))
 	}
 	
 	def recent = CachedAction("recent") { implicit request => 		
