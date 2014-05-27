@@ -73,19 +73,30 @@ object Statement {
 	}
 
 	def withEntriesAndRatings(stmt: Statement) : Statement = {
-		val rating = {
-			get[Int]("rating") ~
-			get[Date]("rated") map {
-				case rating ~ rated => (clampRating(rating), rated)
+		def loadHistory(id: Long) : List[(Rating, Date)] = {	
+			val rating = {
+				get[Int]("rating") ~
+				get[Date]("rated") map {
+					case rating ~ rated => (clampRating(rating), rated)
+				}
 			}
+
+			DB.withConnection( implicit c =>
+				SQL("""SELECT rating, rated FROM statement_rating 
+					WHERE stmt_id = {id} 
+					ORDER BY rated DESC""").on('id -> id).as(rating*)
+			)	
 		}
 
-		val ratings = DB.withConnection( implicit c =>
-			SQL("""SELECT rating, rated FROM statement_rating 
-				WHERE stmt_id = {id} 
-				ORDER BY rated DESC""").on('id -> stmt.id).as(rating*)
+		var ratings = loadHistory(stmt.id)
+		if(ratings.isEmpty && stmt.linked_id.isDefined) {
+			ratings = loadHistory(stmt.linked_id.get)
+		}
+
+		stmt.copy(
+			entries = Entry.loadByStatement(stmt.id), 
+			ratings = ratings
 		)
-		stmt.copy(entries = Entry.loadByStatement(stmt.id), ratings = ratings)
 	}
 
 	def find(searchQuery: String) : Map[Author, List[Statement]] =  {
