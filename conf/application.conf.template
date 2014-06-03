@@ -66,4 +66,6 @@ application.root_url = ""
 # The RSS feeds that will be regularly parsed for items related to the campaign promises
 # application.feeds = []
 # The number of best matches to store after each run
-# application.match_count = 25
+# application.feed_match_count = 25
+# The minimum matching score needed for a matching article to be stored
+# application.feed_min_score = 4
