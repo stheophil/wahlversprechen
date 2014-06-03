@@ -80,6 +80,10 @@ object Application extends Controller with Cached {
 		}
 	}
 
+	def authorsAsJSON() = CachedAction("authors.json") { implicit request => 
+		Ok(Json.toJson( Author.loadAll() ))
+	}
+
 	def tagsAsJSON() = CachedAction("tags.json") { implicit request =>
 		Ok( Json.toJson( Tag.loadAll() ) )
 	}

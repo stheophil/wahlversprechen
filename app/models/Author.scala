@@ -76,4 +76,18 @@ object Author {
 			SQL("SELECT * FROM author ORDER BY ordering ASC").as(author*)
 		}
 	}
+
+	import play.api.libs.json._
+	implicit val AuthorToJson = new Writes[Author] {
+	  def writes(a: Author): JsValue = {
+	    Json.obj(
+	    	"id" -> a.id,
+	    	"name" -> a.name,
+	    	"ordering" -> a.order,
+	    	"top_level" -> a.top_level,
+	    	"color" -> a.color,
+	    	"background" -> a.background
+	    )
+	  }
+	}
 }
