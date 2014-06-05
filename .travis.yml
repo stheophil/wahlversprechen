@@ -1,5 +1,8 @@
 language: scala
 
+addons:
+  postgresql: "9.3"
+  
 before_script:
   - mv conf/application.conf.travis conf/application.conf
   - psql -c 'create database wahlversprechen_test;' -U postgres
