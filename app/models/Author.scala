@@ -20,7 +20,8 @@ import play.api.Play.current
   * @param background background color for labels as a hex string, e.g., "#000000"
 */
 case class Author(id: Long, name: String, order: Long, top_level: Boolean, color: String, background: String) {
-	def shortname : String = name
+	// TODO: Add shortname to database
+	def shortname : String = name.takeWhile(_.isLetter)
 }
 
 object Author {
