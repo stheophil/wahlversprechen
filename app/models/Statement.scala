@@ -53,6 +53,16 @@ case class Statement(id: Long, title: String, author: Author, category: Category
 	def rated : Option[Date] = ratings.headOption.map(_._2)
 }
 
+class StatementStatistics(mapCounts : Map[Long, Int], mapRatingCounts : Map[Long, Map[Rating, Int]]) {
+	def count(author: Author) = mapCounts.getOrElse(author.id, 0)
+	def count(author: Author, rating: Rating) = {
+		mapRatingCounts.get(author.id) match {
+			case Some(map) => map.getOrElse(rating, 0)
+			case None => 0
+		}
+	}
+}
+
 object Statement {
 	def all(): Map[Author, List[Statement]] = {
 		DB.withConnection( implicit c => 
@@ -183,23 +193,49 @@ object Statement {
 		)
 	}
 
-	def countRatings(author: Author) : (Int, Map[Rating,Int]) = {
+	def statistics : StatementStatistics = {
+		val stmtCount = {
+			get[Long]("author_id") ~
+			get[Long]("stmt_count") map {
+				case author_id ~ stmt_count  => {
+					( author_id -> stmt_count.toInt)
+				}
+			}
+		}
+
 		val ratingCount = {
+			get[Long]("author_id") ~
 			get[Option[Int]]("rating") ~
 			get[Long]("rating_count") map {
-				case rating ~ count  => {
-					( {if(rating.isDefined && 0 <= rating.get && rating.get < Rating.maxId) Rating(rating.get) else Rating.Unrated} -> count.toInt )
+				case author_id ~ rating ~ count  => {
+					(author_id, (clampRating(rating), count.toInt))
 				}
 			}
 		}
 
 		DB.withConnection({ implicit c =>
-			(
-				SQL("SELECT COUNT(*) FROM statement WHERE author_id = {id}").on('id -> author.id).as(scalar[Long].single).toInt,
-				SQL("SELECT rating, COUNT(rating) AS rating_count FROM statement WHERE author_id = {id} GROUP BY rating").
-					on('id -> author.id).
-					as(ratingCount*).
-					toMap[Rating, Int]
+			val listRatingCounts : List[(Long, (Rating, Int))] = 
+				SQL("""SELECT author_id, rating, COUNT(rating) AS rating_count 
+					FROM statement 
+					WHERE rating IS NOT NULL
+					GROUP BY author_id, rating
+				UNION ALL
+					SELECT statement.author_id, statement2.rating, COUNT(statement.*) AS rating_count
+					FROM statement 
+					JOIN statement AS statement2 ON statement.linked_id = statement2.id 
+					WHERE statement.rating IS NULL
+					GROUP BY statement.author_id, statement2.rating
+					""").as(ratingCount*)
+
+			new StatementStatistics( 
+				SQL("SELECT author_id, COUNT(*) AS stmt_count FROM statement GROUP BY author_id").
+					as(stmtCount*).toMap[Long, Int],
+				listRatingCounts.
+					groupBy(_._1). 
+					mapValues( _.map(_._2).foldLeft(Map.empty[Rating, Int]){ 
+						case (map, (rating, count)) => 
+							map + (rating -> (map.getOrElse(rating, 0) + count)) 
+					})
 			)
 		})
 	}
@@ -323,7 +359,14 @@ object Statement {
 	implicit def rowToSeqString: Column[Seq[String]] = rowToSeq[String, String](s => s)
 	implicit def rowToSeqInt: Column[Seq[Int]] = rowToSeq[Integer, Int](_.intValue)
 	implicit def rowToSeqBoolean: Column[Seq[Boolean]] = rowToSeq[java.lang.Boolean, Boolean](_.booleanValue)
+	
 	private def clampRating(r: Int) = if (0 <= r && r < Rating.maxId) Rating(r) else Rating.Unrated
+	private def clampRating(o: Option[Int]) : Rating = {
+		o match {
+			case Some(rating) => clampRating(rating)
+			case None => Rating.Unrated
+		}
+	}
 
 	private val stmt = {
 			get[Long]("id") ~

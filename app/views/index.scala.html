@@ -1,4 +1,4 @@
-@(cStatement: Int, mapRating: Map[models.Rating.Rating, Int], stmtsRecent: List[Statement], relatedurlgrps: List[RelatedUrlGroup], user: Option[User])(implicit request: play.api.mvc.RequestHeader)
+@(authors: List[Author], stats: StatementStatistics, stmtsRecent: List[Statement], relatedurlgrps: List[RelatedUrlGroup], user: Option[User])(implicit request: play.api.mvc.RequestHeader)
 
 @import models.Rating._
 
@@ -9,20 +9,81 @@
 )){
 
 <div class="row">
-	<div class="col-sm-12 col-md-8">
-	<h1>wahlversprechen</h1>
-	<p class="lead">Versprochen gebrochen oder verlässliche Regierungsarbeit? Diese Seite dokumentiert alle Wahlversprechen der Regierungsparteien. Wieviele wurden bereits umgesetzt, endeten in einem Kompromiss oder scheiterten komplett und wieviele sind noch offen: </p>
+	<div class="col-sm-8">
+    <div class="title">
+      <img src="@routes.Assets.at("/img/logo320.png")" height="50px" class="img">
+      <h1 class="title">
+      wahlversprechen
+      <small>Die Regierung beim Wort genommen</small>
+      </h1>
+    </div>
+    
+    <p class="lead">Versprochen gebrochen oder verlässliche Regierungsarbeit? Diese Seite dokumentiert alle Wahlversprechen der Regierungsparteien. Wieviele wurden bereits umgesetzt, endeten in einem Kompromiss oder scheiterten komplett und wieviele sind noch offen? 
+    </p>  
 
-	@common.progressBar(cStatement, mapRating, "titleprogress", "titleprogress-glyph")	
-	</div>
-    <div class="col-md-4 visible-md visible-lg" style="position: relative; padding: 0px">
-      <img src="/assets/img/reichstag2.jpg" alt="Kuppel des Berliner Reichstags" class="img-thumbnail" style="margin-left: 15px; margin-right: auto">
-      <div style="position: absolute; bottom: 3px; left: 25px; color: white; font-size: 10px;">
-        Foto:&nbsp;<a href="http://www.flickr.com/photos/catcrispi/6213846884/">Grana dos Roas</a>&nbsp;<a href="http://creativecommons.org/licenses/by-nc-sa/2.0/">CC-BY-SA 2.0</a>
+    <div class="social-media">
+      <iframe src="http://ghbtns.com/github-btn.html?user=stheophil&repo=wahlversprechen&type=watch&count=true"  height="21" width="118" frameborder="0" scrolling="0" style="width:118px; height: 21px;" allowTransparency="true"></iframe>
+      <a href="https://twitter.com/share" class="twitter-share-button" data-via="wahl2013" data-lang="de">Twittern</a>
+      <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+      <iframe src="http://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fwww.wahlversprechen2013.de&amp;width&amp;layout=button_count&amp;action=like&amp;show_faces=true&amp;share=true&amp;height=21" scrolling="no" frameborder="0" style="border:none; overflow:hidden; height:21px; display: inline" allowTransparency="true"></iframe>
+      <!--<iframe class="btn" frameborder="0" border="0" scrolling="no" allowtransparency="true" height="25" width="18" src="http://platform.tumblr.com/v1/follow_button.html?button_type=3&tumblelog=wahlversprechen&color_scheme=light"></iframe>-->
+    </div>
+  </div>
+  <div class="col-sm-4">
+  
+  <div id="carousel-example-generic" class="carousel slide titleprogress-carousel" data-interval="" data-wrap="true" data-ride="carousel" style="margin-left: auto; margin-right: auto">  <!-- Wrapper for slides -->
+    <div class="carousel-inner" >
+      @for((author, i) <- authors.view.zipWithIndex) {
+        <div class="item @if(i==0) { active }">
+          <table style="margin-left: 5px; margin-right: 5px">
+
+          @for(ratingId <- 0 until models.Rating.maxId) {
+              @defining(models.Rating(ratingId)) { rating => 
+              @defining(stats.count(author, rating)) { count => 
+              @defining(count.toDouble / math.max(1, stats.count(author)) * 100.0) { percentage => 
+                  <tr>
+                    <td style="white-space: nowrap;">
+                      <a href="/rating/@ratingId">
+                      <span class="titleprogress-header" style="color: @Formatter.color(rating);"><span class="glyphicon @Formatter.glyph(rating)"></span>&nbsp;@Formatter.name(rating):</span> 
+                      </a>
+                    </td>
+                    <td style="width: 100%">
+                    <div class="titleprogress" style="width: @percentage%; min-width: 1%;">
+                      <div class="progress-bar" style="background-color: @Formatter.color(rating); width: 100%;">
+                        @if(20<percentage) {
+                          <a href="/rating/@ratingId">
+                          <span class="titleprogress-label">@count</span>
+                          </a>
+                        }
+                      </div>
+                   </div>
+                    @if(percentage <= 20) {
+                      <a href="/rating/@ratingId">
+                      <span style="color: @Formatter.color(rating);">@count</span>
+                      </a>
+                    }
+                   </td>
+                  </tr>
+              }}}
+          }
+          </table>
+        </div> <!-- item active -->
+      }
+    </div> <!-- carousel inner -->
+  
+    <div style="text-align:center">
+      <div class="btn-group" data-toggle="buttons" style="display:inline-block;">
+      @for((author, i) <- authors.view.zipWithIndex) {
+        <label class="btn btn-default btn-xs" data-target="#carousel-example-generic" data-slide-to="@i">
+        <input type="radio" name="options" id="option@i">@author.shortname
+        </label>
+      }  
       </div>
     </div>
-</div>
-      
+
+  </div> <!-- carousel slide -->
+</div> <!-- column -->
+</div> <!-- row -->
 
 <div class="row" style="margin-top: 30px">
 <div class="col-sm-8 col-sm-offset-2">  

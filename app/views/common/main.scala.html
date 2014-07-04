@@ -39,20 +39,13 @@
           </ul>
 
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="http://blog.@(Formatter.url)/feedback">Feedback</a></li>
-
-            @if(user.isDefined && (user.get.role==Role.Editor || user.get.role==Role.Admin)) {
-                <li><a href="#">Einstellungen</a></li>
-                <li><a href="/logout">Logout</a></li>
-            }
+            <form class="input-group navbar-form" action="/search" method="get" style="width: 200px">
+              <input type="text" name="query" class="form-control typeahead">
+              <span class="input-group-btn">
+                <button class="btn btn-default" type="button"><span class="glyphicon glyphicon-search"></span></button>
+              </span>
+            </form>
           </ul>
-
-          <form class="input-group navbar-form" action="/search" method="get" style="width: 200px">
-            <input type="text" name="query" class="form-control typeahead">
-            <span class="input-group-btn">
-              <button class="btn btn-default" type="button"><span class="glyphicon glyphicon-search"></span></button>
-            </span>
-          </form>
         </div><!--/.navbar-collapse -->
       </div>
     </div>
@@ -67,11 +60,21 @@
         <ul class="list-inline text-center">        
         <li><a href="http://blog.@(Formatter.url)/about">Über uns</a></li>        
         <li><a href="http://blog.@(Formatter.url)">Blog</a></li>
-        <li><a href="http://twitter.com/@(Formatter.twitter)">@@@(Formatter.twitter)</a></li>
+        <li><a href="http://blog.@(Formatter.url)/feedback">Feedback</a></li>
         <li><a href="http://blog.@(Formatter.url)/impressum">Impressum</a></li>
         <li><a href="http://blog.@(Formatter.url)/impressum#datenschutz">Datenschutzerklärung</a></li>
         <li><a href="http://github.com/stheophil/wahlversprechen">Github</a></li>
-        <li><a href="/login">Login</a></li>
+        @user.map(_.role) match {
+          case Some(role) => {
+            @if(role==Role.Admin) {
+              <li><a href="/admin/prefs">Einstellungen</a></li>                
+            }
+            <li><a href="/logout">Logout</a></li>
+          }
+          case None => {
+            <li><a href="/login">Login</a></li>          
+          }
+        } 
         </ul>
       </footer>
     </div>

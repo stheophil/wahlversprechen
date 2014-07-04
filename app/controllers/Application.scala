@@ -27,12 +27,13 @@ object Application extends Controller with Cached {
 		val optuser = user(request)
 
 		val oauthor = Author.loadTopLevel
-		val statistics = oauthor match {
-			case Some(author) => Statement.countRatings(author)
-			case None => (1, Map.empty[Rating, Int])
-		}
-		Logger.debug("Statements: " + statistics._1 + " Statistics: " + statistics._2.toString)
-		Ok(views.html.index(statistics._1, statistics._2, Statement.byEntryDate(oauthor, Some(5)), RelatedUrl.loadRecentGroups(7, Some(10)), user(request)))
+		Ok(views.html.index(
+			Author.loadAll, 
+			Statement.statistics, 
+			Statement.byEntryDate(oauthor, Some(5)), 
+			RelatedUrl.loadRecentGroups(7, Some(10)), 
+			user(request)
+		))
 	}
 	
 	def recent = CachedAction("recent") { implicit request => 		
