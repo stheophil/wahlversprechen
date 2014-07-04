@@ -167,7 +167,7 @@ object Statement {
 		}
 		if(rating.isDefined) {
 			params += ('rating -> rating.get.id)
-			conditions += ("(rating = {rating} OR linked_rating = {rating})")
+			conditions += ("(rating = {rating} OR (rating IS NULL AND linked_rating = {rating}))")
 		}
 		if(importantTagOnly || tag.isDefined) {
 			val conditionsTag = new SQLWhereClause
