@@ -111,9 +111,7 @@
 	<div class="col-sm-6">
         <h2>Aktuell in den Medien:</h2>
         @for(group <- relatedurlgrps) {
-            <div class="item-list">  
-                <div class="item-list-glyph-wrapper">                    
-                </div>
+            <div class="item-list norating">  
                 <div class="item-list-content">
                   <h4><a href="@{routes.DetailViewController.view(group.stmt_id).url}">
                       @group.stmt_title

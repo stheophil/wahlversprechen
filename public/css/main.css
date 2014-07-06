@@ -211,6 +211,10 @@ h1.stmt-list {
 	padding-left: 28px;
 }
 
+.norating .item-list-content {
+	padding-left: 0px;
+}
+
 .item-list-content p, .full-list-content p  {
 	margin-top: 10px;
 }
