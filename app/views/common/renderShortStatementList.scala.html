@@ -1,6 +1,12 @@
-@(strTitle: String, strLink: String, stmts: List[Statement])
+@(strTitle: String, strLink: String, strFeed: Option[String], stmts: List[Statement])
 
-<h2><a href="@strLink">@strTitle</a></h2>
+<h2><a href="@strLink">@strTitle</a>
+  @if(strFeed.isDefined) {
+    <span class="pull-right">
+      <a href="@strFeed"><small><i class="fa fa-rss"></i></small></a>
+    </span>
+  }
+</h2>
 @for(stmt <- stmts) {
   <div class="item-list">    
     <div class="item-list-glyph-wrapper">

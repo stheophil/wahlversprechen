@@ -98,18 +98,25 @@
 
 <div class="col-sm-2" style="text-align: right;">  
   <div style="vertical-align: bottom">
-  <a href="http://codefor.de/berlin"><img src="http://codefor.de/img/CFG_logo.svg" width="100%" style="margin-top: 10px; max-width: 150px"><br/></a>
-  <a href="http://codefor.de/berlin"><small style="font-size: 8px; color: grey">Ein Code For Germany Projekt</small></a>
+  <a href="http://codefor.de/projekte/be-wahlversprechen/"><img src="@routes.Assets.at("img/CFG_logo.svg")" width="100%" style="margin-top: 10px; max-width: 150px"><br/></a>
+  <a href="http://codefor.de/projekte/be-wahlversprechen/"><small style="font-size: 8px; color: grey">Ein Code For Germany Projekt</small></a>
   </div>
 </div>
 </div>
 
 <div class="row">
 	<div class="col-sm-6">
-  	@common.renderShortStatementList("Zuletzt aktualisierte Wahlversprechen:", "/aktuell", stmtsRecent)
+  	@common.renderShortStatementList(
+      "Zuletzt aktualisiert:", 
+      routes.Application.recent.url, 
+      Some(routes.Application.updatesAsFeed.url), 
+      stmtsRecent
+    )
 	</div>
 	<div class="col-sm-6">
-        <h2>Aktuell in den Medien:</h2>
+        <h2>Aktuell in den Medien:
+
+        </h2>
         @for(group <- relatedurlgrps) {
             <div class="item-list norating">  
                 <div class="item-list-content">
