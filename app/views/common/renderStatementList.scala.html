@@ -11,9 +11,7 @@
       <h4><a href="@{routes.DetailViewController.view(stmt.id).url}">@(stmt.title)</a></h4>
       <div>
         <small class="pull-left">
-          <a class="comment-count" data-disqus-identifier="@(stmt.id)" href="@{routes.DetailViewController.view(stmt.id).url}#comments">0</a>
-          &nbsp;
-          <a href="@{routes.DetailViewController.view(stmt.id).url}#comments"><span class="glyphicon glyphicon-comment"></span></a>
+          @commentCount(stmt.id)
         </small> 
          <small class="pull-left" style="margin-left:15px">@if(stmt.latestEntry.isDefined) { Aktualisiert am @Formatter.format(stmt.latestEntry.get) }</small>
          <small class="pull-left" style="margin-left:45px">

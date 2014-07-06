@@ -119,9 +119,7 @@
                   <div>
                     <small class="pull-left"><a href="/category/@group.category">@group.category</a></small>
                     <small class="pull-left" style="margin-left:15px">
-                      <a class="comment-count" data-disqus-identifier="group.stmt_id" href="@{routes.DetailViewController.view(group.stmt_id).url}#comments">0</a>
-                      &nbsp;
-                      <a href="@{routes.DetailViewController.view(group.stmt_id).url}#comments"><span class="glyphicon glyphicon-comment"></span></a>
+                      @common.commentCount(group.stmt_id)
                     </small>
                       <small class="pull-right">Gesehen am @Formatter.format(group.articles.head.lastseen)</small>
                     <div style="clear: both;"></div>
