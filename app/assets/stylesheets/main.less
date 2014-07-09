@@ -1,0 +1,216 @@
+@import "bootstrap/bootstrap.less";
+
+@header-color: #515295; 
+  
+body { 
+	padding-top: 70px; 
+}
+
+h1, h2 {
+	font-weight: 900;
+	color: @header-color;
+	
+	a {
+		color: inherit;
+	}
+}
+
+h3, h4 { 
+	font-weight: 700;
+}
+
+small {
+	a {
+		color: inherit;
+		
+		&:hover {
+			color: inherit;
+			text-decoration: underline;			
+		}
+	}
+}
+
+@navbar-form-height:	(@line-height-computed + @padding-base-vertical + 2);
+
+.navbar {
+	.form-control {
+	  height: @navbar-form-height; // make nav-bar forms vertically compact
+	  width: 100%;
+	  padding: 0 @padding-base-horizontal/2;
+	}
+	
+	.btn {
+		height: @navbar-form-height; // make nav-bar forms vertically compact
+		padding: 0 @padding-base-horizontal/2;
+	}
+	
+	span.input-group-btn {
+		line-height: 0px;
+	}
+	
+	.navbar-form {
+		margin-top: (@navbar-height - @navbar-form-height)/2;
+		margin-bottom: (@navbar-height - @navbar-form-height)/2;
+		padding: 0px;
+	}
+	
+	.input-group {
+		.twitter-typeahead + .input-group-btn {
+			vertical-align: top; // typeahead somehow top-aligns the text-box
+		}
+	}
+}
+
+// title page
+
+.title {
+	white-space: nowrap;
+
+	@title-header-height: @font-size-base * 3.5;
+	
+	h1 {
+		display: inline-block;
+		font-size: @font-size-base * 2.5;
+		
+		@media (min-width: @screen-sm-min) {
+			font-size: @title-header-height;
+		}
+
+		small {
+			font-size: @font-size-base; 
+			display: block
+		}
+	}
+
+	img {
+		vertical-align:bottom; 
+		margin-bottom:10px;
+		margin-left: 15px;
+		margin-right: auto;
+		height: @title-header-height;
+	}
+}
+
+.social-media {
+	display:block; 
+	line-height: 15px; 
+	margin-top: -15px;
+	white-space: nowrap;
+}
+
+
+// Twitter Typeahead
+
+.input-group input.form-control.typeahead.tt-input {
+	border-top-left-radius: 4px;
+	border-bottom-left-radius: 4px;
+}
+
+.twitter-typeahead {
+	width: 100%;
+
+	.tt-dropdown-menu {
+	    width: 300px;
+	    margin-top: 12px;
+	    padding: 8px 0;
+	    background-color: #fff;
+	    border: 1px solid #ccc;
+	    border: 1px solid rgba(0, 0, 0, 0.2);
+	    -webkit-border-radius: 8px;
+	       -moz-border-radius: 8px;
+	            border-radius: 8px;
+	    -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+	       -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+	            box-shadow: 0 5px 10px rgba(0,0,0,.2);
+	            
+       	.tt-header {
+			margin: 5px;
+			font-size: 18px;
+			color: #888;
+		}
+
+		.tt-suggestion {
+			padding: 3px 20px;
+			
+			.tt-cursor {
+				color: #fff;
+				background-color: #0097cf;
+			}
+			
+			p {
+				margin: 0;
+			}
+		}
+	}
+}
+
+.titleprogress-carousel {
+	margin-top: @line-height-computed + 10;
+	
+	.titleprogress-header {
+		font-weight: bold;
+		
+		a {
+			color: inherit;
+			&:hover {
+				color: inherit
+			}
+		}
+	}
+	
+	.titleprogress {
+		height: 25px;	
+		margin-bottom: 3px;
+		overflow: hidden;
+		background-color: #f5f5f5;
+		border-radius: 4px;
+		-webkit-box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+		box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+		display: inline-block;
+		vertical-align: middle;				
+
+		.titleprogress-label {
+			font-size: @font-size-base;
+			font-weight: bold;
+			vertical-align: middle;
+			
+			a {
+				color: inherit;
+				&:hover {
+					color: inherit
+				}
+			}
+		}
+		
+		.progress-bar {
+			width: 100%;
+			
+			.titleprogress-label {
+				color: white;
+			}
+		}
+	}
+}  
+
+
+.relatedurl {
+    margin-top: 10px;
+    padding-left: 0px;
+     
+	li {
+	    list-style-type: none;
+	    line-height: 22px;
+	}
+
+	.favicon {
+	    margin-bottom: 0.5em;
+	}
+}
+
+// /item page
+
+blockquote p {
+	font-family: @font-family-serif;	
+	font-style: italic;
+	font-weight: 400
+}

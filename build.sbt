@@ -21,3 +21,5 @@ libraryDependencies ++= Seq(
 )
 
 playScalaSettings
+
+lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "main.less")

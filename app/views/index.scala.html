@@ -11,8 +11,8 @@
 <div class="row">
 	<div class="col-sm-8">
     <div class="title">
-      <img src="@routes.Assets.at("/img/logo320.png")" height="50px" class="img">
-      <h1 class="title">
+      <img src="@routes.Assets.at("/img/logo320.png")" class="img">
+      <h1>
       wahlversprechen
       <small>Die Regierung beim Wort genommen</small>
       </h1>
@@ -43,25 +43,20 @@
               @defining(stats.count(author, rating)) { count => 
               @defining(count.toDouble / math.max(1, stats.count(author)) * 100.0) { percentage => 
                   <tr>
-                    <td style="white-space: nowrap;">
-                      <a href="/rating/@ratingId">
-                      <span class="titleprogress-header" style="color: @Formatter.color(rating);"><span class="glyphicon @Formatter.glyph(rating)"></span>&nbsp;@Formatter.name(rating):</span> 
-                      </a>
+                    <td style="white-space: nowrap;">                      
+                      <span class="titleprogress-header" style="color: @Formatter.color(rating);"><a href="/rating/@ratingId"><span class="glyphicon @Formatter.glyph(rating)"></span>&nbsp;@Formatter.name(rating):
+                      </a></span> 
                     </td>
                     <td style="width: 100%">
                     <div class="titleprogress" style="width: @percentage%; min-width: 1%;">
                       <div class="progress-bar" style="background-color: @Formatter.color(rating); width: 100%;">
-                        @if(20<percentage) {
-                          <a href="/rating/@ratingId">
-                          <span class="titleprogress-label">@count</span>
-                          </a>
+                        @if(20<percentage) {                          
+                          <span class="titleprogress-label"><a href="/rating/@ratingId">@count</a></span>
                         }
                       </div>
                    </div>
                     @if(percentage <= 20) {
-                      <a href="/rating/@ratingId">
-                      <span style="color: @Formatter.color(rating);">@count</span>
-                      </a>
+                      <span class="titleprogress-label"><a href="/rating/@ratingId" style="color: @Formatter.color(rating);">@count</a></span>
                     }
                    </td>
                   </tr>
