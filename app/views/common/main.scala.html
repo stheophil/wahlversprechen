@@ -60,7 +60,13 @@
        <hr>
 
       <footer>
-        <ul class="list-inline text-center">        
+        <div class="social-media">
+          <a href="https://twitter.com/wahl2013" style="vertical-align: bottom" class="twitter-follow-button" data-show-count="false" data-lang="de">@@wahl2013 folgen</a>
+          <div class="fb-follow" style="vertical-align: bottom" data-href="https://www.facebook.com/wahlversprechen"   data-height="21" data-colorscheme="light" data-layout="button_count" data-show-faces="false"></div>
+          <iframe style="vertical-align: bottom" src="http://ghbtns.com/github-btn.html?user=stheophil&repo=wahlversprechen&type=watch&count=true"  height="20" width="118" frameborder="0" scrolling="0" style="width:118px; height: 20px;" allowTransparency="true"></iframe>
+        </div>
+
+        <ul class="list-inline text-center">
         <li><a href="http://blog.@(Formatter.url)/about">Über uns</a></li>        
         <li><a href="http://blog.@(Formatter.url)">Blog</a></li>
         <li><a href="http://blog.@(Formatter.url)/feedback">Feedback</a></li>
@@ -102,5 +108,16 @@
       ga('send', 'pageview');
 
     </script>
+
+    <div id="fb-root"></div>
+    <script>(function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s); js.id = id;
+      js.src = "//connect.facebook.net/de_DE/sdk.js#xfbml=1&version=v2.0";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));</script>
+
+    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
 </body>
 </html>
