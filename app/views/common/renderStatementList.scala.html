@@ -1,13 +1,13 @@
 @(liststmt: List[Statement])
 
 @for(stmt <- liststmt) {
-  <div class="full-list">    
-    <div class="full-list-glyph-wrapper">
+  <div class="stmt-list">    
+    <div class="glyph-column">
       @if(stmt.rating.isDefined) {
         <span class="glyphicon @Formatter.glyph(stmt.rating.get)" style="color: @Formatter.color(stmt.rating.get);"></span>
       }
     </div>
-    <div class="full-list-content">
+    <div class="content">
       <h4><a href="@{routes.DetailViewController.view(stmt.id).url}">@(stmt.title)</a></h4>
       <div>
         <small class="pull-left">

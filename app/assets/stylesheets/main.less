@@ -192,7 +192,6 @@ small {
 	}
 }  
 
-
 .relatedurl {
     margin-top: 10px;
     padding-left: 0px;
@@ -205,6 +204,74 @@ small {
 	.favicon {
 	    margin-bottom: 0.5em;
 	}
+}
+
+.stmt-list {
+	 position: relative;
+	 
+	 .glyph-column {
+		 position: absolute; 
+		 height: 100%; 
+		 width: 25px;
+		 font-size: 20px;
+	}
+	
+	.content {
+		padding-left: 28px;
+		
+		p {
+			margin-top: 10px;
+		}
+
+		h4 {
+			margin-bottom: 5px;
+		}
+		
+		small {
+			color: grey;
+		}
+
+		blockquote {
+			padding: 0px 10px;
+			margin: 0px 0px 10px;
+			
+			font-size: @font-size-base;
+			font-family: @font-family-serif;	
+			font-style: italic;
+			font-weight: 400
+		}
+	}
+	
+	.body {
+		max-height: 80px;
+		overflow: hidden;
+		position: relative;
+		
+		.read-more { 
+			display: none;
+			position: absolute; 
+			bottom: 0; right: 0;
+			width: 100%; 
+			text-align: right; 
+			margin: 0; 
+			padding-top: 30px; 
+			
+			/* "transparent" only works here because == rgba(0,0,0,0) */ 
+			background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, rgba(255,255,255,0)),color-stop(1, white));
+			background-image: -webkit-linear-gradient(top, rgba(255,255,255,0), white);
+		
+		    background-image: -moz-linear-gradient(top, rgba(255,255,255,0), white);
+		    
+		    background-image: -ms-linear-gradient(top, rgba(255,255,255,0), white);
+		    background-image: -o-linear-gradient(top, rgba(255,255,255,0), white);
+		
+		    background-image: linear-gradient(rgba(255,255,255,0), white);
+		}
+	}
+}
+
+.norating .content {
+	padding-left: 0px;
 }
 
 // /item page

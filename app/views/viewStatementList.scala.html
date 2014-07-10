@@ -1,7 +1,13 @@
-@(title: String, stmtsByAuthor: Map[Author, List[Statement]], groupByCategory: Boolean, user: Option[User])
+@(title: String, stmtsByAuthor: Map[Author, List[Statement]], groupByCategory: Boolean, user: Option[User], strFeed: Option[String] = None)
  
 @common.main(title, user){
-<h1 class="stmt-list">@title</h1>
+<h1>@title
+@if(strFeed.isDefined) {
+ <span class="pull-right">
+      <a href="@strFeed"><small><i class="fa fa-rss"></i></small></a>
+ </span>
+}
+</h1>
 <ul class="nav nav-tabs">
 @for( (author, liststmtAll) <- stmtsByAuthor ) {
 	@if(author==stmtsByAuthor.head._1) {

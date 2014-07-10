@@ -38,7 +38,13 @@ object Application extends Controller with Cached {
 	
 	def recent = CachedAction("recent") { implicit request => 		
 		val mapstmtByAuthor = Statement.byEntryDate(None, None).groupBy(_.author)
-		Ok(views.html.viewStatementList("Alle Wahlversprechen nach letzter Aktualisierung", mapstmtByAuthor, false, user(request)))
+		Ok(views.html.viewStatementList(
+			"Alle Wahlversprechen nach letzter Aktualisierung", 
+			mapstmtByAuthor, 
+			false, 
+			user(request),
+			Some(routes.Application.updatesAsFeed.url)
+		))
 	}
 
 	def top = CachedAction("top") { implicit request =>  
