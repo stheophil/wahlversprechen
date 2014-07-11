@@ -96,7 +96,8 @@ object Formatter {
 	}
 
 	private object FilterXMLFromMarkdown extends Decorator {		
-	    override def allowVerbatimXml():Boolean = false		    
+	    override def allowVerbatimXml() : Boolean = 
+	    	Play.configuration.getBoolean("application.allowHTMLEntries").getOrElse(false)
 	}
 
 	private object FilterPlainTextFromMarkdown extends Decorator {
