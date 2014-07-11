@@ -79,17 +79,17 @@
     <li class="tags">
       <span class="label-lg">
     	@for(t <- stmt.tags) {
-    		<span class='label label-primary'><a href="/tag/@(t.name)">@t.name</a></span>@if(editing) {<small><a href="#" class="ajax-delete" url="@routes.DetailViewController.deleteTag(stmt.id, t.id).url"><span class="glyphicon glyphicon-remove text-danger"></span></a></small>&nbsp;}
+    		<span class='label label-primary'><a href="/tag/@(t.name)">@t.name</a>@if(editing) {<a href="#" class="ajax-delete" url="@routes.DetailViewController.deleteTag(stmt.id, t.id).url"><span class="glyphicon glyphicon-remove"></span></a>}</span>
     	}
       </span>
     	@if(editing) {
     		<br><br>
-    		<form class="ajax-submit form-inline" data-url="@routes.DetailViewController.addTag(stmt.id).url" data-method="POST" data-action="reload" data-alert-id="formNewTag" role="form">
-    		<div class="form-group">
-    		<input type="text" name="name" class="form-control input-sm" size="25" placeholder="Neues Tag hinzufügen">
-    		</div>
-			<button type="submit" class="btn-primary btn btn-sm">OK</button>
-			</form>
+    		<form class="ajax-submit form-inline input-group" data-url="@routes.DetailViewController.addTag(stmt.id).url" data-method="POST" data-action="reload" data-alert-id="formNewTag" role="form">
+      		  <input type="text" name="name" class="form-control input-sm" size="25" placeholder="Neues Tag hinzufügen">
+            <span class="input-group-btn">
+              <button type="submit" class="btn-default btn btn-sm">OK</button>
+            </span>
+        </form>
     	}
     </li>
     <li class="social-media-button"><a href="https://twitter.com/share" class="twitter-share-button" data-via="wahl2013" data-lang="de">Twittern</a>
@@ -120,6 +120,12 @@
 	</div>
 }
 
+@if(!editing) {
+  <span class="pull-right feedicon">
+      <small><a href="@routes.DetailViewController.viewAsFeed(stmt.id).url"><i class="fa fa-rss"></i></a></small>
+  </span>
+}
+
 @for(entry <- stmt.entries) {
 	<a name="@entry.id" id="@entry.id"></a>
 	<div class="row">      
@@ -131,9 +137,6 @@
       </div>
       <div class="entry-meta">      
         <small>Von @entry.user.name am @Formatter.format(entry.date)</small>
-        <span class="pull-right feedicon">
-            <small><a href="@routes.DetailViewController.viewAsFeed(entry.id).url"><i class="fa fa-rss"></i></a></small>
-        </span>
       </div>
       <div class="entry-content">
         @editing match {
