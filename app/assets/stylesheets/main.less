@@ -1,13 +1,18 @@
 @import "bootstrap/bootstrap.less";
 
 @header-color: #515295; 
-  
+
+@font-weight-h1-h2: 900;
+@font-weight-h3-h4: 700;
+
 body { 
 	padding-top: 70px; 
 }
 
+
+
 h1, h2 {
-	font-weight: 900;
+	font-weight: @font-weight-h1-h2;
 	color: @header-color;
 	
 	a {
@@ -16,10 +21,10 @@ h1, h2 {
 }
 
 h3, h4 { 
-	font-weight: 700;
+	font-weight: @font-weight-h3-h4;
 }
 
-small {
+small, .label {
 	a {
 		color: inherit;
 		
@@ -294,9 +299,143 @@ footer .social-media {
 }
 
 // /item page
+@scale-factor-xs: 0.75;
 
-blockquote p {
+h1.entry-title {
+	margin-top: 0px;
+	
+	small {
+		 font-size: 0.5em;
+	}
+	
+	@media (max-width: @screen-xs-max) {
+		font-size: @font-size-h1 * @scale-factor-xs;
+	}
+}
+
+div.entry-rating {
+	vertical-align: middle;
+	font-size: @font-size-h2;
+	font-weight: @font-weight-h1-h2;
+	
+	padding-bottom: 0.5em;
+	margin-bottom: 0.5em;
+	border-bottom: @gray-lighter 1px solid;
+	
+	@media (max-width: @screen-xs-max) {
+		font-size: @font-size-h2 * @scale-factor-xs;
+	}
+}
+
+.label-lg {
+	font-size: @font-size-large;
+	line-height: 1.6em;
+	vertical-align: middle;
+	
+	@media (max-width: @screen-xs-max) {
+		font-size: @font-size-large * @scale-factor-xs;
+	}
+}
+
+.nav-list {
+	li {
+		margin-top: 0px;
+		margin-bottom: 10px;
+		a {
+			position: inherit;
+			display: inline;
+			padding: inherit;
+		}
+		
+		.social-media-button {
+			vertical-align: bottom;
+			
+			iframe {
+				vertical-align: bottom;
+			}
+		}
+		
+		@media (max-width: @screen-md-max) {
+			display: inline-block;
+			vertical-align: top;
+			padding-left: 5px;
+			padding-right: 5px;
+			
+			a {
+				padding-left: 3px;
+				padding-right: 3px;
+			}
+		}
+	}		
+		
+	@media (max-width: @screen-md-max) {
+		.tags {
+			display: block;
+		}
+	}
+}
+
+.entry-quote p {
 	font-family: @font-family-serif;	
 	font-style: italic;
 	font-weight: 400
+}
+
+.entry-buttons {
+	color: grey;
+	font-size: 16px;	
+	float: right;
+}
+
+.entry-meta {
+	small {
+		color: grey;
+	}
+	
+	.feedicon {
+		font-size: @font-size-h2;
+	}
+}
+
+.entry-content {
+	@media (min-width: @screen-sm) {
+		font-size: 16px;
+	}
+	
+	@media (min-width: @screen-md) {
+		font-size: 18px;
+	}
+	
+	:first-child
+	{ 
+		margin-top: 0px;
+	}
+		
+	h1 {
+		font-size: 1.5em; 
+	}
+	
+	h2 {
+		font-size: 1.2em; 
+	}
+
+	h3, h4, h5 {
+		font-size: 1em;
+	}
+
+	p, ul, ol, li {
+		font-size: 1em; 
+	}
+	
+	img {
+		max-width: 100%;
+	}
+}
+
+textarea.expand {
+	height: 40px;
+}
+
+.showonclick {
+	display: none;
 }

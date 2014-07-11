@@ -7,56 +7,54 @@
 )){
 @defining(user.isDefined && (user.get.role==Role.Editor || user.get.role==Role.Admin)) { editing => 
 
-<div class="page-header">                
-    <h1><small><a href="/category/@stmt.category.name">@stmt.category.name</a>&nbsp;|&nbsp;@stmt.author.name</small><br/>
-    @editing match {
-    	case true => {
-    		<span style="white-space: pre-wrap;" class="ajax-update" url="/item/@stmt.id" name="title">@stmt.title</span>
-    	}
-    	case false => { 
-    		@stmt.title 
-    	}
-    }
-    </h1>
-    <div>
-      <span class="rating-row pull-left">          	
-  		@editing match {
-  			case true => {
-      			<form class="form-inline" style="display: inline-block">
-	        	<div class="form-group">
-				    <label for="rating" class="sr-only">Bewerte dieses Wahlversprechen:</label>
-				    <select id="rating" class="form-control ajax-update" url="/item/@stmt.id" name="rating" >
-				    	@if(!stmt.author.top_level) {
-				    		<option value="-1" @if(!stmt.rating.isDefined) { "selected" }>Keine Bewertung</option> 
-				    	}
-				    	@for(rating <- 0 until models.Rating.maxId) {
-						  <option value="@rating" 
-						  	@if(stmt.rating.isDefined && stmt.rating.get.id==rating) { selected }
-						  >@Formatter.name(models.Rating(rating))</option> 
-						}
-					</select>
-				</div>
-				</form>
-      		}
-      		case false => {
-      			<h2 style="color: @if(stmt.rating.isDefined) { @Formatter.color(stmt.rating.get) }; margin: 0px">
-	          	@if(stmt.rating.isDefined) {
-		            <span class="glyphicon @Formatter.glyph(stmt.rating.get)"></span>&nbsp;@Formatter.name(stmt.rating.get)	            
-		        }
-		        &nbsp;	
-		        </h2>
-		    }
-  		}	
-      </span>
-      <span class="rating-row pull-right">
-      	@for(s <- stmtRelatedByAllAuthors) {
-            <a href="@routes.DetailViewController.view(s.id).url"><span class='label' style="color: @{s.author.color}; background-color: @{s.author.background}">@s.author.name</span></a>
+<h1 class="entry-title"><small><a href="/category/@stmt.category.name">@stmt.category.name</a>&nbsp;|&nbsp;@stmt.author.name</small><br/>
+@editing match {
+	case true => {
+		<span style="white-space: pre-wrap;" class="ajax-update" url="/item/@stmt.id" name="title">@stmt.title</span>
+	}
+	case false => { 
+		@stmt.title 
+	}
+}
+</h1>
+<div class="entry-rating">
+  <span class="pull-left">          	
+	@editing match {
+		case true => {
+  			<form class="form-inline" style="display: inline-block">
+      	<div class="form-group">
+		    <label for="rating" class="sr-only">Bewerte dieses Wahlversprechen:</label>
+		    <select id="rating" class="form-control ajax-update" url="/item/@stmt.id" name="rating" >
+		    	@if(!stmt.author.top_level) {
+		    		<option value="-1" @if(!stmt.rating.isDefined) { "selected" }>Keine Bewertung</option> 
+		    	}
+		    	@for(rating <- 0 until models.Rating.maxId) {
+				  <option value="@rating" 
+				  	@if(stmt.rating.isDefined && stmt.rating.get.id==rating) { selected }
+				  >@Formatter.name(models.Rating(rating))</option> 
+				}
+			</select>
+		</div>
+		</form>
+  		}
+  		case false => {
+  			<span style="color: @if(stmt.rating.isDefined) { @Formatter.color(stmt.rating.get) };">
+        	@if(stmt.rating.isDefined) {
+            <span class="glyphicon @Formatter.glyph(stmt.rating.get)"></span>&nbsp;@Formatter.name(stmt.rating.get)	            
         }
-      </span>
-      <div style="clear: both;"></div>
-    </div>
+        </span>
+    }
+	}	
+  </span>
+  <span class="pull-right">
+    <span class="label-lg">
+  	@for(s <- stmtRelatedByAllAuthors) {
+        <span class='label' style="color: @{s.author.color}; background-color: @{s.author.background};"><a href="@routes.DetailViewController.view(s.id).url">@s.author.name</a></span>
+    }
+    </span>
+  </span>
+  <div style="clear: both;"></div>
 </div>
-
 <div class="row">
   <div class="col-md-9 col-sm-12">
   @editing match {
@@ -67,7 +65,7 @@
 	}
   	case false => {
   		@if(stmt.quote.isDefined) {
-			<blockquote class="lead entry-quote">@Formatter.transformToHTML(stmt.quote.get)<br/>
+			<blockquote class="lead entry-quote">@Formatter.transformToHTML(stmt.quote.get)
 			@if(stmt.quote_src.isDefined) {
 				<small>@Formatter.transformToHTML(stmt.quote_src.get)</small>
 			}
@@ -78,10 +76,12 @@
   </div>
   <div class="col-md-3">
     <ul class="nav nav-list hidden-print">
-    <li class="tags"><div class="nav-header">Stichwörter</div>
+    <li class="tags">
+      <span class="label-lg">
     	@for(t <- stmt.tags) {
-    		<a href="/tag/@(t.name)"><span class='label label-primary'>@t.name</span></a>@if(editing) {<small><a href="#" class="ajax-delete" url="@routes.DetailViewController.deleteTag(stmt.id, t.id).url"><span class="glyphicon glyphicon-remove text-danger"></span></a></small>&nbsp;}
+    		<span class='label label-primary'><a href="/tag/@(t.name)">@t.name</a></span>@if(editing) {<small><a href="#" class="ajax-delete" url="@routes.DetailViewController.deleteTag(stmt.id, t.id).url"><span class="glyphicon glyphicon-remove text-danger"></span></a></small>&nbsp;}
     	}
+      </span>
     	@if(editing) {
     		<br><br>
     		<form class="ajax-submit form-inline" data-url="@routes.DetailViewController.addTag(stmt.id).url" data-method="POST" data-action="reload" data-alert-id="formNewTag" role="form">
@@ -92,24 +92,21 @@
 			</form>
     	}
     </li>
-    <li><div class="nav-header">Sharing</div>
-    	@defining( Formatter.FormUrlEncode( routes.DetailViewController.view(stmt.id).absoluteURL(false) ) ) { url => 
-    	@defining( Formatter.FormUrlEncode("Wahlversprechen: \"" + stmt.title+"\"") ) { title => 
-       		<a class="facebook" target="_blank" onclick="return !window.open(this.href, 'Facebook', 'width=640,height=300')" href="http://www.facebook.com/sharer/sharer.php?u=@(url)"><img src="@routes.Assets.at("img/social/Facebook32px.gif")"></a>&nbsp;<a class="twitter" target="_blank" onclick="return !window.open(this.href, 'Twitter', 'width=640,height=300')" href="http://twitter.com/intent/tweet?text=@(title)+@(url)"><img src="@routes.Assets.at("img/social/Twitter32px.gif")"></a>&nbsp<a class="google" target="_blank" onclick="return !window.open(this.href, 'Google+', 'width=640,height=300')" href="https://plus.google.com/share?url=@(url)"><img src="@routes.Assets.at("img/social/Google32px.gif")"></a>&nbsp;<a class="tumblr" target="_blank" onclick="return !window.open(this.href, 'Tumblr', 'width=640,height=300')" href="http://www.tumblr.com/share/link?url=@(url)&name=@(title)"><img src="@routes.Assets.at("img/social/Tumblr32px.gif")"></a>
-       } }
-      <input type="text" class="short-url form-control input-sm" readonly="readonly" value="@{routes.DetailViewController.view(stmt.id).absoluteURL(false)}">
+    <li class="social-media-button"><a href="https://twitter.com/share" class="twitter-share-button" data-via="wahl2013" data-lang="de">Twittern</a>
     </li>
-    <li><div class="nav-header">Abonnieren</div>
-      <a href="@{routes.DetailViewController.viewAsFeed(stmt.id).url}"><img src="@routes.Assets.at("img/social/RSS32px.gif")"></a>&nbsp;
+    <li class="social-media-button">
+        <div class="fb-like" data-href="@routes.DetailViewController.view(stmt.id).absoluteURL(false)" data-width="50" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
     </li>
+
     </ul>
   </div>
 </div>
 
 <hr>
-	
+
 @if(editing) {
 	<div class="row"> 
+
       <div class="col-md-9">
 		<form class="ajax-submit" data-url="@routes.DetailViewController.addEntry(stmt.id).url" data-method="POST" data-action="reload" data-alert-id="formNewEntry" role="form">
 			<div class="form-group">
@@ -126,24 +123,31 @@
 @for(entry <- stmt.entries) {
 	<a name="@entry.id" id="@entry.id"></a>
 	<div class="row">      
-      <div class="entry-content col-md-9">
-      <div class="entry-intro">
-      @if(editing) {
-      	<a href="#" class="ajax-delete" url="/entry/@entry.id"><span class="glyphicon glyphicon-remove text-danger"></span></a>
-      }
+    <div class="col-md-9">
+      <div class="entry-buttons">
+        @if(editing) {
+        	<a href="#" class="ajax-delete" url="/entry/@entry.id"><span class="glyphicon glyphicon-remove text-danger"></span></a>
+        } 
       </div>
-      <small>Von @entry.user.name am @Formatter.format(entry.date)</small>
-      @editing match {
-      	case true => {
-      		<p style="white-space: pre-wrap;" class="ajax-update" name="content" url="/entry/@entry.id">@entry.content</p>
-      	}
-      	case false => {
-      		@Formatter.transformToHTML(entry.content)
-      	}
-      }
+      <div class="entry-meta">      
+        <small>Von @entry.user.name am @Formatter.format(entry.date)</small>
+        <span class="pull-right feedicon">
+            <small><a href="@routes.DetailViewController.viewAsFeed(entry.id).url"><i class="fa fa-rss"></i></a></small>
+        </span>
       </div>
-      <div class="entry-intro col-md-3"></div>
+      <div class="entry-content">
+        @editing match {
+        	case true => {
+        		<p style="white-space: pre-wrap;" class="ajax-update" name="content" url="/entry/@entry.id">@entry.content</p>
+        	}
+        	case false => {
+        		@Formatter.transformToHTML(entry.content)
+        	}
+        }
+      </div>
     </div>
+    <div class="col-md-3"></div>
+  </div>
 }
 <hr>
 @stmt.entries.isEmpty match {
