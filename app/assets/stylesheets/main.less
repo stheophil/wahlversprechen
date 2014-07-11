@@ -71,14 +71,15 @@ small, .label {
 .title {
 	white-space: nowrap;
 
-	@title-header-height: @font-size-base * 3.5;
+	@scaled-height:	@font-size-base * 2.3;
+	@full-height: @font-size-base * 3.5;
 	
 	h1 {
 		display: inline-block;
-		font-size: @font-size-base * 2.5;
+		font-size: @scaled-height;
 		
 		@media (min-width: @screen-sm-min) {
-			font-size: @title-header-height;
+			font-size: @full-height;
 		}
 
 		small {
@@ -89,10 +90,12 @@ small, .label {
 
 	img {
 		vertical-align:bottom; 
-		margin-bottom:10px;
-		margin-left: 15px;
-		margin-right: auto;
-		height: @title-header-height;
+		margin-bottom: (@line-height-computed / 2); // h1 margin-bottom
+		height: @scaled-height;
+		
+		@media (min-width: @screen-sm-min) {
+			height: @full-height;
+		}
 	}
 }
 
