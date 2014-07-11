@@ -54,9 +54,15 @@ small, .label {
 	}
 	
 	.navbar-form {
-		margin-top: (@navbar-height - @navbar-form-height)/2;
-		margin-bottom: (@navbar-height - @navbar-form-height)/2;
-		padding: 0px;
+		padding-left: 30px;
+	}
+	
+	@media (min-width: @screen-sm) {
+		.navbar-form {
+			margin-top: (@navbar-height - @navbar-form-height)/2;
+			margin-bottom: (@navbar-height - @navbar-form-height)/2;	
+			padding: 0px;
+		}
 	}
 	
 	.input-group {
@@ -64,6 +70,10 @@ small, .label {
 			vertical-align: top; // typeahead somehow top-aligns the text-box
 		}
 	}
+}
+
+.navbar-collapse.in {
+	overflow-y: visible; // necessary for search suggestions dropdown
 }
 
 // title page

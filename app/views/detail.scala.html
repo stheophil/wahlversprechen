@@ -7,7 +7,7 @@
 )){
 @defining(user.isDefined && (user.get.role==Role.Editor || user.get.role==Role.Admin)) { editing => 
 
-<h1 class="entry-title"><small><a href="/category/@stmt.category.name">@stmt.category.name</a>&nbsp;|&nbsp;@stmt.author.name</small><br/>
+<h1 class="entry-title"><small><a href="/category/@stmt.category.name">@stmt.category.name</a>&nbsp;| @stmt.author.name</small><br/>
 @editing match {
 	case true => {
 		<span style="white-space: pre-wrap;" class="ajax-update" url="/item/@stmt.id" name="title">@stmt.title</span>
