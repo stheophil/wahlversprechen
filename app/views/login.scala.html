@@ -1,4 +1,4 @@
-@(form: Form[(String,String)])(implicit flash: Flash)
+@(form: Form[(String,String, String)])(implicit flash: Flash)
 
 @common.main("Wahlversprechen Login", None){
     <h1>Login</h1>
@@ -24,9 +24,7 @@
         <label class="sr-only" for="password">Passwort</label>
         <input type="password" class="form-control" name="password" id="password" placeholder="Passwort">
       </div>
+      <input type="hidden" name="redirect" id="redirect" value="@form("redirect").value">
       <button type="submit" class="btn btn-default">Login</button>
     </form>
 }
-    
-
-

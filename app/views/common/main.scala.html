@@ -1,4 +1,4 @@
-@(title: String, user: Option[User], meta: Html = Html.empty)(content: Html)
+@(title: String, user: Option[User], login_redirect: Option[String] = None, meta: Html = Html.empty)(content: Html)
 <!DOCTYPE html>
 <html>
   <head>
@@ -79,7 +79,7 @@
             <li><a href="/logout">Logout</a></li>
           }
           case None => {
-            <li><a href="/login">Login</a></li>          
+            <li><a href="/login@{login_redirect.map( "?redirect=" + Formatter.MIMEEncode(_) ).getOrElse("")}">Login</a></li>          
           }
         } 
         </ul>
