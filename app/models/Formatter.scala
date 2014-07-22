@@ -73,7 +73,7 @@ object Formatter {
 
   def favicon(strUrl: String) : String = {
     val url = new java.net.URL(strUrl)
-    "http://www.google.com/s2/favicons?domain=" + url.getHost
+    "//www.google.com/s2/favicons?domain=" + url.getHost
   }
 
 	def socialMetaTags(url: String, description: String, img: String) : Html = {
