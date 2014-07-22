@@ -22,18 +22,31 @@ object Admin extends Controller with Secured {
 	val loginForm = Form(
 		tuple(
 			"email" -> text,
-			"password" -> text) verifying ("Ungültige E-Mail oder falsches Passwort", result => result match {
-				case (email, password) => User.authenticate(email, password).isDefined
+			"password" -> text,
+			"redirect" -> optional(text)) verifying ("Ungültige E-Mail oder falsches Passwort", result => result match {
+				case (email, password, redirect) => User.authenticate(email, password).isDefined
 			}))
 
+
 	def login = HTTPS { implicit request =>
-		Ok(html.login(loginForm))
+		val redirect = request.queryString.get("redirect").map( _.head )
+		Logger.debug("Login & redirect to " + redirect)
+		Ok(html.login(loginForm.bind( Map("redirect" -> redirect.getOrElse("")) )))
 	}
 
 	def authenticate = Action { implicit request =>
 		loginForm.bindFromRequest.fold(
 			formWithErrors => BadRequest(html.login(formWithErrors)),
-			user => Redirect(routes.Application.index).withSession("email" -> user._1))
+			{				
+				case (email, _, redirect) => {
+					Logger.debug("Authenticate & redirect to " + redirect)
+					(if(redirect.isDefined) {
+						Redirect(redirect.get)
+					} else {
+						Redirect(routes.Application.index)
+					}).withSession("email" -> email)
+				}
+			})
 	}
 
 	def logout = Action {
@@ -186,7 +199,7 @@ object Admin extends Controller with Secured {
  * Provide security features
  */
 trait Secured extends ControllerBase {
-	def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Admin.login)
+	def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Admin.login.url, Map("redirect" -> Seq(request.path)))
 
 	def IsAuthenticated(f: => String => Request[AnyContent] => Result) = Security.Authenticated(username, onUnauthorized) { user =>
 		Action(request => f(user)(request))
@@ -220,7 +233,7 @@ trait Secured extends ControllerBase {
 			request.headers.get("x-forwarded-proto").get.contains("https")) {
 			f(request)
 		} else {
-			Results.Redirect("https://"+request.host + request.uri);
+			Results.Redirect("https://"+request.host + request.uri, request.queryString);
 		}
 	}
 }

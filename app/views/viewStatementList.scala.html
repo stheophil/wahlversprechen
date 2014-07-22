@@ -1,6 +1,6 @@
-@(title: String, stmtsByAuthor: Map[Author, List[Statement]], groupByCategory: Boolean, user: Option[User], strFeed: Option[String] = None)
+@(title: String, stmtsByAuthor: Map[Author, List[Statement]], groupByCategory: Boolean, user: Option[User], strFeed: Option[String] = None)(implicit request: play.api.mvc.RequestHeader)
  
-@common.main(title, user){
+@common.main(title, user, Some(request.path)){
 <h1>@title
 @if(strFeed.isDefined) {
  <span class="pull-right">
