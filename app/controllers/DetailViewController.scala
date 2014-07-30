@@ -58,6 +58,10 @@ object DetailViewController extends Controller with Secured with Cached {
 		}		
 	}
 
+	def relatedUrlsAsJSON(id: Long, limit: Option[Int], offset: Option[Int] ) = CachedAction("relatedurl."+id+"."+limit+"."+offset) { implicit request => 
+		Ok(Json.toJson( RelatedUrl.load( id, limit, offset)))
+	}
+
 	val newEntryForm = Form("content" -> nonEmptyText)
 
 	def addEntry(stmt_id: Long) = IsEditor { user => implicit request =>

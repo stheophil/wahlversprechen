@@ -418,7 +418,7 @@ object Statement {
 	    Json.obj(
 	    	"id" -> e.id,
 	    	"content" -> e.content,
-	    	"date" -> Formatter.formatRFC822(e.date),
+	    	"date" -> Formatter.formatISO8601(e.date),
 	    	"user" -> e.user.name
 	    )
 	  }
@@ -428,7 +428,7 @@ object Statement {
 	  def writes(r: (Rating, Date)): JsValue = {
 	  	Json.obj( 
 	  		"rating" -> r._1.toString,
-	  		"date" -> Formatter.formatRFC822(r._2) 
+	  		"date" -> Formatter.formatISO8601(r._2) 
 	  	)
 	  }
 	}

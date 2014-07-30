@@ -31,6 +31,8 @@ GET		/item/:id/feed				controllers.DetailViewController.viewAsFeed(id: Long)
 
 # Item API
 GET 	/json/item/:id 				controllers.DetailViewController.viewAsJSON(id: Long)
+GET 	/json/item/:id/relatedurls	controllers.DetailViewController.relatedUrlsAsJSON(id: Long, limit: Option[Int], offset: Option[Int])
+
 PUT 	/item/:id					controllers.DetailViewController.update(id: Long)
 POST 	/item/:id					controllers.DetailViewController.addEntry(id: Long)
 DELETE 	/item/:id 					controllers.DetailViewController.delete(id: Long)

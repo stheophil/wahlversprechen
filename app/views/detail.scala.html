@@ -57,6 +57,7 @@
 </div>
 <div class="row">
   <div class="col-md-9 col-sm-12">
+  <!-- item quote --> 
   @editing match {
   	case true => {
       	<blockquote class="lead entry-quote"><p style="white-space: pre-wrap;" class="ajax-update" url="/item/@stmt.id" name="quote">@stmt.quote.getOrElse("Gib ein Zitat ein")</p><br/>
@@ -65,131 +66,105 @@
 	}
   	case false => {
   		@if(stmt.quote.isDefined) {
-			<blockquote class="lead entry-quote">@Formatter.transformToHTML(stmt.quote.get)
-			@if(stmt.quote_src.isDefined) {
-				<small>@Formatter.transformToHTML(stmt.quote_src.get)</small>
-			}
-			</blockquote>
+  			<blockquote class="lead entry-quote">@Formatter.transformToHTML(stmt.quote.get)
+  			@if(stmt.quote_src.isDefined) {
+  				<small>@Formatter.transformToHTML(stmt.quote_src.get)</small>
+  			}
+  			</blockquote>
 	  	}
-	}
+    }
   }
+
+  <hr>
+  <div class="visible-xs visible-sm">
+  @common.detailSidebar(stmt, editing)
+  </div>
+  <!-- blog entries --> 
+  @editing match {
+    case true => {
+      <form class="ajax-submit" data-url="@routes.DetailViewController.addEntry(stmt.id).url" data-method="POST" data-action="reload" data-alert-id="formNewEntry" role="form">
+        <div class="form-group">
+          <textarea class="expand form-control" name="content" style="width: 100%;" placeholder="Schreibe einen neuen Beitrag ..."></textarea>
+          <span class="help-inline showonclick">(Formatierungen im <a href="http://daringfireball.net/projects/markdown/syntax#block">Markdown-Format</a> werden unterstützt.)<br/><br/></span>
+        </div>
+        <button type="submit" class="btn-primary btn showonclick">Abschicken</button>
+        <button type="button" class="btn-default btn cancel showonclick">Abbrechen</button>
+      </form>
+    }
+    case false => {
+      <span class="pull-right feedicon">
+          <small><a href="@routes.DetailViewController.viewAsFeed(stmt.id).url"><i class="fa fa-rss"></i></a></small>
+      </span>
+    }
+  }
+
+  @for(entry <- stmt.entries) {
+    <div>
+    <a name="@entry.id" id="@entry.id"></a>
+        <div class="entry-buttons">
+          @if(editing) {
+            <a href="#" class="ajax-delete" url="/entry/@entry.id"><span class="glyphicon glyphicon-remove text-danger"></span></a>
+          } 
+        </div>
+        <div class="entry-meta">      
+          <small>Von @entry.user.name am @Formatter.format(entry.date)</small>
+        </div>
+        <div class="entry-content">
+          @editing match {
+            case true => {
+              <p style="white-space: pre-wrap;" class="ajax-update" name="content" url="/entry/@entry.id">@entry.content</p>
+            }
+            case false => {
+              @Formatter.transformToHTML(entry.content)
+            }
+          }
+        </div>
+    </div>
+  }
+
   </div>
   <div class="col-md-3">
-    <ul class="nav nav-list hidden-print">
-    <li class="tags">
-      <span class="label-lg">
-    	@for(t <- stmt.tags) {
-    		<span class='label label-primary'><a href="/tag/@(t.name)">@t.name</a>@if(editing) {<a href="#" class="ajax-delete" url="@routes.DetailViewController.deleteTag(stmt.id, t.id).url"><span class="glyphicon glyphicon-remove"></span></a>}</span>
-    	}
-      </span>
-    	@if(editing) {
-    		<br><br>
-    		<form class="ajax-submit form-inline input-group" data-url="@routes.DetailViewController.addTag(stmt.id).url" data-method="POST" data-action="reload" data-alert-id="formNewTag" role="form">
-      		  <input type="text" name="name" class="form-control input-sm" size="25" placeholder="Neues Tag hinzufügen">
-            <span class="input-group-btn">
-              <button type="submit" class="btn-default btn btn-sm">OK</button>
-            </span>
-        </form>
-    	}
-    </li>
-    <li class="social-media-button"><a href="https://twitter.com/share" class="twitter-share-button" data-via="wahl2013" data-lang="de">Twittern</a>
-    </li>
-    <li class="social-media-button">
-        <div class="fb-like" data-href="@routes.DetailViewController.view(stmt.id).absoluteURL(false)" data-width="50" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
-    </li>
-
-    </ul>
+    <div class="hidden-xs hidden-sm">
+    @common.detailSidebar(stmt, editing)
+    </div>
+    
+    <h4 style="margin-top: 50px; color: grey">Aktuell in den Medien:</h4>
+      <ul id="relatedurl" style="padding-left:16px;">
+      </ul>
+      <button type="button" id="moreRelatedUrls" class="btn btn-link"><span class="glyphicon glyphicon-plus-sign"></span>&nbsp;Mehr anzeigen</button>
   </div>
 </div>
 
-<hr>
+<div class="row">
+  <div class="col-md-9 col-sm-12">
+  @stmt.entries.isEmpty match {
+  	case true => {
+  	 		<p class="lead">Arbeitet die Regierung bereits an diesem Vorhaben? Gibt es irgendwelche Neuigkeiten oder ist es sogar schon umgesetzt? Dann schreib uns in den Kommentaren!</p>
+  	 }
+  	 case false => {
+          <hr>
+    			<p class="lead">Du bist anderer Meinung oder gibt es neue Entwicklungen, die dieser Bewertung widersprechen? Diskutier mit!</p>
+  	 }
+  }
 
-@if(editing) {
-	<div class="row"> 
-
-      <div class="col-md-9">
-		<form class="ajax-submit" data-url="@routes.DetailViewController.addEntry(stmt.id).url" data-method="POST" data-action="reload" data-alert-id="formNewEntry" role="form">
-			<div class="form-group">
-		   	<textarea class="expand form-control" name="content" style="width: 100%;" placeholder="Schreibe einen neuen Beitrag ..."></textarea>
-		    <span class="help-inline showonclick">(Formatierungen im <a href="http://daringfireball.net/projects/markdown/syntax#block">Markdown-Format</a> werden unterstützt.)<br/><br/></span>
-		    </div>
-		    <button type="submit" class="btn-primary btn showonclick">Abschicken</button>
-		    <button type="button" class="btn-default btn cancel showonclick">Abbrechen</button>
-		</form>
-	  </div>
-	</div>
-}
-
-@if(!editing) {
-  <span class="pull-right feedicon">
-      <small><a href="@routes.DetailViewController.viewAsFeed(stmt.id).url"><i class="fa fa-rss"></i></a></small>
-  </span>
-}
-
-@for(entry <- stmt.entries) {
-	<a name="@entry.id" id="@entry.id"></a>
-	<div class="row">      
-    <div class="col-md-9">
-      <div class="entry-buttons">
-        @if(editing) {
-        	<a href="#" class="ajax-delete" url="/entry/@entry.id"><span class="glyphicon glyphicon-remove text-danger"></span></a>
-        } 
-      </div>
-      <div class="entry-meta">      
-        <small>Von @entry.user.name am @Formatter.format(entry.date)</small>
-      </div>
-      <div class="entry-content">
-        @editing match {
-        	case true => {
-        		<p style="white-space: pre-wrap;" class="ajax-update" name="content" url="/entry/@entry.id">@entry.content</p>
-        	}
-        	case false => {
-        		@Formatter.transformToHTML(entry.content)
-        	}
-        }
-      </div>
-    </div>
-    <div class="col-md-3"></div>
-  </div>
-}
-<hr>
-@stmt.entries.isEmpty match {
-	case true => {
-	 		<p class="lead">Arbeitet die Regierung bereits an diesem Vorhaben? Gibt es irgendwelche Neuigkeiten oder ist es sogar schon umgesetzt? Dann schreib uns in den Kommentaren!</p>
-	 }
-	 case false => {
-  			<p class="lead">Du bist anderer Meinung oder gibt es neue Entwicklungen, die dieser Bewertung widersprechen? Diskutier mit!</p>
-	 }
-}
-
-<!--
-<div id="pd_rating_holder_7012588"></div>
-<script type="text/javascript">
-PDRTJS_settings_7012588 = {
-"id" : "7012588",
-"unique_id" : "@stmt.id",
-"title" : "@stmt.title",
-"permalink" : "@{routes.DetailViewController.view(stmt.id).url}"
-};
-</script>
-<script type="text/javascript" src="http://i0.poll.fm/js/rating/rating.js"></script>
--->
-<a name="comments" id="comments"></a>
-<div id="disqus_thread"></div>
-<script type="text/javascript">
-  	/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
-        var disqus_shortname = '@Formatter.disqus_shortname'; // required: replace example with your forum shortname
-		var disqus_identifier = @stmt.id;
-		var disqus_title = "#" + @stmt.id + ": " + "@stmt.title";
-        /* * * DON'T EDIT BELOW THIS LINE * * */
-        (function() {
-            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-        })();
-    </script>
-<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+  <a name="comments" id="comments"></a>
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    	/* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+          var disqus_shortname = '@Formatter.disqus_shortname'; // required: replace example with your forum shortname
+  		var disqus_identifier = @stmt.id;
+  		var disqus_title = "#" + @stmt.id + ": " + "@stmt.title";
+          /* * * DON'T EDIT BELOW THIS LINE * * */
+          (function() {
+              var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+              dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+              (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+          })();
+      </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+ </div>
+</div>
 
 @if(editing && user.get.role==Role.Admin) {
 	<p>
@@ -212,6 +187,86 @@ PDRTJS_settings_7012588 = {
 	    </div><!-- /.modal-content -->
 	  </div><!-- /.modal-dialog -->
 	</div><!-- /.modal -->
-		
 }
+
 }}
+
+<script src="@routes.Assets.at("js/moment-with-langs.js")"></script>
+
+<script>
+var getLocation = function(href) {
+    var l = document.createElement("a");
+    l.href = href;
+    return l;
+};
+
+function loadMoreRelatedUrls(cNewItems) {
+  cNewItems = typeof cNewItems !== 'undefined' ? cNewItems : 5;
+
+  var div = $("ul#relatedurl")
+  var itemCount = div.children().length
+
+  var cLoadItems = Math.max(10, 2 * cNewItems); 
+  var data = {};
+  data['limit'] = cLoadItems;
+  data['offset'] = itemCount;
+
+  $.ajax({
+    url: "@routes.DetailViewController.relatedUrlsAsJSON(stmt.id, None, None).url",
+    data: data
+  }).done(function(relatedurls, textStatus, jqXHR) {    
+    var cVisibleItems = 0;
+    for( i = 0; i < relatedurls.length && cVisibleItems<cNewItems; ++i ) {
+      var relatedurl = relatedurls[i];
+      var host = getLocation(relatedurl.url).hostname
+
+      var style = 'list-style-image: url(//www.google.com/s2/favicons?domain='+host+');';
+      if(relatedurl.confidence<8) {
+        style += " display:none;";
+      } else {
+        cVisibleItems += 1;
+      }
+
+      var time = moment(relatedurl.lastseen);
+
+      $('<li data-confidence="' + relatedurl.confidence + '" style="' + style + '"">' + 
+        '<a href="' + relatedurl.url + '">' + relatedurl.title + '</a>' + 
+        '&nbsp;<small>' + time.fromNow() + '</small>' +
+        '</li>'
+      ).appendTo(div); 
+    }
+    if(relatedurls.length < cLoadItems) {
+      $("#moreRelatedUrls").prop("disabled", true);
+    } else if(cVisibleItems < cNewItems) {
+      loadMoreRelatedUrls(cNewItems - cVisibleItems);
+    }
+    
+
+  })
+}
+$(document).ready(function() {
+  moment.lang("de", {
+    relativeTime : {
+      future: "in %s",
+      past:   "%s",
+      s:  "< 1 min",
+      m:  "1 min",
+      mm: "%d min",
+      h:  "1 h",
+      hh: "%d h",
+      d:  "1 Tag",
+      dd: "%d Tage",
+      M:  "1 Monat",
+      MM: "%d Monate",
+      y:  "1 Jahr",
+      yy: "%d Jahre"
+    }
+  })
+
+  loadMoreRelatedUrls()
+  $("#moreRelatedUrls").click(function(e) {
+    loadMoreRelatedUrls()
+    e.preventDefault()
+  })
+})
+</script>

@@ -51,6 +51,17 @@ object RelatedUrl {
     }
   }
 
+  def load(stmt_id: Long, limit: Option[Int] = None, offset: Option[Int] = None ) : List[RelatedUrl] = {
+    DB.withConnection { implicit c =>
+      val query = "SELECT * FROM relatedurl WHERE stmt_id = {stmt_id} ORDER BY lastseen DESC OFFSET {offset}"
+      val queryLimit = query + " LIMIT {limit}"
+      limit match {
+        case None => SQL(query).on('stmt_id -> stmt_id, 'offset -> offset.getOrElse(0)).as(relatedurl*)
+        case Some(l) => SQL(queryLimit).on('stmt_id -> stmt_id, 'offset -> offset.getOrElse(0), 'limit -> l).as(relatedurl*)
+      }
+    }
+  }
+
   def loadRecent(daysSince: Int, limit: Option[Int]) : List[RelatedUrl] = {
     val cal = Calendar.getInstance()
     cal.add(Calendar.DAY_OF_YEAR, - daysSince)
@@ -105,6 +116,20 @@ object RelatedUrl {
   def update(id: Long, date: Date) : Boolean = {
     DB.withConnection{ implicit c =>
       0 < SQL("UPDATE relatedurl SET lastseen = {date} WHERE id = {id}").on('date -> date, 'id -> id).executeUpdate()
+    }
+  }
+
+  import play.api.libs.json._
+  implicit val RelatedUrlToJson = new Writes[RelatedUrl] {
+    def writes(s: RelatedUrl): JsValue = {
+      Json.obj(
+        "id" -> s.id,
+        "stmt_id" -> s.stmt_id,
+        "title" -> s.title,
+        "url" -> s.url,
+        "confidence" -> s.confidence,
+        "lastseen" -> Formatter.formatISO8601(s.lastseen)
+      )
     }
   }
 }

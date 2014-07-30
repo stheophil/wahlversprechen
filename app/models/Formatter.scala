@@ -67,9 +67,20 @@ object Formatter {
 		new java.text.SimpleDateFormat("dd.MM.yy", lang.toLocale).format(date)
 	}
 
+	val RFC822DateFormatter = new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", java.util.Locale.US)
 	def formatRFC822(date: Date) : String = {
-		new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", java.util.Locale.US).format(date);
+		RFC822DateFormatter.format(date);
 	}
+
+	val ISO8601DateFormatter = {
+		val df = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+	    df.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+	    df
+	}
+
+	def formatISO8601(date: Date) : String = {
+		ISO8601DateFormatter.format(date);	
+	}	
 
   def favicon(strUrl: String) : String = {
     val url = new java.net.URL(strUrl)
