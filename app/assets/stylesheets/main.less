@@ -388,6 +388,40 @@ div.entry-rating {
 	}
 }
 
+.sidebar {
+	font-size: 14px;
+
+	h1 {
+		font-size: 1.5em; 
+
+		@media (min-width: @screen-md) {
+			margin-top: 50px; 
+		}
+	}
+	
+	h2 {
+		font-size: 1.2em; 
+	}
+
+	h3, h4, h5 {
+		font-size: 1em;
+	}
+
+	h1 {
+		color: grey;
+	}
+
+	ul#relatedurl {
+		padding-left: 25px;
+
+		li {
+			small {
+				color: grey;
+			}
+		}
+	}
+}
+
 .entry-quote {
 	font-family: @font-family-serif;	
 	font-style: italic;
@@ -444,6 +478,8 @@ div.entry-rating {
 	img {
 		max-width: 100%;
 	}
+
+	margin-bottom: 2em;
 }
 
 textarea.expand {
