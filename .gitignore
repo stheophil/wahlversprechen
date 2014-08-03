@@ -24,7 +24,6 @@ dist
 .cache
 
 conf/generated.keystore
-conf/application.conf
 
 *.sublime-project
 
