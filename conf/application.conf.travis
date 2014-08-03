@@ -38,8 +38,8 @@ application.langs="en"
 #
 db.default.driver=org.postgresql.Driver
 db.default.url="jdbc:postgresql://localhost/wahlversprechen_test"
-db.default.user="travis"
-db.default.password="travis"
+db.default.user="postgres"
+db.default.password=""
 
 # Evolutions
 # ~~~~~
