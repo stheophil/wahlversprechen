@@ -2,11 +2,12 @@ import java.util.concurrent.TimeUnit
 import play.api._
 import play.api.templates._
 import play.api.libs.concurrent._
-import scala.concurrent.duration._
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.mvc.WithFilters
+import play.filters.gzip.GzipFilter
+
 import models._
 
-object Global extends GlobalSettings {
+object Global  extends WithFilters(new GzipFilter) with GlobalSettings {
   val scheduler = new java.util.concurrent.ScheduledThreadPoolExecutor(1)
 
   override def onStart(app: Application) {
