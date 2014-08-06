@@ -28,6 +28,7 @@ object FeedDaemon {
 	def update() {
 		val feeds = Play.configuration.getStringList("application.feeds").map( _.asScala.toList ).getOrElse(List.empty[String])
     val cBestMatches = Play.configuration.getInt("application.feed_match_count").getOrElse(25)
+    val fMinScore = Play.configuration.getDouble("application.feed_min_score").getOrElse(4.0)
 
     if(cBestMatches <= 0 || feeds.isEmpty) return
 
@@ -61,7 +62,7 @@ object FeedDaemon {
         timeStart = new Date().getTime()
         results.foreach{ r =>
           r.articles.filter( 
-            _.confidence > Play.configuration.getDouble("application.feed_min_score").getOrElse(4.0)
+            _.confidence > fMinScore
           ).foreach{ article =>
             RelatedUrl.loadByUrl(r.text.id, article.url) match {
               case Some(relatedurl) =>

@@ -4,27 +4,57 @@ import play.api.templates._
 import play.api.libs.concurrent._
 import scala.concurrent.duration._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-
 import models._
 
 object Global extends GlobalSettings {
+  val scheduler = new java.util.concurrent.ScheduledThreadPoolExecutor(1)
+
   override def onStart(app: Application) {
     play.api.Play.mode(app) match {
       case play.api.Mode.Test => // do not schedule anything for Test
       case _ => {
         Logger.info("Scheduling the feed parser daemon")
-        Akka.system(app).scheduler.schedule(
-          Duration.Zero,
-          Duration(2, "hours"),
+        
+        scheduler.scheduleAtFixedRate( 
           new Runnable {
             def run() {
-              controllers.FeedDaemon.update()
+              Logger.info("Started FeedDaemon.update()")
+              try {
+                controllers.FeedDaemon.update()  
+              } catch {
+                case e: InterruptedException => 
+                  Logger.info("Interrupted FeedDaemon.update()")
+                case e: Exception =>
+                  Logger.error("Unknown Exception in FeedDaemon.update()")
+                  e.printStackTrace()
+                  throw e
+              } finally {
+                Logger.info("Finished FeedDaemon.update()")
+              }             
             }
-          })
+          }, 0, 2, TimeUnit.HOURS
+        )
 
         InitialData.insert(app)
       }
     }
+  }
+
+  override def onStop(app: Application) {
+    Logger.info("Shutdown ScheduledThreadPoolExecutor")
+    scheduler.shutdownNow()
+
+    try {
+      if(scheduler.awaitTermination(2, TimeUnit.MINUTES)) {
+        Logger.info("scheduler.awaitTermination succeeded")
+      } else {
+        Logger.error("ScheduledThreadPoolExecutor didn't terminate before timeout")
+      }
+    } catch {
+      case e: Exception => 
+        Logger.error("scheduler.awaitTermination was interrupted")
+        e.printStackTrace
+    }    
   }
 }
 
