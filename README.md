@@ -8,14 +8,14 @@ It is currently used to track the campaign promises of the German government at 
 
 ## Docs
 
-[Read the documentation](http://wahlversprechen.readthedocs.org/en/latest/) including the [Setup Guide](http://wahlversprechen.readthedocs.org/en/latest/setupguide/) and [a Heroku deployment guide](http://wahlversprechen.readthedocs.org/en/latest/herokudeployment/).
+[Read the documentation](http://wahlversprechen.readthedocs.org/en/latest/) including the [Setup Guide](http://wahlversprechen.readthedocs.org/en/latest/setupguide/) and guide on how to [import your own data](http://wahlversprechen.readthedocs.org/en/latest/dataimport/) and how to [export data using the JSON API](http://wahlversprechen.readthedocs.org/en/latest/dataexport/).
 
 ## Contributing
 
 - The application needs to be internationalized to be usable in other countries.
 - There should be a simple setup page that appears when the site is started for the first time without any data.
-- I would like to improve the JSON API so people can visualize the data. 
 - The site needs fancy visualizations for the data that is accumulated, e.g., a timeline of the fulfilled campaign promises.
+- As always, [see the issues list](https://github.com/stheophil/wahlversprechen/issues/) for more. 
 
 ## License
 
