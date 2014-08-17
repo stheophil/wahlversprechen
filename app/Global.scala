@@ -2,12 +2,31 @@ import java.util.concurrent.TimeUnit
 import play.api._
 import play.api.templates._
 import play.api.libs.concurrent._
-import play.api.mvc.WithFilters
+import play.api.mvc._
 import play.filters.gzip.GzipFilter
+
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import scala.concurrent.Future
 
 import models._
 
-object Global  extends WithFilters(new GzipFilter) with GlobalSettings {
+object CorsFilter extends Filter {
+  def apply(nextFilter: (RequestHeader) => Future[SimpleResult])
+           (requestHeader: RequestHeader): Future[SimpleResult] = {
+  
+    val result = nextFilter(requestHeader)
+    requestHeader.path.startsWith("/json") match {
+      case true => result.map( _.withHeaders( 
+        "Access-Control-Allow-Origin" -> "*",
+        "Access-Control-Allow-Methods" -> "POST, GET, OPTIONS, PUT, DELETE",
+        "Access-Control-Allow-Headers" -> "x-requested-with,content-type,Cache-Control,Pragma,Date"
+      ))
+      case false => result
+    }
+  }
+}
+
+object Global extends WithFilters(new GzipFilter, CorsFilter) with GlobalSettings {
   val scheduler = new java.util.concurrent.ScheduledThreadPoolExecutor(1)
 
   override def onStart(app: Application) {

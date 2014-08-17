@@ -106,6 +106,14 @@ object Application extends Controller with Cached {
 	def loader_io = Action {
 		Ok("loaderio-a8c18c9612671703651ea5e79d55623e")
 	}
+
+	def preflight(all: String) = Action { implicit request => 
+		Logger.debug("OPTIONS preflight request: " + request.path)
+		Ok("").withHeaders("Access-Control-Allow-Origin" -> "*",
+	      "Allow" -> "*",
+	      "Access-Control-Allow-Methods" -> "POST, GET, PUT, DELETE, OPTIONS",
+	      "Access-Control-Allow-Headers" -> "Origin, X-Requested-With, Content-Type, Accept, Referer, User-Agent");
+	}
 }
 
 trait ControllerBase {
