@@ -27,18 +27,18 @@ object FeedDaemon {
 
 	def update() {
 		val feeds = Play.configuration.getStringList("application.feeds").map( _.asScala.toList ).getOrElse(List.empty[String])
-    val cBestMatches = Play.configuration.getInt("application.feed_match_count").getOrElse(25)
     val fMinScore = Play.configuration.getDouble("application.feed_min_score").getOrElse(4.0)
 
-    if(cBestMatches <= 0 || feeds.isEmpty) return
+    if(feeds.isEmpty) return
 
     var timeStart = new Date().getTime()
 
+    @SerialVersionUID(1l)
     case class InputStatement(id: Long, title: String, override val text: String, override val keywords: Seq[String]) extends Analyzable
 
-		val cachedMatcher = FeedMatcherCache.fromFile[InputStatement](fileCachedMatcher)
+		val cachedMatcher = net.theophil.relatedtexts.Cache.fromFile[FeedMatcherCache[InputStatement]](fileCachedMatcher)
 
-    val statements = Cache.getOrElse(keyStatements, 60 * 60 * 24) {
+    val statements = play.api.cache.Cache.getOrElse(keyStatements, 60 * 60 * 24) {
       models.Statement.all().flatMap(_._2).map {
         stmt =>
           InputStatement(
@@ -54,29 +54,19 @@ object FeedDaemon {
     Logger.info("FeedDaemon: Loading all "+ statements.size +" statements took " + (timeEnd - timeStart) + " ms")
 
     timeStart = new Date().getTime()
-    FeedMatcher(feeds, statements, cBestMatches, cachedMatcher) match {
-      case (results, cache) => {
-        timeEnd = new Date().getTime()
-        Logger.info("FeedDaemon: Analyzing all "+ feeds.size +" feeds took " + (timeEnd - timeStart) + " ms")
 
-        timeStart = new Date().getTime()
-        results.foreach{ r =>
-          r.articles.filter( 
-            _.confidence > fMinScore
-          ).foreach{ article =>
-            RelatedUrl.loadByUrl(r.text.id, article.url) match {
-              case Some(relatedurl) =>
-                RelatedUrl.update(relatedurl.id, new Date())
-              case None =>
-                RelatedUrl.create(r.text.id, article.title, article.url, article.confidence, new Date(), RelatedCategory.Article)
-            }
-          }
+    def foreachMatch(m: (InputStatement, TextMatch[FeedMatcherCache.AnalyzableItem])): Unit = {
+        RelatedUrl.loadByUrl(m._1.id, m._2.matched.link) match {
+          case Some(relatedurl) =>
+            RelatedUrl.update(relatedurl.id, new Date())
+          case None =>
+            RelatedUrl.create(m._1.id, m._2.matched.title, m._2.matched.link, m._2.value, new Date(), RelatedCategory.Article)
         }
+    }
 
-        cache.serialize(fileCachedMatcher)
-        timeEnd = new Date().getTime()
-        Logger.info("FeedDaemon: Converting output to JSON and storing in cache took " + (timeEnd - timeStart) + " ms")
-      }
-	  }
+    val cache = FeedMatcher(statements, feeds, foreachMatch, fMinScore, cachedMatcher)
+    net.theophil.relatedtexts.Cache.toFile(fileCachedMatcher, cache)
+
+    Logger.info("FeedDaemon: Parsing feeds took " + (timeEnd - timeStart) + " ms")
 	}
 }
