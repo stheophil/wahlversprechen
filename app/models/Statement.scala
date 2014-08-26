@@ -111,9 +111,9 @@ object Statement {
 
 	def find(searchQuery: String) : Map[Author, List[Statement]] =  {
 		DB.withConnection( implicit c =>
-			SQL("""SELECT *, ts_rank_cd(textsearchable, plainto_tsquery({query}), 1) AS rank 
+			SQL("""SELECT *, ts_rank_cd(textsearchable, plainto_tsquery('german', {query}), 1) AS rank
 				FROM full_statement 
-				WHERE textsearchable @@ plainto_tsquery({query}) 
+				WHERE textsearchable @@ plainto_tsquery('german', {query})
 				ORDER BY rank DESC""").on('query -> searchQuery).as(stmt*)
 		).groupBy( _.author )
 	}
