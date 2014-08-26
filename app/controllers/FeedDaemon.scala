@@ -1,9 +1,6 @@
 package controllers;
 
 import java.util.Date
-import play.api.cache._
-import play.api.mvc._
-import play.api.mvc.Results._
 import play.api.Logger
 import play.api.Play
 import play.api.Play.current
@@ -12,29 +9,25 @@ import scala.collection.JavaConverters._
 import models._
 import net.theophil.relatedtexts._
 
+@SerialVersionUID(1l)
+case class InputStatement(id: Long, title: String, override val text: String, override val keywords: Seq[String]) extends Analyzable
+
 object FeedDaemon {
   private val fileCachedMatcher = "/tmp/wahlversprechen_cachedMatcher"
   private val keyStatements = "FeedDaemon.statements"
 
-  private def removeMarkdownLink(text: String) : String = {
+  def removeMarkdownLink(text: String) : String = {
     val markdownLink = """\[([^\]]*)\]\(([^\)]*)\)""".r("text", "href")
     markdownLink.replaceAllIn( text, _ group "text" )
   }
 
-  def matches = Action { implicit request =>
-    Ok("")
-  }
-
 	def update() {
 		val feeds = Play.configuration.getStringList("application.feeds").map( _.asScala.toList ).getOrElse(List.empty[String])
-    val fMinScore = Play.configuration.getDouble("application.feed_min_score").getOrElse(4.0)
+    val fMinScore = Play.configuration.getDouble("application.feed_min_score").getOrElse(1.0)
 
     if(feeds.isEmpty) return
 
     var timeStart = new Date().getTime()
-
-    @SerialVersionUID(1l)
-    case class InputStatement(id: Long, title: String, override val text: String, override val keywords: Seq[String]) extends Analyzable
 
 		val cachedMatcher = net.theophil.relatedtexts.Cache.fromFile[FeedMatcherCache[InputStatement]](fileCachedMatcher)
 
@@ -67,6 +60,7 @@ object FeedDaemon {
     val cache = FeedMatcher(statements, feeds, foreachMatch, fMinScore, cachedMatcher)
     net.theophil.relatedtexts.Cache.toFile(fileCachedMatcher, cache)
 
+    timeEnd = new Date().getTime()
     Logger.info("FeedDaemon: Parsing feeds took " + (timeEnd - timeStart) + " ms")
 	}
 }

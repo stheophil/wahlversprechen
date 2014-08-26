@@ -22,8 +22,6 @@ GET 	/json/tags 					controllers.Application.tagsAsJSON
 GET 	/json/categories 			controllers.Application.categoriesAsJSON
 GET 	/json/authors 				controllers.Application.authorsAsJSON
 
-GET     /json/matches               controllers.FeedDaemon.matches
-
 # RSS
 GET 	/updates/feed 				controllers.Application.updatesAsFeed
 
