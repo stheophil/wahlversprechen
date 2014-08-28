@@ -13,7 +13,7 @@ import net.theophil.relatedtexts._
 case class InputStatement(id: Long, title: String, override val text: String, override val keywords: Seq[String]) extends Analyzable
 
 object FeedDaemon {
-  private val fileCachedMatcher = "/tmp/wahlversprechen_cachedMatcher"
+  private val fileCachedMatcher = "tmp/wahlversprechen_cachedMatcher"
   private val keyStatements = "FeedDaemon.statements"
 
   def removeMarkdownLink(text: String) : String = {
