@@ -223,8 +223,12 @@ function loadMoreRelatedUrls(cNewItems) {
       var host = getLocation(relatedurl.url).hostname
 
       var style = 'list-style-image: url(//www.google.com/s2/favicons?domain='+host+');';
-      cVisibleItems += 1;
-
+      if(relatedurl.confidence<8) {
+        style += " display:none;";
+      } else {
+        cVisibleItems += 1;
+      }
+        
       var time = moment(relatedurl.lastseen);
 
       $('<li data-confidence="' + relatedurl.confidence + '" style="' + style + '"">' + 
