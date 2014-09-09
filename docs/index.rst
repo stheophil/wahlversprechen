@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 2
 
    setupguide
+   editing
    dataimport
    dataexport
    herokudeployment
