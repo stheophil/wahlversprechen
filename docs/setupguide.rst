@@ -11,15 +11,15 @@ Prerequisites
 Database Configuration
 =========================
 
-- Start the PostgresSQL console ``psql`` and create a new database: ``CREATE DATABASE your_database_name;``
+- Start the PostgresSQL console ``psql`` and create a new database: ``CREATE DATABASE wahlversprechen;``
 
 wahlversprechen Configuration
 ==============================
 
-- Clone the repository
-- In ``conf/application.conf`` edit the following settings:
-- Set ``db.default.url="jdbc:postgresql://localhost/your_database_name"`` *(if your database is running on another machine, replace localhost with that machine's name, obviously)*
-- Set ``db.default.user`` to your user name *(or the database user if you have configured one)*
+- Clone the repository including submodules `git clone https://github.com/stheophil/wahlversprechen.git --recursive`
+- In `conf/application.conf` search for `db.default.user` and set it to your database username
+- *(optional) if your database is running on another machine, search for `db.default.url` and replace `localhost` with that machine's hostname*
+- *(optional) if your database user has only password protected access, set it at `db.default.password`*
 
 Start Play
 ===========
