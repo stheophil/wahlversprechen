@@ -26,7 +26,7 @@ JSON Endpoints
 		...
 	]
 
-- ``/json/items/{author}`` 		get the list of all promises made by ``author``::
+- ``/json/items/{author.name}`` 		get the list of all promises made by ``author`` with the given name::
 
 	[
 		{
