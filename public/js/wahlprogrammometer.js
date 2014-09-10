@@ -57,7 +57,7 @@ $(document).ready(function() {
   $('textarea.expand').each(function(i) {
     var height = $(this).height();
     var targetheight = "200px"; // TODO
-    var showonclick = $(this).parents("form").children(".showonclick");
+    var showonclick = $(this).parents("form").find(".showonclick");
 
     $(this).click(function() {
       $(this).animate({
