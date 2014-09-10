@@ -84,3 +84,17 @@ JSON Endpoints
 		},
 		...
 	]
+
+- ``/json/relatedurls?from=from_date[&to=to_date]`` 	get the list of web pages related to campaign promises found between ``from_date`` (inclusive) and ``to_date`` (exclusive) ordered by last seen date in ascending order. ``from_date`` and ``to_date`` must be of the form "YYMMDD". Thus requesting ``/json/relatedurls?from=20140529&to=20140910`` might result in ::
+  
+  	[
+	  {
+			"id":488,
+			"stmt_id":682,
+			"title":"Shocker: Many Europeans speak several languages",
+			"url":"http://cnn.com/blabla",
+			"confidence":3.03125,
+			"lastseen":"2014-05-29T08:46Z"
+		},
+		...
+	]

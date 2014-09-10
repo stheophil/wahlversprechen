@@ -1,6 +1,7 @@
 package controllers
 
 import scala.concurrent.duration._
+import java.util.Date
 
 import play.api._
 import play.api.cache._
@@ -97,6 +98,11 @@ object Application extends Controller with Cached {
 
 	def categoriesAsJSON() = CachedAction("categories.json") { implicit request =>
 		Ok( Json.toJson( Category.loadAll() ) )
+	}
+
+	def relatedUrlsAsJSON(from: Date, to: Option[Date]) = CachedAction("relatedurls.json."+from+"."+to) 
+	{	implicit request =>
+		Ok( Json.toJson( RelatedUrl.loadRecent(from, to)))
 	}
 
 	def updatesAsFeed = CachedAction("updatesAsFeed") { implicit request =>

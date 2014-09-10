@@ -80,7 +80,13 @@ object Formatter {
 
 	def formatISO8601(date: Date) : String = {
 		ISO8601DateFormatter.format(date);	
-	}	
+	}
+
+	val DayDateFormatter = {
+		val df = new java.text.SimpleDateFormat("yyyyMMdd");
+	    df.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+	    df
+	}
 
   def favicon(strUrl: String) : String = {
     val url = new java.net.URL(strUrl)

@@ -23,9 +23,11 @@ object FeedDaemon {
 
 	def update() {
 		val feeds = Play.configuration.getStringList("application.feeds").map( _.asScala.toList ).getOrElse(List.empty[String])
-    val fMinScore = Play.configuration.getDouble("application.feed_min_score").getOrElse(1.0)
+    val fMinScore = Play.configuration.getDouble("application.feed_min_score").getOrElse(4.0)
 
     if(feeds.isEmpty) return
+
+    Logger.info("FeedDaemon: Minimum score " + fMinScore)
 
     var timeStart = new Date().getTime()
 

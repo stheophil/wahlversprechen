@@ -23,4 +23,6 @@ libraryDependencies ++= Seq(
 
 playScalaSettings
 
+routesImport ++= Seq("binders.DateBinder._")
+
 lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "main.less")

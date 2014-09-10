@@ -62,16 +62,16 @@ object RelatedUrl {
     }
   }
 
-  def loadRecent(daysSince: Int, limit: Option[Int]) : List[RelatedUrl] = {
-    val cal = Calendar.getInstance()
-    cal.add(Calendar.DAY_OF_YEAR, - daysSince)
-
+  def loadRecent(from: Date, to: Option[Date]) : List[RelatedUrl] = {
     DB.withConnection { implicit c =>
-      val query = "SELECT * FROM relatedurl WHERE relatedurl.lastseen >= {day} ORDER BY confidence DESC"
-      val queryLimit = query + " LIMIT {limit}"
-      limit match {
-        case None => SQL(query).on('day -> cal.getTime).as(relatedurl *)
-        case Some(l) => SQL(queryLimit).on('day -> cal.getTime, 'limit -> l).as(relatedurl *)
+      val query = "SELECT * FROM relatedurl WHERE {from} <= relatedurl.lastseen" 
+      val orderQuery = " ORDER BY lastseen ASC"
+      to match {
+        case None => SQL(query+orderQuery).on('from -> from).as(relatedurl*)
+        case Some(t) => 
+          SQL(query + " AND relatedurl.lastseen < {to}" + orderQuery).
+            on('from -> from, 'to -> t).
+            as(relatedurl *)
       }
     }
   }
