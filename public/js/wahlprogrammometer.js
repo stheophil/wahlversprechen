@@ -64,7 +64,7 @@ function handleEntryUpdateCancel(entryId) {
                                 .children('textarea');
 
   // Restore original text
-  var originalText = $renderedEntry.data("original")
+  var originalText = $renderedEntry.data("original");
   var originalHtml = marked(originalText);
   $renderedEntry.html(originalHtml);
 
@@ -91,7 +91,7 @@ function handleEntryUpdateCancel(entryId) {
 // Update the entry with the given id an reload the page on success
 function handleEntryUpdateById(entryId) {
   var $textarea = $("textarea").filter(
-    function() { return $(this).data("id") === entryId }
+    function() { return $(this).data("id") === entryId; }
   );
 
   var data = {};
@@ -129,7 +129,7 @@ function createTextareaWithButtons(entryId, originalText) {
   var $renderedEntry = $(".entry-content[data-id=" + entryId + "]");
 
   // Store original text for recovery when cancelling
-  $renderedEntry.data("original", originalText)
+  $renderedEntry.data("original", originalText);
 
   // Hidden form-group blueprint
   var $formGroup = $("<div />").addClass("form-group")
@@ -151,7 +151,7 @@ function createTextareaWithButtons(entryId, originalText) {
   // Small button blueprint
   var $buttonSmall = $('<button />').addClass('btn')
                                     .addClass('btn-sm')
-                                    .attr('type', 'button')
+                                    .attr('type', 'button');
 
   // Create save button
   var $buttonSave = $buttonSmall.clone()
@@ -170,7 +170,7 @@ function createTextareaWithButtons(entryId, originalText) {
                                   .click(function(e) {
                                     e.preventDefault();
                                     handleEntryUpdateCancel(entryId);
-                                  })
+                                  });
 
   // Add buttons to site including an hr
   $formGroup.clone()
@@ -181,7 +181,7 @@ function createTextareaWithButtons(entryId, originalText) {
             .fadeIn();
 
   // Create a small notice to make things more clear
-  var noticeText = 'Vorschau! Der Eintrag wird erst beim Speichern wirklich geändert.'
+  var noticeText = 'Vorschau! Der Eintrag wird erst beim Speichern wirklich geändert.';
   var $notice = $('<p />').addClass('alert')
                           .addClass('alert-warning')
                           .text(noticeText)
@@ -335,7 +335,7 @@ $(document).ready(function() {
 
   $('.ajax-delete').click(function(e) {
     e.preventDefault();
-    
+
     var really = confirm("Willst du diesen Eintrag wirklich löschen?");
 
     if (really) {
