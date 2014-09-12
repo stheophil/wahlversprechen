@@ -50,6 +50,148 @@ function showAndHideProgressGlyphs() {
   });
 }
 
+function showErrorMessageForOneSecondAfterElement(element) {
+  var errorMessage = "Speichern fehlgeschlagen!";
+  $('<div class="alert alert-danger">' + errorMessage + '</div>')
+    .insertAfter(element)
+    .delay(1000)
+    .fadeOut();
+}
+
+function handleEntryUpdateCancel(entryId) {
+  var $renderedEntry = $(".entry-content[data-id=" + entryId + "]");
+  var $textarea = $renderedEntry.prevAll('.form-group')
+                                .children('textarea');
+
+  // Restore original text
+  var originalText = $renderedEntry.data("original")
+  var originalHtml = marked(originalText);
+  $renderedEntry.html(originalHtml);
+
+  // Remove notice
+  $notice = $renderedEntry.prevAll(".alert-warning");
+  fadeOutAndRemove($notice);
+
+  // Remove textarea
+  fadeOutAndRemove($textarea.parent());
+
+  // Remove buttons
+  fadeOutAndRemove($renderedEntry.next(".form-group"));
+
+  // Hide delete link
+  $deleteLink = $renderedEntry.prevAll('.entry-buttons')
+                              .children('.ajax-delete');
+  $deleteLink.fadeOut();
+
+  // Show edit link again
+  $editLink = $deleteLink.siblings('.ajax-edit');
+  $editLink.fadeIn();
+}
+
+// Update the entry with the given id an reload the page on success
+function handleEntryUpdateById(entryId) {
+  var $textarea = $("textarea").filter(
+    function() { return $(this).data("id") === entryId }
+  );
+
+  var data = {};
+  var updatedText = $textarea.val();
+  data.content = updatedText;
+
+  var url = "/entry/" + entryId.toString();
+
+  $.ajax({
+    type: "PUT",
+    url: url,
+    data: data,
+    datatype: 'text',
+    cache: 'false',
+    success: function() {
+      location.href += "#" + entryId;
+      location.reload();
+    },
+    error: function() {
+      var $renderedEntry = $(".entry-content[data-id=" + entryId + "]");
+      showErrorMessageForOneSecondAfterElement($renderedEntry);
+    }
+  }); // End Ajax
+}
+
+// Helper to fadeOut an element and remove it afterwards
+function fadeOutAndRemove(element) {
+  element.fadeOut(function() {
+    $(this).remove();
+  });
+}
+
+// Helper to enable edit mode with received markdown from server
+function createTextareaWithButtons(entryId, originalText) {
+  var $renderedEntry = $(".entry-content[data-id=" + entryId + "]");
+
+  // Store original text for recovery when cancelling
+  $renderedEntry.data("original", originalText)
+
+  // Hidden form-group blueprint
+  var $formGroup = $("<div />").addClass("form-group")
+                               .hide();
+
+  // Create textarea
+  var $textarea = $("<textarea />").data("id", entryId)
+                                   .attr("rows", 15)
+                                   .addClass("form-control")
+                                   .addClass("live-markdown")
+                                   .text(originalText);
+
+  // Add textarea to site
+  $formGroup.clone()
+            .append($textarea)
+            .insertBefore($renderedEntry)
+            .fadeIn();
+
+  // Small button blueprint
+  var $buttonSmall = $('<button />').addClass('btn')
+                                    .addClass('btn-sm')
+                                    .attr('type', 'button')
+
+  // Create save button
+  var $buttonSave = $buttonSmall.clone()
+                                .addClass('btn-primary')
+                                .addClass('pull-right')
+                                .text('Speichern')
+                                .click(function(e) {
+                                  e.preventDefault();
+                                  handleEntryUpdateById(entryId);
+                                });
+
+  // Create cancel button
+  var $buttonCancel = $buttonSmall.clone()
+                                  .addClass('btn-default')
+                                  .text('Abbrechen')
+                                  .click(function(e) {
+                                    e.preventDefault();
+                                    handleEntryUpdateCancel(entryId);
+                                  })
+
+  // Add buttons to site including an hr
+  $formGroup.clone()
+            .append($buttonCancel)
+            .append($buttonSave)
+            .append('<hr />') // just looks a little better
+            .insertAfter($renderedEntry)
+            .fadeIn();
+
+  // Create a small notice to make things more clear
+  var noticeText = 'Vorschau! Der Eintrag wird erst beim Speichern wirklich geändert.'
+  var $notice = $('<p />').addClass('alert')
+                          .addClass('alert-warning')
+                          .text(noticeText)
+                          .hide()
+                          .fadeIn();
+
+  // Add notice to site
+  $notice.insertBefore($renderedEntry);
+}
+
 $(document).ready(showAndHideProgressGlyphs);
 $(window).resize(showAndHideProgressGlyphs);
 
@@ -93,6 +235,7 @@ $(document).ready(function() {
     }
   });
 
+  // TODO: Cleanup
   $('.ajax-update').each(function() {
     // Store the current value on focus and on change
     var element = $(this);
@@ -107,10 +250,7 @@ $(document).ready(function() {
     var errorHandler = bSelect ? function() {
       element.val(prevValue);
     } : function() {
-      $('<div class="alert alert-danger">Speichern fehlgeschlagen!</div>')
-        .insertAfter(element)
-        .delay(1000)
-        .fadeOut();
+      showErrorMessageForOneSecondAfterElement(element);
     };
 
     var saveHandler = function() { 
@@ -134,7 +274,7 @@ $(document).ready(function() {
 
     if (bSelect) {
       element.on("change input", saveHandler);
-    } else {
+    } else { // TODO: Check if needed anywhere else, if not remove this whole else block
       element.attr("contenteditable", true);
 
       $('<button type="button" class="btn btn-default btn-sm">Abbrechen</button>')
@@ -158,6 +298,39 @@ $(document).ready(function() {
         element.nextAll("button").fadeOut();
       });
     }
+  });
+
+  // Listens for edit clicks and gets content from server
+  $(".ajax-edit").click(function(e) {
+    e.preventDefault();
+
+    $editLink = $(this);
+    $deleteLink = $editLink.siblings(".ajax-delete");
+
+    var id = $(this).data("id");
+    var url = "/entry/" + id.toString();
+
+    $.ajax({
+      type: "GET",
+      url: url,
+      datatype: "text",
+      cache: "false",
+      success: function(apiResult) {
+        $editLink.fadeOut();
+        createTextareaWithButtons(id, apiResult);
+        $deleteLink.fadeIn();
+      }
+    });
+  });
+
+  // Listens for changes and renders them after every keystroke
+  $(document).on("keyup", "textarea.live-markdown", function(e) {
+    var entryId = $(this).data("id");
+    var $renderedEntry = $(".entry-content[data-id=" + entryId + "]");
+
+    var changedText = $(this).val();
+    var newHtml = marked(changedText);
+    $renderedEntry.html(newHtml);
   });
 
   $('.ajax-delete').click(function(e) {

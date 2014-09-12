@@ -5,20 +5,20 @@
     Formatter.transformToText(stmt.quote.getOrElse("")),
     Formatter.icon(stmt.rating.getOrElse(Rating.Unrated))
 )){
-@defining(user.isDefined && (user.get.role==Role.Editor || user.get.role==Role.Admin)) { editing => 
+@defining(user.isDefined && (user.get.role==Role.Editor || user.get.role==Role.Admin)) { editing =>
 
 <h1 class="entry-title"><small><a href="/category/@stmt.category.name">@stmt.category.name</a>&nbsp;| @stmt.author.name</small><br/>
 @editing match {
 	case true => {
 		<span style="white-space: pre-wrap;" class="ajax-update" url="/item/@stmt.id" name="title">@stmt.title</span>
 	}
-	case false => { 
-		@stmt.title 
+	case false => {
+		@stmt.title
 	}
 }
 </h1>
 <div class="entry-rating">
-  <span class="pull-left">          	
+  <span class="pull-left">
 	@editing match {
 		case true => {
   			<form class="form-inline" style="display: inline-block">
@@ -26,12 +26,12 @@
 		    <label for="rating" class="sr-only">Bewerte dieses Wahlversprechen:</label>
 		    <select id="rating" class="form-control ajax-update" url="/item/@stmt.id" name="rating" >
 		    	@if(!stmt.author.top_level) {
-		    		<option value="-1" @if(!stmt.rating.isDefined) { "selected" }>Keine Bewertung</option> 
+		    		<option value="-1" @if(!stmt.rating.isDefined) { "selected" }>Keine Bewertung</option>
 		    	}
 		    	@for(rating <- 0 until models.Rating.maxId) {
-				  <option value="@rating" 
+				  <option value="@rating"
 				  	@if(stmt.rating.isDefined && stmt.rating.get.id==rating) { selected }
-				  >@Formatter.name(models.Rating(rating))</option> 
+				  >@Formatter.name(models.Rating(rating))</option>
 				}
 			</select>
 		</div>
@@ -40,11 +40,11 @@
   		case false => {
   			<span style="color: @if(stmt.rating.isDefined) { @Formatter.color(stmt.rating.get) };">
         	@if(stmt.rating.isDefined) {
-            <span class="glyphicon @Formatter.glyph(stmt.rating.get)"></span>&nbsp;@Formatter.name(stmt.rating.get)	            
+            <span class="glyphicon @Formatter.glyph(stmt.rating.get)"></span>&nbsp;@Formatter.name(stmt.rating.get)
         }
         </span>
     }
-	}	
+	}
   </span>
   <span class="pull-right">
     <span class="label-lg">
@@ -57,12 +57,12 @@
 </div>
 <div class="row">
   <div class="col-md-9 col-sm-12">
-  <!-- item quote --> 
+  <!-- item quote -->
   @editing match {
   	case true => {
-      	<blockquote class="lead entry-quote"><p style="white-space: pre-wrap;" class="ajax-update" url="/item/@stmt.id" name="quote">@stmt.quote.getOrElse("Gib ein Zitat ein")</p><br/>
-		<small><p style="white-space: pre-wrap;" class="ajax-update" url="/item/@stmt.id" name="quote_src">@stmt.quote_src.getOrElse("Gib eine Quelle für das Zitat ein")</p></small>
-		</blockquote>
+      <blockquote class="lead entry-quote"><p style="white-space: pre-wrap;" class="ajax-update" url="/item/@stmt.id" name="quote">@stmt.quote.getOrElse("Gib ein Zitat ein")</p><br/>
+		    <small><p style="white-space: pre-wrap;" class="ajax-update" url="/item/@stmt.id" name="quote_src">@stmt.quote_src.getOrElse("Gib eine Quelle für das Zitat ein")</p></small>
+		  </blockquote>
 	}
   	case false => {
   		@if(stmt.quote.isDefined) {
@@ -79,9 +79,11 @@
   <div class="visible-xs visible-sm">
   @common.detailSidebar(stmt, editing)
   </div>
-  <!-- blog entries --> 
+  <!-- blog entries -->
   @editing match {
     case true => {
+      <script src="@routes.Assets.at("js/marked.min.js")"></script> <!-- TODO: Someone with more Scala skills should put this somewhere else xD -->
+
       <form class="ajax-submit" data-url="@routes.DetailViewController.addEntry(stmt.id).url" data-method="POST" data-action="reload" data-alert-id="formNewEntry" role="form">
         <div class="form-group">
           <textarea class="expand form-control" name="content" style="width: 100%;" placeholder="Schreibe einen neuen Beitrag ..."></textarea>
@@ -93,32 +95,37 @@
     }
     case false => {
       <span class="pull-right feedicon">
-          <small><a href="@routes.DetailViewController.viewAsFeed(stmt.id).url"><i class="fa fa-rss"></i></a></small>
+        <small><a href="@routes.DetailViewController.viewAsFeed(stmt.id).url"><i class="fa fa-rss"></i></a></small>
       </span>
     }
   }
 
   @for(entry <- stmt.entries) {
     <div>
-    <a name="@entry.id" id="@entry.id"></a>
-        <div class="entry-buttons">
-          @if(editing) {
-            <a href="#" class="ajax-delete" url="/entry/@entry.id"><span class="glyphicon glyphicon-remove text-danger"></span></a>
-          } 
-        </div>
-        <div class="entry-meta">      
-          <small>Von @entry.user.name am @Formatter.format(entry.date)</small>
-        </div>
-        <div class="entry-content">
-          @editing match {
-            case true => {
-              <p style="white-space: pre-wrap;" class="ajax-update" name="content" url="/entry/@entry.id">@entry.content</p>
-            }
-            case false => {
-              @Formatter.transformToHTML(entry.content)
-            }
+      <a name="@entry.id" id="@entry.id"></a> <!-- TODO: Check if needed, if not remove -->
+      <div class="entry-buttons">
+        @if(editing) {
+          <a href="#" class="ajax-delete collapse text-danger" url="/entry/@entry.id"><span class="glyphicon glyphicon-remove"></span>&nbsp;Löschen</a>
+          <a href="#" class="ajax-edit text-warning small" data-id="@entry.id"><span class="glyphicon glyphicon-edit"></span>&nbsp;Ändern</a>
+        }
+      </div>
+      <div class="entry-meta">
+        <small>Von @entry.user.name am @Formatter.format(entry.date)</small>
+      </div>
+      <div class="entry-content" data-id="@entry.id">
+        @Formatter.transformToHTML(entry.content)
+
+        <!-- TODO: remove that foo -->
+
+        <!-- @editing match {
+          case true => {
+            <p style="white-space: pre-wrap;" class="ajax-update" name="content" url="/entry/@entry.id">@entry.content</p>
           }
-        </div>
+          case false => {
+            @Formatter.transformToHTML(entry.content)
+          }
+        } -->
+      </div>
     </div>
   }
 
