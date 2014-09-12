@@ -334,27 +334,32 @@ $(document).ready(function() {
   });
 
   $('.ajax-delete').click(function(e) {
-    var element = $(this);
-    var target = element.attr("target-url");
-
-    $.ajax({
-      type: 'DELETE',
-      url: element.attr("url"),
-      data: {},
-      datatype: 'text',
-      cache: 'false',
-      success: function() {
-        if (target) {
-          location.href = target;
-        } else {
-          location.reload();
-        }
-      },
-      error: function() {
-
-      }
-    }); // End Ajax
     e.preventDefault();
+    
+    var really = confirm("Willst du diesen Eintrag wirklich löschen?");
+
+    if (really) {
+      var element = $(this);
+      var target = element.attr("target-url");
+
+      $.ajax({
+        type: 'DELETE',
+        url: element.attr("url"),
+        data: {},
+        datatype: 'text',
+        cache: 'false',
+        success: function() {
+          if (target) {
+            location.href = target;
+          } else {
+            location.reload();
+          }
+        },
+        error: function() {
+
+        }
+      }); // End Ajax
+    }
   });
 
   $("form.ajax-submit").each(function() {
