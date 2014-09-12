@@ -11,15 +11,18 @@ Prerequisites
 Database Configuration
 =========================
 
-- Start the PostgresSQL console ``psql`` and create a new database: ``CREATE DATABASE wahlversprechen;``
+- Start the PostgresSQL console ``psql`` 
+- Create a new user ``CREATE ROLE wahlversprechen WITH LOGIN PASSWORD ''`` or a password of your choice instead of an empty password
+- Create a database: ``CREATE DATABASE wahlversprechen WITH OWNER wahlversprechen;`` 
+- And create a database to run the test suite: ``CREATE DATABASE wahlversprechen_test WITH OWNER wahlversprechen;`` 
+
 
 wahlversprechen Configuration
 ==============================
 
 - Clone the repository including submodules `git clone https://github.com/stheophil/wahlversprechen.git --recursive`
-- In `conf/application.conf` search for `db.default.user` and set it to your database username
+- *(optional) In `conf/application.conf` search for `db.default.password` and set it to the password you've assigned your wahlversprechen user if it wasn't an empty password*
 - *(optional) if your database is running on another machine, search for `db.default.url` and replace `localhost` with that machine's hostname*
-- *(optional) if your database user has only password protected access, set it at `db.default.password`*
 
 Start Play
 ===========
