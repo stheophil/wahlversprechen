@@ -7,19 +7,19 @@ function form_ajax_submit(form) {
 
   submit.click(function(e) {
     submit.prop("disabled", true);
-    var alert = form.attr("data-alert-id");
+    var alert = form.data("alert-id");
 
     $('#' + alert).remove();
 
     $.ajax({
-      type: form.attr("data-method"),
-      url: form.attr("data-url"),
+      type: form.data("method"),
+      url: form.data("url"),
       data: form.serialize()
     })
       .done(function(data, textStatus, jqXHR) {
-        if (form.attr("data-action") == "reload") {
+        if (form.data("action") == "reload") {
           location.reload(true);
-        } else if (form.attr("data-action") == "message") {
+        } else if (form.data("action") == "message") {
           if (0 < data.length) {
             $('<div class="alert alert-success" id=' + alert + '>' + data + '</div>').insertAfter(form);
           }
