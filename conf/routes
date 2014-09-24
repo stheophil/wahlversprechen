@@ -15,6 +15,7 @@ GET		/category/:category			controllers.Application.category(category: String)
 GET		/rating/:rating				controllers.Application.rating(rating: Int)
 
 # JSON
+GET 	/jsroutes 					controllers.Application.javascriptRoutes
 OPTIONS  /json/*all  				controllers.Application.preflight(all)
 
 GET 	/json/items/:author 		controllers.Application.itemsByAuthorAsJSON(author: String)

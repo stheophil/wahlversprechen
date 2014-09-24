@@ -18,6 +18,10 @@ require.config({
         }
     });
 
+define("jsroutes", ["/jsroutes"], function() {
+  return jsroutes;
+});
+
 function getLocation(href) {
     var l = document.createElement("a");
     l.href = href;
@@ -28,8 +32,8 @@ function getLocation(href) {
 // it on pages that need it
 // See https://github.com/muuki88/playframework-requirejs-multipage for 
 // an example project
-require(['jquery', 'typeahead', 'moment', 'editing', 'bootstrap'],
-function  ($) {
+require(['jquery', 'jsroutes', 'moment', 'typeahead', 'editing', 'bootstrap'],
+function  ($, jsroutes, moment) {
   // In a progress bar, hide glyphs the are wider than the bar
   function showAndHideProgressGlyphs() {
     $(".progress-bar").each(function() {
@@ -71,7 +75,7 @@ function  ($) {
     data['offset'] = itemCount;
 
     $.ajax({
-      url: "/json/item/" + stmt_id + "/relatedurls",
+      url: jsroutes.controllers.DetailViewController.relatedUrlsAsJSON(stmt_id).url,
       data: data
     }).done(function(relatedurls, textStatus, jqXHR) {
       var cVisibleItems = 0;
@@ -125,7 +129,7 @@ function  ($) {
       datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
       queryTokenizer: Bloodhound.tokenizers.whitespace,
       prefetch: {
-        url: '/json/tags'
+        url: jsroutes.controllers.Application.tagsAsJSON().url
       }
     });
 
@@ -135,7 +139,7 @@ function  ($) {
       datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
       queryTokenizer: Bloodhound.tokenizers.whitespace,
       prefetch: {
-        url: '/json/categories'
+        url: jsroutes.controllers.Application.categoriesAsJSON().url
       }
     });
 
@@ -163,14 +167,14 @@ function  ($) {
 
     $('.typeahead').on("typeahead:selected typeahead:autocompleted", function(evt, suggestion, dataset) {
       if (dataset === "tags") {
-        window.location = "/tag/" + suggestion.name;
+        window.location = jsroutes.controllers.Application.tag(suggestion.name).url;
       } else if (dataset === "categories") {
-        window.location = "/category/" + suggestion.name;
+        window.location = jsroutes.controllers.Application.category(suggestion.name).url;
       }
     });
 
     $('.typeahead').on("change", function(e) {
-      window.location = "/search?query=" + e.target.value;
+      window.location = jsroutes.controllers.Application.search(e.target.value).url;
     });
   }
   

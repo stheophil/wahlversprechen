@@ -120,6 +120,40 @@ object Application extends Controller with Cached {
 	      "Access-Control-Allow-Methods" -> "POST, GET, PUT, DELETE, OPTIONS",
 	      "Access-Control-Allow-Headers" -> "Origin, X-Requested-With, Content-Type, Accept, Referer, User-Agent");
 	}
+
+	def javascriptRoutes = CachedAction("javascriptRoutes") { implicit request => 
+	    import routes.javascript._
+	    Ok(
+	      Routes.javascriptRouter("jsroutes")(
+	        controllers.routes.javascript.Application.itemsByAuthorAsJSON,
+	        controllers.routes.javascript.Application.tagsAsJSON,
+	        controllers.routes.javascript.Application.categoriesAsJSON,
+	        controllers.routes.javascript.Application.authorsAsJSON,
+	        controllers.routes.javascript.Application.relatedUrlsAsJSON,
+			controllers.routes.javascript.Application.tag,
+			controllers.routes.javascript.Application.category,
+			controllers.routes.javascript.Application.search,
+	        controllers.routes.javascript.DetailViewController.viewAsJSON,
+	        controllers.routes.javascript.DetailViewController.relatedUrlsAsJSON,
+	        controllers.routes.javascript.DetailViewController.update,
+	        controllers.routes.javascript.DetailViewController.addEntry,
+			controllers.routes.javascript.DetailViewController.delete,
+			controllers.routes.javascript.DetailViewController.addTag,
+			controllers.routes.javascript.DetailViewController.deleteTag,
+			controllers.routes.javascript.DetailViewController.getEntry,
+			controllers.routes.javascript.DetailViewController.updateEntry,
+			controllers.routes.javascript.DetailViewController.deleteEntry,
+			controllers.routes.javascript.Admin.doImport,
+			controllers.routes.javascript.Admin.newUser,
+			controllers.routes.javascript.Admin.editUser,
+			controllers.routes.javascript.Admin.deleteUser,
+			controllers.routes.javascript.Admin.newAuthor,
+			controllers.routes.javascript.Admin.editAuthor,
+			controllers.routes.javascript.Admin.updateTag,
+			controllers.routes.javascript.Admin.deleteTag
+	      )
+	    ).as("text/javascript")
+	}
 }
 
 trait ControllerBase {
