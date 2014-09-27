@@ -14,7 +14,9 @@ require.config({
             "bootstrap" : "lib/bootstrap",
             "typeahead" : "lib/typeahead",
             "moment"  : "lib/moment-with-langs",
-            "marked"  : "lib/marked"
+            "mustache" : "lib/mustache",            
+            // editing.js
+            "marked"  : "lib/marked" 
         }
     });
 
@@ -32,8 +34,8 @@ function getLocation(href) {
 // it on pages that need it
 // See https://github.com/muuki88/playframework-requirejs-multipage for 
 // an example project
-require(['jquery', 'jsroutes', 'moment', 'typeahead', 'editing', 'bootstrap'],
-function  ($, jsroutes, moment) {
+require(['jquery', 'jsroutes', 'moment', 'mustache', 'text!/assets/template/relatedUrlListItem.html', 'typeahead', 'editing', 'bootstrap'],
+function  ($, jsroutes, moment, mustache, template) {
   // In a progress bar, hide glyphs the are wider than the bar
   function showAndHideProgressGlyphs() {
     $(".progress-bar").each(function() {
@@ -62,6 +64,20 @@ function  ($, jsroutes, moment) {
       }
   }));
 
+  function relatedUrlForTemplate(relatedurl, min_confidence) {    
+      var host = getLocation(relatedurl.url).hostname;
+
+      var style = 'list-style-image: url(//www.google.com/s2/favicons?domain='+host+');';
+      if(relatedurl.confidence<min_confidence) {
+        style += " display:none;";
+      }
+
+      return {
+        style: style,
+        time: moment(relatedurl.lastseen).fromNow(),
+        relatedurl: relatedurl        
+      };
+  }
   // elements with attribute "data-fill-relatedurls"
   // TODO: Pass template to render
   function loadMoreRelatedUrls(element, button, stmt_id, cNewItems) {
@@ -78,25 +94,15 @@ function  ($, jsroutes, moment) {
       url: jsroutes.controllers.DetailViewController.relatedUrlsAsJSON(stmt_id).url,
       data: data
     }).done(function(relatedurls, textStatus, jqXHR) {
+      var min_confidence = 8;
+      var relatedurlsForTemplate = relatedurls.map(function(r) { return relatedUrlForTemplate(r, min_confidence); });
+
       var cVisibleItems = 0;
-      for( i = 0; i < relatedurls.length && cVisibleItems<cNewItems; ++i ) {
-        var relatedurl = relatedurls[i];
-        var host = getLocation(relatedurl.url).hostname;
-
-        var style = 'list-style-image: url(//www.google.com/s2/favicons?domain='+host+');';
-        if(relatedurl.confidence<8) {
-          style += " display:none;";
-        } else {
-          cVisibleItems += 1;
+      for( var i = 0; i < relatedurlsForTemplate.length && cVisibleItems<cNewItems; ++i ) {
+        $( mustache.render(template, relatedurlsForTemplate[i]) ).appendTo(element);
+        if(min_confidence<=relatedurlsForTemplate[i].relatedurl.confidence) {
+          ++cVisibleItems;
         }
-
-        var time = moment(relatedurl.lastseen);
-
-        $('<li data-confidence="' + relatedurl.confidence + '" style="' + style + '"">' +
-          '<a href="' + relatedurl.url + '">' + relatedurl.title + '</a>' +
-          '&nbsp;<small>' + time.fromNow() + '</small>' +
-          '</li>'
-        ).appendTo(element);
       }
       if(relatedurls.length < cLoadItems) {
         button.prop("disabled", true);
