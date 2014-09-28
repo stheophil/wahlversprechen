@@ -1,5 +1,7 @@
 package models
 
+import java.io.FileReader
+
 import models.Rating._
 import java.util.Date
 import eu.henkelmann.actuarius.{Transformer, Decorator}
@@ -7,6 +9,7 @@ import eu.henkelmann.actuarius.{Transformer, Decorator}
 import play.api.templates.Html
 import play.api.Play
 import play.api.Play.current
+import play.api.Logger
 
 object Formatter {
 
@@ -79,19 +82,42 @@ object Formatter {
 	}
 
 	def formatISO8601(date: Date) : String = {
-		ISO8601DateFormatter.format(date);	
+		ISO8601DateFormatter.format(date);
 	}
 
 	val DayDateFormatter = {
 		val df = new java.text.SimpleDateFormat("yyyyMMdd");
-	    df.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
-	    df
+		df.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+		df
 	}
 
-  def favicon(strUrl: String) : String = {
-    val url = new java.net.URL(strUrl)
-    "//www.google.com/s2/favicons?domain=" + url.getHost
-  }
+	def mustache(context: Map[String, Object], template: String) : Html = {
+		import com.github.mustachejava._
+		import scala.collection.JavaConversions._
+
+	  	var reader : FileReader = null
+	  	try {
+			reader = new FileReader("public/template/"+template)
+
+			val mustache = new DefaultMustacheFactory().compile(reader, template)
+
+			val writer = new java.io.StringWriter()
+			mustache.execute(writer, new java.util.HashMap[String, Object](context) )
+			Html( writer.toString() )
+		} catch {
+			case e: Exception =>
+				Logger.error("Error executing mustache template " + template, e)
+		} finally {
+			if(reader!=null) reader.close()
+		}
+
+		Html("")
+	}
+
+	def favicon(strUrl: String) : String = {
+		val url = new java.net.URL(strUrl)
+	  	"//www.google.com/s2/favicons?domain=" + url.getHost
+	}
 
 	def socialMetaTags(url: String, description: String, img: String) : Html = {
 		// Twitter falls back to open graph tags: https://dev.twitter.com/docs/cards/getting-started#open-graph
@@ -102,18 +128,18 @@ object Formatter {
 		)
 	}
 
-	private object FilterHeadlineFromMarkdown extends Decorator {		
-	    override def allowVerbatimXml():Boolean = false		    
-	    override def decorateImg(alt:String, src:String, title:Option[String]):String = ""		    
-	    override def decorateRuler():String = ""		    
+	private object FilterHeadlineFromMarkdown extends Decorator {
+	    override def allowVerbatimXml():Boolean = false
+	    override def decorateImg(alt:String, src:String, title:Option[String]):String = ""
+	    override def decorateRuler():String = ""
 	    override def decorateHeaderOpen(headerNo:Int):String = "<div style='display: none'>"
 	    override def decorateHeaderClose(headerNo:Int):String = "</div>"
 	    override def decorateCodeBlockOpen():String = "<div 'display: none'>"
 	    override def decorateCodeBlockClose():String = "<div 'display: none'>"
 	}
 
-	private object FilterXMLFromMarkdown extends Decorator {		
-	    override def allowVerbatimXml() : Boolean = 
+	private object FilterXMLFromMarkdown extends Decorator {
+	    override def allowVerbatimXml() : Boolean =
 	    	Play.configuration.getBoolean("application.allowHTMLEntries").getOrElse(false)
 	}
 

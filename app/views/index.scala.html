@@ -1,5 +1,6 @@
 @(authors: List[Author], stats: StatementStatistics, stmtsRecent: List[Statement], relatedurlgrps: List[RelatedUrlGroup], user: Option[User])(implicit request: play.api.mvc.RequestHeader)
 
+@import scala.collection.JavaConversions._
 @import models.Rating._
 
 @common.main("Wahlversprechen", user, None, Formatter.socialMetaTags(
@@ -109,29 +110,7 @@
         <h2>Aktuell in den Medien:
 
         </h2>
-        @for(group <- relatedurlgrps) {
-            <div class="stmt-list norating">  
-                <div class="content">
-                  <h4><a href="@{routes.DetailViewController.view(group.stmt_id).url}">
-                      @group.stmt_title
-                  </a></h4>
-                  <div>
-                    <small class="pull-left"><a href="/category/@group.category">@group.category</a></small>
-                    <small class="pull-left" style="margin-left:15px">
-                      @common.commentCount(group.stmt_id)
-                    </small>
-                      <small class="pull-right">Gesehen am @Formatter.format(group.articles.head.lastseen)</small>
-                    <div style="clear: both;"></div>
-                  </div>
-                  <ul class = "relatedurl"> 
-                    @for(relatedurl <- group.articles) {
-                       <li><img src="@Formatter.favicon(relatedurl.url)" class="favicon" width="16px" height="16px"/>&nbsp;<a href="@relatedurl.url">@relatedurl.title</a></li>
-                      <!-- confidence: @relatedurl.confidence -->
-                    }
-                  </ul>
-                </div>    
-            </div>
-        }
+        @Formatter.mustache( Map("relatedUrlGroups" -> asJavaIterable(relatedurlgrps)), "relatedUrlGroup.html" )
         <!--<a href="#">Alle Anzeigen ...</a>-->
 	</div>
 </div>

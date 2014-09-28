@@ -18,7 +18,8 @@ libraryDependencies ++= Seq(
     filters,
     "com.google.gdata" % "core" % "1.47.1",
     "postgresql" % "postgresql" % "9.1-901-1.jdbc4",
-    "eu.henkelmann" % "actuarius_2.10.0" % "0.2.6"
+    "eu.henkelmann" % "actuarius_2.10.0" % "0.2.6",
+    "com.github.spullara.mustache.java" % "compiler" % "0.8.16"
 )
 
 playScalaSettings

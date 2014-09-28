@@ -1,0 +1,22 @@
+{{#relatedUrlGroups}}
+<div class="stmt-list norating">  
+    <div class="content">
+      <h4><a href="{{stmt_url}}">
+          {{stmt_title}}
+      </a></h4>
+      <div>
+        <small class="pull-left"><a href="/category/{{stmt_category}}">{{stmt_category}}</a></small>
+        <small class="pull-left" style="margin-left:15px">          
+          <a class="comment-count" data-disqus-identifier="{{stmt_id}}" href="{{stmt_url}}#comments">0</a>&nbsp;<a href="{{stmt_url}}#comments"><span class="glyphicon glyphicon-comment"></span></a>
+        </small>
+          <small class="pull-right">Gesehen am {{lastSeen}}</small>
+        <div style="clear: both;"></div>
+      </div>
+      <ul class = "relatedurl"> 
+        {{#articles}}
+           <li data-confidence="{{confidence}}"><img src="{{favicon}}" class="favicon" width="16px" height="16px"/>&nbsp;<a href="{{url}}">{{title}}</a></li>
+        {{/articles}}
+      </ul>
+    </div>    
+</div>
+{{/relatedUrlGroups}}

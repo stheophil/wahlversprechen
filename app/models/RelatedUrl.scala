@@ -11,6 +11,7 @@ object RelatedCategory extends Enumeration {
   val Article = Value
 }
 import RelatedCategory._
+import scala.collection.JavaConversions._
 
 /**
  * URL related to a [[Statement]], determined by a text matching algorithm
@@ -21,8 +22,17 @@ import RelatedCategory._
  * @param lastseen when was this URL last seen, e.g., in a RSS feed
  * @param urltype type of this url, always [[RelatedCategory.Article]] at the moment
  */
-case class RelatedUrl(id: Long, stmt_id: Long, title: String, url: String, confidence: Double, lastseen: Date, urltype: RelatedCategory)
-case class RelatedUrlGroup(stmt_id: Long, stmt_title: String, category: String, articles: List[RelatedUrl])
+case class RelatedUrl(id: Long, stmt_id: Long, title: String, url: String, confidence: Double, lastseen: Date, urltype: RelatedCategory) {
+  /** favicon accessor for mustache templates */
+  def favicon = Formatter.favicon(url)
+}
+
+case class RelatedUrlGroup(stmt_id: Long, stmt_title: String, stmt_category: String, articlesList: List[RelatedUrl]) {
+  /** accessors for mustache templates */
+  def stmt_url = controllers.routes.DetailViewController.view(stmt_id).url
+  def lastSeen = Formatter.format(articles.head.lastseen)
+  def articles = asJavaIterable(articlesList) // we use https://github.com/spullara/mustache.java
+}
 
 object RelatedUrl {
   val relatedurl = {
