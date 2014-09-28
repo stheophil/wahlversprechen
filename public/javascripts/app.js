@@ -1,28 +1,16 @@
 require.config({
-        baseUrl : "/assets/javascripts",
+        baseUrl : "/assets/javascripts/lib",
         shim : {
-            "jquery" : {
-                exports : "$"
-            }
-            /*,
-            "jsRoutes" : {
-                exports : "jsRoutes"
-            }*/
+             "routes" : {
+                 exports: "jsroutes"
+             }
         },
         paths : {
-            "jquery" : "lib/jquery",
-            "bootstrap" : "lib/bootstrap",
-            "typeahead" : "lib/typeahead",
-            "moment"  : "lib/moment-with-langs",
-            "mustache" : "lib/mustache",            
-            // editing.js
-            "marked"  : "lib/marked" 
-        }
-    });
-
-define("jsroutes", ["/jsroutes"], function() {
-  return jsroutes;
-});
+                "app" : "./..",
+                "template" : "./../../template",
+                "routes" : "/routes"
+            }
+        });
 
 function getLocation(href) {
     var l = document.createElement("a");
@@ -34,8 +22,16 @@ function getLocation(href) {
 // it on pages that need it
 // See https://github.com/muuki88/playframework-requirejs-multipage for 
 // an example project
-require(['jquery', 'jsroutes', 'moment', 'mustache', 'text!/assets/template/relatedUrlListItem.html', 'typeahead', 'editing', 'bootstrap'],
+require(['jquery',
+        'routes',
+        'moment',
+        'mustache',
+        'text!template/relatedUrlListItem.html',
+        'typeahead',
+        'app/editing',
+        'bootstrap'],
 function  ($, jsroutes, moment, mustache, template) {
+
   // In a progress bar, hide glyphs the are wider than the bar
   function showAndHideProgressGlyphs() {
     $(".progress-bar").each(function() {
@@ -186,7 +182,7 @@ function  ($, jsroutes, moment, mustache, template) {
   
   // Setup consistent time rendering
   $(document).ready(function() {
-    moment.lang("de", {
+    moment.locale('de', {
       relativeTime : {
         future: "in %s",
         past:   "%s",

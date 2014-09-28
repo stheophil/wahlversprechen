@@ -1,4 +1,6 @@
 @(title: String, user: Option[User], login_redirect: Option[String] = None, meta: Html = Html.empty)(content: Html)
+@import play.api.Play.current
+
 <!DOCTYPE html>
 <html>
   <head>
@@ -89,8 +91,15 @@
 
     <!-- JavaScript
     ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->    
-    @helper.requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/app").url)
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script data-main=@play.api.Play.isProd match {
+        case true => {
+            "@routes.Assets.at("javascripts/app.min").url"
+        }
+        case false => {
+            "@routes.Assets.at("javascripts/app").url"
+        }
+    } src="@routes.Assets.at("javascripts/require.js").url"></script>
     
     <script>
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

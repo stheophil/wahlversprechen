@@ -26,8 +26,4 @@ playScalaSettings
 
 routesImport ++= Seq("binders.DateBinder._")
 
-requireJs += "app.js"
-
-requireJsShim += "app.js"
-
 lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "main.less")
