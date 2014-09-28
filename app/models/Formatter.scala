@@ -107,11 +107,10 @@ object Formatter {
 		} catch {
 			case e: Exception =>
 				Logger.error("Error executing mustache template " + template, e)
+			  	Html("")
 		} finally {
 			if(reader!=null) reader.close()
 		}
-
-		Html("")
 	}
 
 	def favicon(strUrl: String) : String = {
