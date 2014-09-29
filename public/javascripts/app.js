@@ -20,7 +20,7 @@ function getLocation(href) {
 
 // TODO: Currently, editing.js is always included instead of only including
 // it on pages that need it
-// See https://github.com/muuki88/playframework-requirejs-multipage for 
+// See https://github.com/muuki88/playframework-requirejs-multipage for
 // an example project
 require(['jquery',
         'routes',
@@ -50,7 +50,7 @@ function  ($, jsroutes, moment, mustache, template) {
   $(document).ready(showAndHideProgressGlyphs);
   $(window).resize(showAndHideProgressGlyphs);
 
-  // Show the semi-transparent fade-out effect if 
+  // Show the semi-transparent fade-out effect if
   // the content reaches the maximum allowed height
   $(document).ready($('.read-more').each(function() {
       var height = $(this).parent().css("height");
@@ -60,7 +60,7 @@ function  ($, jsroutes, moment, mustache, template) {
       }
   }));
 
-  function relatedUrlForTemplate(relatedurl, min_confidence) {    
+  function relatedUrlForTemplate(relatedurl, min_confidence) {
       var host = getLocation(relatedurl.url).hostname;
 
       var style = 'list-style-image: url(//www.google.com/s2/favicons?domain='+host+');';
@@ -71,7 +71,7 @@ function  ($, jsroutes, moment, mustache, template) {
       return {
         style: style,
         time: moment(relatedurl.lastseen).fromNow(),
-        relatedurl: relatedurl        
+        relatedurl: relatedurl
       };
   }
   // elements with attribute "data-fill-relatedurls"
@@ -179,7 +179,7 @@ function  ($, jsroutes, moment, mustache, template) {
       window.location = jsroutes.controllers.Application.search(e.target.value).url;
     });
   }
-  
+
   // Setup consistent time rendering
   $(document).ready(function() {
     moment.locale('de', {
@@ -202,4 +202,3 @@ function  ($, jsroutes, moment, mustache, template) {
   });
 
 });
-

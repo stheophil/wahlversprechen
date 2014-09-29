@@ -17,7 +17,7 @@
         <input type="checkbox" name="top_level" value="Top Level" @if(a.top_level) {checked} disabled>
         </td>
         <td>
-        <span class='label' style="color: @{a.color}; background-color: @{a.background}">@a.name</span> 
+        <span class='label' style="color: @{a.color}; background-color: @{a.background}">@a.name</span>
         </td>
         <td>
             <a data-toggle="modal" href="#editAuthor@(a.id)" href="#"><span class="glyphicon glyphicon-edit"></span></a>
@@ -47,7 +47,7 @@
                     <input type="text" class="form-control" id="name" name="name" value="@a.name">
                   </div>
                   <div class="form-group">
-                    <label for="top_level">Top Level</label>       
+                    <label for="top_level">Top Level</label>
                     <input type="checkbox" name="top_level" id="top_level" value="true" @if(a.top_level) {checked}>
                   </div>
                   <div class="form-group">
@@ -115,7 +115,7 @@
                   </div>
                   <div class="form-group">
                     <label for="role">Rolle</label>
-                    <select id="role" name="role" class="form-control" 
+                    <select id="role" name="role" class="form-control"
                         "@if(u.id==user.id) { disabled }"
                     >
                         @for(role <- 0 until models.Role.maxId) {
@@ -125,7 +125,7 @@
                                 case Role.Editor => "Editor"
                                 case Role.Unprivileged => "Unprivilegiert"
                             } }
-                          </option> 
+                          </option>
                         }
                     </select>
                   </div>
@@ -149,7 +149,7 @@
       </div><!-- /.modal -->
     }
 
-    <a name="tags" id="tags"></a> 
+    <a name="tags" id="tags"></a>
     <h3>Tags</h3>
     <p>Wählen Sie die Tags aus, die <em>wichtige</em> Wahlversprechen markieren.</p>
       @for(tagrow <- tags.sliding(4, 4)) {
