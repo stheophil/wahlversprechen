@@ -55,7 +55,7 @@ object Admin extends Controller with Secured {
 	}
 
 	def prefs = IsAdmin { user => implicit request =>
-		Ok(html.adminPrefs( Author.loadAll(), User.findAll(), Tag.loadAll(), user ))
+		Ok(html.adminPrefs( Author.loadAll(), User.findAll(), user ))
 	}
 
 	def userForm(edit: Boolean) = Form(

@@ -18,8 +18,8 @@ function getLocation(href) {
     return l;
 }
 
-// TODO: Currently, editing.js is always included instead of only including
-// it on pages that need it
+// TODO: Currently, editing.js and adminPrefs is always included
+// instead of only including it on pages that need it
 // See https://github.com/muuki88/playframework-requirejs-multipage for
 // an example project
 require(['jquery',
@@ -29,6 +29,7 @@ require(['jquery',
         'text!template/relatedUrlListItem.html',
         'typeahead',
         'app/editing',
+        'app/admin/prefs',
         'bootstrap'],
 function  ($, jsroutes, moment, mustache, template) {
 
