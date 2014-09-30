@@ -38,6 +38,7 @@ define(['jquery', 'app/client', 'mustache'],
       });
       toShow.show();
       $list.children().not(toShow).hide();
+      toShow.slice(30).hide();
     }
 
     function installEventHandler() {
