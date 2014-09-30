@@ -1,11 +1,14 @@
 /*global define */
-define(['jquery', 'app/client', 'mustache'],
-  function($, client, mustache) {
+define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing'],
+  function($, client, mustache, jsroutes, editing) {
     function renderTagTo(template, tag, $tagsList) {
       var data = {
         tag: tag,
-        urls: { "view": "", "delete": "" }
-      } // TODO add urls
+        urls: {
+          "delete": jsroutes.controllers.Admin.deleteTag(tag.id).url,
+          "view": jsroutes.controllers.Application.tag(tag.name).url
+        }
+      }
       $(mustache.render(template, data)).appendTo($tagsList);
     }
 
@@ -49,6 +52,49 @@ define(['jquery', 'app/client', 'mustache'],
       $('#tags-infix').on('input', function() {
         updateTagsVisibility(); // HTML5 only
       });
+
+          $('input.setImportantTag').change(function(){
+            var $input = $( this );
+            var $checked = $input.is( ":checked" );
+            var $id = $input.attr("id");
+
+            $.ajax({
+                type: 'PUT',
+                url: '/admin/tag/' + $id,
+                data: {  important: $checked },
+                datatype: 'text',
+                cache: 'false',
+                error: function(){
+                    $input.prop( "checked", !$checked );
+                }
+            }); // End Ajax
+        }); // End onclick
+
+      var $list = $('#tags-list');
+      $list.find(".tag-edit").popover({
+        html: true,
+        placement: "top",
+        container: "body",
+        content: function() {
+          var id = $(this).data('tag-id')
+          var name = $(this).data('tag-name')
+          return '<form id="formEditTag'+id+'" class="ajax-submit" data-method="PUT" data-url="/admin/tag/'+id+'" data-action="reload" data-alert-id="alertEditTag'+id+'" role="form">' +
+            '<div class="form-group">' +
+            '<input type="text" name="name" class="form-control input-sm" size="25" value="'+name+'">' +
+            '</div>' +
+            '<button type="submit" class="btn-primary btn btn-sm">OK</button>' +
+            '</form>';
+        }
+      }).click(function(e) {
+        e.preventDefault()
+      })
+
+      $list.find('.tag-edit').on('shown.bs.popover', function () {
+        var id = $(this).data('tag-id')
+        editing().form_ajax_submit($("#formEditTag" + id))
+      })
+
+      editing().attachDeleteHandler($list);
     }
 
     // Start loading tags and template ASAP,
@@ -58,8 +104,7 @@ define(['jquery', 'app/client', 'mustache'],
        $(function() {
          renderTags(tagsResponse[0], templateResponse[0]);
          updateTagsVisibility();
+         installEventHandler();
        });
      });
-
-    $(installEventHandler);
   });

@@ -180,6 +180,37 @@ define(['jquery', 'marked'], function ($, marked) {
     $notice.insertBefore($renderedEntry);
   }
 
+  function attachDeleteHandler(root) {
+    root.find('.ajax-delete').click(function(e) {
+      e.preventDefault();
+
+      var really = confirm("Willst du diesen Eintrag wirklich löschen?");
+
+      if (really) {
+        var element = $(this);
+        var target = element.attr("target-url");
+
+        $.ajax({
+          type: 'DELETE',
+          url: element.attr("url"),
+          data: {},
+          datatype: 'text',
+          cache: 'false',
+          success: function() {
+            if (target) {
+              location.href = target;
+            } else {
+              location.reload();
+            }
+          },
+          error: function() {
+
+          }
+        }); // End Ajax
+      }
+    });
+  }
+
   $(document).ready(function() {
     $('textarea.expand').each(function(i) {
       var textarea = $(this);
@@ -311,80 +342,17 @@ define(['jquery', 'marked'], function ($, marked) {
       $renderedEntry.html(newHtml);
     });
 
-    $('.ajax-delete').click(function(e) {
-      e.preventDefault();
-
-      var really = confirm("Willst du diesen Eintrag wirklich löschen?");
-
-      if (really) {
-        var element = $(this);
-        var target = element.attr("target-url");
-
-        $.ajax({
-          type: 'DELETE',
-          url: element.attr("url"),
-          data: {},
-          datatype: 'text',
-          cache: 'false',
-          success: function() {
-            if (target) {
-              location.href = target;
-            } else {
-              location.reload();
-            }
-          },
-          error: function() {
-
-          }
-        }); // End Ajax
-      }
-    });
+    attachDeleteHandler($());
 
     $("form.ajax-submit").each(function() {
       form_ajax_submit($(this));
     });
+  });
 
-    // Admin page
-    $('input.setImportantTag').change(function(){
-            var $input = $( this );
-            var $checked = $input.is( ":checked" );
-            var $id = $input.attr("id");
-
-            $.ajax({
-                type: 'PUT',
-                url: '/admin/tag/' + $id,
-                data: {  important: $checked },
-                datatype: 'text',
-                cache: 'false',
-                error: function(){
-                    $input.prop( "checked", !$checked );
-                }
-            }); // End Ajax  
-        }); // End onclick
-      
-    $(".tag-edit").popover({
-        html: true,
-        placement: "top",
-        container: "body",
-        content: function() {
-          var id = $(this).data('tag-id')
-          var name = $(this).data('tag-name')
-          return '<form id="formEditTag'+id+'" class="ajax-submit" data-method="PUT" data-url="/admin/tag/'+id+'" data-action="reload" data-alert-id="alertEditTag'+id+'" role="form">' +
-          '<div class="form-group">' +
-          '<input type="text" name="name" class="form-control input-sm" size="25" value="'+name+'">' +
-          '</div>' + 
-          '<button type="submit" class="btn-primary btn btn-sm">OK</button>' +
-          '</form>';
-        }
-      }).click(function(e) {
-        e.preventDefault()
-      })
-
-    $('.tag-edit').on('shown.bs.popover', function () {
-          var id = $(this).data('tag-id')
-          form_ajax_submit($("#formEditTag" + id))
-      })
-  });  
-
-  return function () {};    
+  return function () {
+    return {
+      attachDeleteHandler: attachDeleteHandler,
+      form_ajax_submit: form_ajax_submit
+    }
+  };
 });
