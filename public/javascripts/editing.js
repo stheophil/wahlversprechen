@@ -1,6 +1,6 @@
-define(['require', 'jquery', 'marked'], function (require) {
-  var $ = require('jquery');
-  var marked = require('marked');
+"use strict";
+
+define(['jquery', 'marked'], function ($, marked) {
 
   function form_ajax_submit(form) {
     var submit = form.find("button[type='submit']");

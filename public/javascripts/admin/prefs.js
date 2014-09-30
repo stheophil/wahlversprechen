@@ -14,7 +14,7 @@ define(['jquery', 'app/client', 'mustache'],
     }
 
     function loadTags() {
-      return client.tags.get({dataType: 'text'});
+      return client.Tag.loadAll({dataType: 'text'});
     }
 
     function renderTags(tags, template) {
