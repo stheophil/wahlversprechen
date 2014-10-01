@@ -13,7 +13,7 @@ import scala.collection.JavaConversions._
 
 import views._
 
-/** Controller that handles the user authentification and 
+/** Controller that handles the user authentification and
 	the administrator preferences view where an authenticated
 	user can change usernames, passwords, tags, authors etc
 */
@@ -37,7 +37,7 @@ object Admin extends Controller with Secured {
 	def authenticate = Action { implicit request =>
 		loginForm.bindFromRequest.fold(
 			formWithErrors => BadRequest(html.login(formWithErrors)),
-			{				
+			{
 				case (email, _, redirect) => {
 					Logger.debug("Authenticate & redirect to " + redirect)
 					(if(redirect.isDefined) {
@@ -54,8 +54,8 @@ object Admin extends Controller with Secured {
 			"success" -> "Du wurdest erfolgreich ausgeloggt")
 	}
 
-	def prefs = IsAdmin { user => implicit request => 
-		Ok(html.adminPrefs( Author.loadAll(), User.findAll(), Tag.loadAll(), user ))
+	def prefs = IsAdmin { user => implicit request =>
+		Ok(html.adminPrefs( Author.loadAll(), User.findAll(), user ))
 	}
 
 	def userForm(edit: Boolean) = Form(
@@ -63,8 +63,8 @@ object Admin extends Controller with Secured {
 			"email" -> email,
 			"name" -> nonEmptyText,
 			"password" -> text.verifying(
-				"Das Passwort muss mindestens 8 Stellen, eine Zahl und ein Sonderzeichen enthalten.", 
-				password => edit && password.isEmpty 
+				"Das Passwort muss mindestens 8 Stellen, eine Zahl und ein Sonderzeichen enthalten.",
+				password => edit && password.isEmpty
 				 		|| 8<=password.length && password.exists(_.isDigit) && password.exists(!_.isLetterOrDigit)
 			),
 			"role" -> number(min=0, max = Role.maxId),
@@ -76,24 +76,24 @@ object Admin extends Controller with Secured {
 			}
 		}))
 
-	def newUser = IsAdmin { user => implicit request => 
+	def newUser = IsAdmin { user => implicit request =>
 		userForm(/*edit*/ false).bindFromRequest.fold(
 			formWithErrors => BadRequest(formWithErrors.errors.head.message),
 			{ case (email, name, password, role, _, _) => {
 				User.create(email, name, password, Role(role))
 				Ok("")
 			} }
-		) 
+		)
 	}
 
-	def editUser(id: Long) = IsAdmin { user => implicit request => 
+	def editUser(id: Long) = IsAdmin { user => implicit request =>
 		userForm(/*edit*/ true).bindFromRequest.fold(
 			formWithErrors => BadRequest(formWithErrors.errors.head.message),
 			{ case (email, name, password, role, _, _) => {
-				User.edit(id, email, name, Some(password), Some(Role(role))) 
+				User.edit(id, email, name, Some(password), Some(Role(role)))
 				Ok("")
 			} }
-		) 
+		)
 	}
 
 	val verifyAdminForm = Form(
@@ -106,49 +106,49 @@ object Admin extends Controller with Secured {
 				}
 		}))
 
-	def deleteUser(id: Long) = IsAdmin { user => implicit request => 
+	def deleteUser(id: Long) = IsAdmin { user => implicit request =>
 		verifyAdminForm.bindFromRequest.fold(
 			formWithErrors => BadRequest(formWithErrors.errors.head.message),
 			{ case(_, _) => {
 				User.delete(id)
 				Ok("")
 			}}
-		) 
+		)
 	}
 
 	def authorForm(edited: Option[Long]) = Form(
 		tuple(
 			"name" -> nonEmptyText.verifying(
-				"Ein Author mit diesem Namen existiert bereits", 
-				name => { 
+				"Ein Author mit diesem Namen existiert bereits",
+				name => {
 					Author.load(name).map(_.id) match {
 						case None => true
 						case Some(id) => edited==Some(id)
 					}
-				} 
-			), 
+				}
+			),
 			"order" -> number,
 			"top_level" -> boolean,
 			"color" -> text,
-			"background" -> text 
+			"background" -> text
 			)
 		);
 
-	def newAuthor() = IsAdmin { user => implicit request => 
+	def newAuthor() = IsAdmin { user => implicit request =>
 		authorForm(None).bindFromRequest.fold(
 			formWithErrors => BadRequest(formWithErrors.errors.head.message),
 			{ case (name, order, top_level, color, background) => {
-				Author.create(name, order, top_level, color, background) 
+				Author.create(name, order, top_level, color, background)
 				Ok("")
 			} }
 		) // bindFromRequest
 	}
 
-	def editAuthor(id: Long) = IsAdmin { user => implicit request => 
+	def editAuthor(id: Long) = IsAdmin { user => implicit request =>
 		authorForm(Some(id)).bindFromRequest.fold(
 			formWithErrors => BadRequest(formWithErrors.errors.head.message),
 			{ case (name, order, top_level, color, background) => {
-				Author.edit(id, name, order, top_level, color, background) 
+				Author.edit(id, name, order, top_level, color, background)
 				Ok("")
 			} }
 		) // bindFromRequest
@@ -156,7 +156,7 @@ object Admin extends Controller with Secured {
 
 	val updateTagForm = Form(
 		tuple(
-			"name" -> optional(text), 
+			"name" -> optional(text),
 			"important" -> optional(boolean)
 		))
 
@@ -228,8 +228,8 @@ trait Secured extends ControllerBase {
 	/** Called before every request to ensure that HTTPS is used. */
 	def HTTPS(f: => Request[AnyContent] => Result) = Action { request =>
 		import play.api.Play.current
-		if (Play.isDev || 
-			request.headers.get("x-forwarded-proto").isDefined && 
+		if (Play.isDev ||
+			request.headers.get("x-forwarded-proto").isDefined &&
 			request.headers.get("x-forwarded-proto").get.contains("https")) {
 			f(request)
 		} else {

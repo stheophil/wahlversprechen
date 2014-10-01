@@ -1,4 +1,4 @@
-@(authors: List[Author], users: List[User], tags: List[Tag], user: User)
+@(authors: List[Author], users: List[User], user: User)
 
 @common.main("Administrator Einstellungen", Some(user)){
     <h2>Administrator Einstellungen</h2>
@@ -17,7 +17,7 @@
         <input type="checkbox" name="top_level" value="Top Level" @if(a.top_level) {checked} disabled>
         </td>
         <td>
-        <span class='label' style="color: @{a.color}; background-color: @{a.background}">@a.name</span> 
+        <span class='label' style="color: @{a.color}; background-color: @{a.background}">@a.name</span>
         </td>
         <td>
             <a data-toggle="modal" href="#editAuthor@(a.id)" href="#"><span class="glyphicon glyphicon-edit"></span></a>
@@ -47,7 +47,7 @@
                     <input type="text" class="form-control" id="name" name="name" value="@a.name">
                   </div>
                   <div class="form-group">
-                    <label for="top_level">Top Level</label>       
+                    <label for="top_level">Top Level</label>
                     <input type="checkbox" name="top_level" id="top_level" value="true" @if(a.top_level) {checked}>
                   </div>
                   <div class="form-group">
@@ -115,7 +115,7 @@
                   </div>
                   <div class="form-group">
                     <label for="role">Rolle</label>
-                    <select id="role" name="role" class="form-control" 
+                    <select id="role" name="role" class="form-control"
                         "@if(u.id==user.id) { disabled }"
                     >
                         @for(role <- 0 until models.Role.maxId) {
@@ -125,7 +125,7 @@
                                 case Role.Editor => "Editor"
                                 case Role.Unprivileged => "Unprivilegiert"
                             } }
-                          </option> 
+                          </option>
                         }
                     </select>
                   </div>
@@ -149,18 +149,13 @@
       </div><!-- /.modal -->
     }
 
-    <a name="tags" id="tags"></a> 
+    <a name="tags" id="tags"></a>
     <h3>Tags</h3>
-    <p>Wählen Sie die Tags aus, die <em>wichtige</em> Wahlversprechen markieren.</p>
-      @for(tagrow <- tags.sliding(4, 4)) {
-        <div class="row">
-        @for(t <- tagrow) {
-          <div class="col-sm-3">
-            <input type="checkbox" class="setImportantTag" id="@t.id" @if(t.important) { checked } />&nbsp;<a href="/tag/@(t.name)"><span class='label label-primary'>@t.name</span></a>
-            &nbsp;<a href="#" class="tag-edit" data-tag-id="@t.id" data-tag-name="@t.name"><span class="glyphicon glyphicon-edit"></span></a>
-            &nbsp;<a href="#" class="ajax-delete" url="@routes.Admin.deleteTag(t.id).url"><span class="glyphicon glyphicon-remove text-danger"></span></a>
-          </div>
-        }
-        </div>
-      }
+    <p>Wählen Sie die Tags aus, die <em>wichtige</em> Wahlversprechen markieren. (Es werden max. 30 angezeigt.)</p>
+    <div id="tags-controls" class="row">
+      <label class="checkbox inline fluid-row-checkbox"><input type="checkbox" id="tags-important-only" class="checkbox" checked />Nur wichtige zeigen</label>
+      <input id="tags-infix" type="text" class="input inline" placeholder="Wortteil"/>
+    </div>
+
+    <div id="tags-list">Loading …</div>
 }

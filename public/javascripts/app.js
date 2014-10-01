@@ -22,11 +22,11 @@ require.config({
 
 // TODO: Currently, title, detailView and editing.js are always included instead of making
 // them requirejs entry points. However, the size of our site javascript is very small compared
-// to the libraries we include. So it may be better to load on 300K js file (unzipped) instead of 
-// three different ones. 
+// to the libraries we include. So it may be better to load on 300K js file (unzipped) instead of
+// three different ones.
 // See https://github.com/jrburke/requirejs/wiki/Patterns-for-separating-config-from-the-main-module
 
-require(['jquery', 'routes', 'moment', 'typeahead', 'bootstrap', 'app/title', 'app/detailView', 'app/editing'],
+require(['jquery', 'routes', 'moment', 'typeahead', 'bootstrap', 'app/title', 'app/detailView', 'app/editing', 'app/admin/prefs'],
     function($, jsroutes, moment, client) {
 
         // setup typeahead search box
@@ -85,7 +85,7 @@ require(['jquery', 'routes', 'moment', 'typeahead', 'bootstrap', 'app/title', 'a
             });
         }
 
-        // Setup consistent time rendering  
+        // Setup consistent time rendering
         moment.locale('de', {
             relativeTime: {
                 future: "in %s",
