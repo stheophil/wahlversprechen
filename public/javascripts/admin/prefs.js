@@ -102,8 +102,8 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing'],
                 e.preventDefault();
                 var $message = $('#tags-duplicates-message');
                 var $list = $('#tags-duplicates-list');
-                var maxEditDistance = Number($('#tags-duplicates-max-editdistance').val());
-                if (maxEditDistance < 0 || maxEditDistance > 5) {
+                var maxLevenshteinDistance = Number($('#tags-duplicates-max-levenshtein-distance').val());
+                if (maxLevenshteinDistance < 0 || maxLevenshteinDistance > 5) {
                     $message.text(
                         'Ungültiger Wert: Muss Null oder größer und kleiner als 6 sein.');
                     $message.removeClass("alert-info").addClass("alert-danger");
