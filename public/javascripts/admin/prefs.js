@@ -44,7 +44,7 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing'],
             toShow.slice(30).hide();
         }
 
-        function installEventHandler() {
+        function installTagListEventHandler() {
             $('#tags-important-only').change(function() {
                 updateTagsVisibility();
             });
@@ -97,14 +97,48 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing'],
             editing().attachDeleteHandler($list);
         }
 
+        function installTagDuplicatesEventHandler(template, tags) {
+            $('#tags-duplicates').find("form").submit(function(e) {
+                e.preventDefault();
+                var $message = $('#tags-duplicates-message');
+                var $list = $('#tags-duplicates-list');
+                var maxEditDistance = Number($('#tags-duplicates-max-editdistance').val());
+                if (maxEditDistance < 0 || maxEditDistance > 5) {
+                    $message.text(
+                        'Ungültiger Wert: Muss Null oder größer und kleiner als 6 sein.');
+                    $message.removeClass("alert-info").addClass("alert-danger");
+                    $message.show();
+                    $list.hide();
+                } else {
+                    var candidates = [1,2,3];
+                    $message.text(
+                        'Habe ' + candidates.length + ' Paare an ähnlichen Tags gefunden.');
+                    $message.removeClass("alert-danger").addClass("alert-info");
+                    $list.show();
+                }
+            });
+        }
+
+        var tagsDeferred = loadTags();
+
         // Start loading tags and template ASAP,
         // but only render them when the DOM is ready.
-        $.when(loadTagsListEntryTemplate(), loadTags())
+        $.when(loadTagsListEntryTemplate(), tagsDeferred)
          .done(function(templateResponse, tagsResponse) {
              $(function() {
                  renderTags(tagsResponse[0], templateResponse[0]);
                  updateTagsVisibility();
-                 installEventHandler();
+                 installTagListEventHandler();
+             });
+         });
+
+        // Start loading tags and template ASAP,
+        // but only render them when the DOM is ready.
+        $.when(loadTagsListEntryTemplate(), tagsDeferred)
+         .done(function(templateResponse, tagsResponse) {
+             $(function() {
+                 installTagDuplicatesEventHandler(
+                     templateResponse[0], tagsResponse[0]);
              });
          });
     });

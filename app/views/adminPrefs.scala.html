@@ -158,4 +158,21 @@
     </div>
 
     <div id="tags-list">Loading …</div>
+
+    <h4>Finde doppelte Tags</h4>
+
+    <div id="tags-duplicates">
+      <p>Wie unterschiedlich sollen die Tags sein? 0-3 sind gute Werte (siehe <a href="https://de.wikipedia.org/wiki/Levenshtein-Distanz">Levenshtein-Distanz</a>).</p>
+      <form class="form-group" role="form">
+	<div class="input-group">
+	  <input id="tags-duplicates-max-editdistance" class="form-control" type="text" value="2" placeholder="Edit-distance"/>
+	  <span class="input-group-btn">
+	    <button id="tags-duplicates-button" type="button" class="btn btn-default">Find!</button>
+	  </span>
+	</div>
+      </form>
+
+      <div id="tags-duplicates-message" class="alert" role="alert"></div>
+      <div id="tags-duplicates-list"></div>
+    </div>
 }
