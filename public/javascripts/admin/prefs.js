@@ -101,7 +101,9 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtei
             function isSimilar(distance) { return distance <= maxLevenshteinDistance; }
 
             return tags.map(function(tag, idx) {
-                var similarTagsWithMetadata = tags.slice(idx + 1).filter(function(other) {
+                var similarTagsWithMetadata = (tags
+                ).slice(idx + 1
+                ).filter(function(other) {
                     // Do some inexpensive pre-filtering, to avoid calculating
                     // the LD for obviously uninteresting pairs.
                     return Math.abs(tag.name.length - other.name.length) <= maxLevenshteinDistance;
@@ -110,9 +112,12 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtei
                 }).filter(function(it) {
                     return isSimilar(it[0]);
                 });
-                var bestSimilarity = Math.min.apply([], similarTagsWithMetadata.map(function(it) {
-                    return it[0];
-                }));
+                var bestSimilarity = Math.min.apply(
+                    [],
+                    similarTagsWithMetadata.map(function(it) {
+                        return it[0];
+                    })
+                );
                 var similarTags = similarTagsWithMetadata.map(function(it) {
                     return it[1];
                 });
