@@ -106,7 +106,7 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtei
                 }).filter(function(it) {
                     return isSimilar(it[0]);
                 });
-                var bestSimilarity = Math.min.apply(similarTagsWithMetadata.map(function(it) {
+                var bestSimilarity = Math.min.apply([], similarTagsWithMetadata.map(function(it) {
                     return it[0];
                 }));
                 var similarTags = similarTagsWithMetadata.map(function(it) {
