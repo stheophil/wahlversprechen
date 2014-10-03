@@ -1,15 +1,15 @@
 /*global define */
 define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtein'],
     function($, client, mustache, jsroutes, editing, levenshtein) {
-        function renderTagTo(template, tag, $tagsList) {
+        function renderTag(template, tag) {
             var data = {
                 tag: tag,
                 urls: {
                     "delete": jsroutes.controllers.Admin.deleteTag(tag.id).url,
                     "view": jsroutes.controllers.Application.tag(tag.name).url
                 }
-            }
-            $(mustache.render(template, data)).appendTo($tagsList);
+            };
+            return $(mustache.render(template, data));
         }
 
         function loadTagsListEntryTemplate() {
@@ -21,11 +21,11 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtei
         }
 
         function renderTags(tags, template) {
-            var $tagsList = $('#tags-list');
-            $tagsList.text("");
-            tags.forEach(function(tag) {
-                renderTagTo(template, tag, $tagsList);
-            });
+            $('#tags-list')
+                .text("")
+                .append(tags.map(function(tag) {
+                    return $('<div></div>').append(renderTag(template, tag));
+                }));
         }
 
         function updateTagsVisibility($el) {
@@ -143,10 +143,27 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtei
                     return;
                 }
 
-                var candidates = findSimilarTags(tags, maxLevenshteinDistance);
+                var groups = findSimilarTags(tags, maxLevenshteinDistance);
                 $message.text(
-                    'Habe ' + candidates.length + ' Gruppen an ähnlichen Tags gefunden.');
+                    'Habe ' + groups.length + ' Gruppen an ähnlichen Tags gefunden.');
                 $message.removeClass("alert-danger").addClass("alert-info");
+                $list.hide();
+                $list.html("");
+                groups.sort(function(left, right) {
+                    return right[1] - left[1];
+                });
+                $list.append(groups.map(function(group) {
+                    return $("<div></div>")
+                               .append(renderTag(template, group[0]))
+                               .append($('<span class="inbetween-text-for-list"> ähnelt: </span>'))
+                               .append(group[2].reduce(function(data, similar, idx) {
+                                   if (idx > 0) {
+                                       data.push($('<span class="inbetween-text-for-list"> und </span>'));
+                                   }
+                                   data.push(renderTag(template, similar));
+                                   return data;
+                               }, []));
+                }));
                 $list.show();
             });
         }
