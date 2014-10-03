@@ -50,7 +50,7 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtei
             });
 
             $('#tags-infix').on('input', function() {
-                updateTagsVisibility(); // HTML5 only
+                updateTagsVisibility();
             });
 
             $('input.setImportantTag').change(function(){
