@@ -211,6 +211,11 @@ define(['jquery', 'marked'], function ($, marked) {
     });
   }
 
+  function removeDeleteHandler($root) {
+    $root.find('.ajax-delete')
+         .off('click');
+  }
+
   $(document).ready(function() {
     $('textarea.expand').each(function(i) {
       var textarea = $(this);
@@ -352,6 +357,7 @@ define(['jquery', 'marked'], function ($, marked) {
   return function () {
     return {
       attachDeleteHandler: attachDeleteHandler,
+      removeDeleteHandler: removeDeleteHandler,
       form_ajax_submit: form_ajax_submit
     }
   };

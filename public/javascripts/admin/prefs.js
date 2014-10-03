@@ -44,16 +44,16 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtei
             toShow.slice(30).hide();
         }
 
-        function installTagListEventHandler() {
-            $('#tags-important-only').change(function() {
+        function addDelegatingEventHandler() {
+            $('document').on('change', '#tags-important-only', function() {
                 updateTagsVisibility();
             });
 
-            $('#tags-infix').on('input', function() {
+            $('document').on('input', '#tags-infix', function() {
                 updateTagsVisibility();
             });
 
-            $('input.setImportantTag').change(function(){
+            $('document').on('change', 'input.setImportantTag', function(){
                 var $input = $( this );
                 var $checked = $input.is( ":checked" );
                 var $id = $input.attr("id");
@@ -67,17 +67,18 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtei
                     error: function(){
                         $input.prop( "checked", !$checked );
                     }
-                }); // End Ajax
-            }); // End onclick
+                });
+            });
+        }
 
-            var $list = $('#tags-list');
-            $list.find(".tag-edit").popover({
+        function addDirectTagEventHandlers($root) {
+            $root.find(".tag-edit").popover({
                 html: true,
                 placement: "top",
                 container: "body",
                 content: function() {
-                    var id = $(this).data('tag-id')
-                    var name = $(this).data('tag-name')
+                    var id = $(this).data('tag-id');
+                    var name = $(this).data('tag-name');
                     return '<form id="formEditTag'+id+'" class="ajax-submit" data-method="PUT" data-url="/admin/tag/'+id+'" data-action="reload" data-alert-id="alertEditTag'+id+'" role="form">' +
                         '<div class="form-group">' +
                         '<input type="text" name="name" class="form-control input-sm" size="25" value="'+name+'">' +
@@ -86,15 +87,24 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtei
                         '</form>';
                 }
             }).click(function(e) {
-                e.preventDefault()
-            })
+                e.preventDefault();
+            });
 
-            $list.find('.tag-edit').on('shown.bs.popover', function () {
-                var id = $(this).data('tag-id')
-                editing().form_ajax_submit($("#formEditTag" + id))
-            })
+            $root.find('.tag-edit').on('shown.bs.popover', function () {
+                var id = $(this).data('tag-id');
+                editing().form_ajax_submit($("#formEditTag" + id));
+            });
 
-            editing().attachDeleteHandler($list);
+            editing().attachDeleteHandler($root);
+        }
+
+        function removeDirectTagEventHandlers($root) {
+            $root
+                .find('.tag-edit')
+                .off('click')
+                .off('shown.bs.popover')
+                .popover('destroy');
+            editing().removeDeleteHandler($root);
         }
 
         function findSimilarTags(tags, maxLevenshteinDistance) {
@@ -148,6 +158,7 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtei
                     'Habe ' + groups.length + ' Gruppen an ähnlichen Tags gefunden.');
                 $message.removeClass("alert-danger").addClass("alert-info");
                 $list.hide();
+                removeDirectTagEventHandlers($list);
                 $list.html("");
                 groups.sort(function(left, right) {
                     return right[1] - left[1];
@@ -164,11 +175,13 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtei
                                    return data;
                                }, []));
                 }));
+                addDirectTagEventHandlers($list);
                 $list.show();
             });
         }
 
-        var tagsDeferred = loadTags();
+    addDelegatingEventHandler();
+    var tagsDeferred = loadTags();
 
         // Start loading tags and template ASAP,
         // but only render them when the DOM is ready.
@@ -177,7 +190,7 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtei
              $(function() {
                  renderTags(tagsResponse[0], templateResponse[0]);
                  updateTagsVisibility();
-                 installTagListEventHandler();
+                 addDirectTagEventHandlers($('#tags-list'));
              });
          });
 
