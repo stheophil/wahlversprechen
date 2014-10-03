@@ -98,7 +98,7 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtei
         }
 
         function findSimilarTags(tags, maxLevenshteinDistance) {
-            function isSimilar(distance) { return distance != maxLevenshteinDistance; }
+            function isSimilar(distance) { return distance <= maxLevenshteinDistance; }
 
             return tags.map(function(tag, idx) {
                 var similarTagsWithMetadata = tags.slice(idx + 1).map(function(other) {
