@@ -1,6 +1,6 @@
 /*global define */
-define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing'],
-    function($, client, mustache, jsroutes, editing) {
+define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtein'],
+    function($, client, mustache, jsroutes, editing, levenshtein) {
         function renderTagTo(template, tag, $tagsList) {
             var data = {
                 tag: tag,
@@ -97,6 +97,28 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing'],
             editing().attachDeleteHandler($list);
         }
 
+        function findSimilarTags(tags, maxLevenshteinDistance) {
+            function isSimilar(distance) { return distance != maxLevenshteinDistance; }
+
+            return tags.map(function(tag, idx) {
+                var similarTagsWithMetadata = tags.slice(idx + 1).map(function(other) {
+                    return [levenshtein.get(tag.name, other.name), other];
+                }).filter(function(it) {
+                    return isSimilar(it[0]);
+                });
+                var bestSimilarity = Math.min.apply(similarTagsWithMetadata.map(function(it) {
+                    return it[0];
+                }));
+                var similarTags = similarTagsWithMetadata.map(function(it) {
+                    return it[1];
+                });
+
+                return [tag, bestSimilarity, similarTags];
+            }).filter(function(it) {
+                return isSimilar(it[1]);
+            });
+        }
+
         function installTagDuplicatesEventHandler(template, tags) {
             $('#tags-duplicates').find("form").submit(function(e) {
                 e.preventDefault();
@@ -109,13 +131,14 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing'],
                     $message.removeClass("alert-info").addClass("alert-danger");
                     $message.show();
                     $list.hide();
-                } else {
-                    var candidates = [1,2,3];
-                    $message.text(
-                        'Habe ' + candidates.length + ' Paare an ähnlichen Tags gefunden.');
-                    $message.removeClass("alert-danger").addClass("alert-info");
-                    $list.show();
+                    return;
                 }
+
+                var candidates = findSimilarTags(tags, maxLevenshteinDistance);
+                $message.text(
+                    'Habe ' + candidates.length + ' Gruppen an ähnlichen Tags gefunden.');
+                $message.removeClass("alert-danger").addClass("alert-info");
+                $list.show();
             });
         }
 
