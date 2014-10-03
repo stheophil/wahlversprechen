@@ -151,11 +151,16 @@
 
     <a name="tags" id="tags"></a>
     <h3>Tags</h3>
-    <p>Wählen Sie die Tags aus, die <em>wichtige</em> Wahlversprechen markieren. (Es werden max. 30 angezeigt.)</p>
-    <div id="tags-controls" class="row">
-      <label class="checkbox inline fluid-row-checkbox"><input type="checkbox" id="tags-important-only" class="checkbox" checked />Nur wichtige zeigen</label>
-      <input id="tags-infix" type="text" class="input inline" placeholder="Wortteil"/>
-    </div>
+    <form  id="tags-controls" class="form-inline" role="form">
+      <p>Wählen Sie die Tags aus, die <em>wichtige</em> Wahlversprechen markieren. (Es werden max. 30 angezeigt.)</p>
+      <div class="form-group">
+	<label>
+	  <input type="checkbox" id="tags-important-only" class="checkbox form-control" checked />Nur wichtige zeigen</label>
+      </div>
+      <div class="form-group">
+	<input id="tags-infix" type="text" class="input inline form-control" placeholder="Wortteil"/>
+      </div>
+    </form>
 
     <div id="tags-list">Loading …</div>
 
