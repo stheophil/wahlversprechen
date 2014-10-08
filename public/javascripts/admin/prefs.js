@@ -2,6 +2,7 @@
 define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtein'],
     function($, client, mustache, jsroutes, editing, levenshtein) {
         function renderTag(template, tag) {
+            tag.lower = tag.name.toLowerCase();
             var data = {
                 tag: tag,
                 urls: {
@@ -32,7 +33,7 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtei
             var $list = $('#tags-list');
             var $controls = $('#tags-controls');
             var importantOnly = $controls.find("#tags-important-only").is(':checked');
-            var infix = $controls.find("input[type=text]").val()
+            var infix = $controls.find("input[type=text]").val().toLowerCase();
             var toShow = $list.children().filter(function() {
                 return (
                     (!importantOnly || $(this).find(":checked").size() > 0)
@@ -45,15 +46,15 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtei
         }
 
         function addDelegatingEventHandler() {
-            $('document').on('change', '#tags-important-only', function() {
+            $('#tags-important-only').on('change', function() {
                 updateTagsVisibility();
             });
 
-            $('document').on('input', '#tags-infix', function() {
+            $('#tags-infix').on('input', function() {
                 updateTagsVisibility();
             });
 
-            $('document').on('change', 'input.setImportantTag', function(){
+            $('input.setImportantTag').on('change', function(){
                 var $input = $( this );
                 var $checked = $input.is( ":checked" );
                 var $id = $input.attr("id");
@@ -98,13 +99,13 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtei
             editing().attachDeleteHandler($root);
         }
 
-        function removeDirectTagEventHandlers($root) {
-            $root
+        function removeDirectTagEventHandlers(root) {
+            root
                 .find('.tag-edit')
                 .off('click')
                 .off('shown.bs.popover')
                 .popover('destroy');
-            editing().removeDeleteHandler($root);
+            editing().removeDeleteHandler(root);
         }
 
         function findSimilarTags(tags, maxLevenshteinDistance) {

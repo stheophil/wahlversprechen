@@ -63,7 +63,7 @@ define(['jquery', 'marked'], function ($, marked) {
     $renderedEntry.html(originalHtml);
 
     // Remove notice
-    $notice = $renderedEntry.prevAll(".alert-warning");
+    var $notice = $renderedEntry.prevAll(".alert-warning");
     fadeOutAndRemove($notice);
 
     // Remove textarea
@@ -73,12 +73,12 @@ define(['jquery', 'marked'], function ($, marked) {
     fadeOutAndRemove($renderedEntry.next(".form-group"));
 
     // Hide delete link
-    $deleteLink = $renderedEntry.prevAll('.entry-buttons')
+    var $deleteLink = $renderedEntry.prevAll('.entry-buttons')
                                 .children('.ajax-delete');
     $deleteLink.fadeOut();
 
     // Show edit link again
-    $editLink = $deleteLink.siblings('.ajax-edit');
+    var $editLink = $deleteLink.siblings('.ajax-edit');
     $editLink.fadeIn();
   }
 
@@ -211,8 +211,8 @@ define(['jquery', 'marked'], function ($, marked) {
     });
   }
 
-  function removeDeleteHandler($root) {
-    $root.find('.ajax-delete')
+  function removeDeleteHandler(root) {
+    root.find('.ajax-delete')
          .off('click');
   }
 
@@ -318,8 +318,8 @@ define(['jquery', 'marked'], function ($, marked) {
     $(".ajax-edit").click(function(e) {
       e.preventDefault();
 
-      $editLink = $(this);
-      $deleteLink = $editLink.siblings(".ajax-delete");
+      var $editLink = $(this);
+      var $deleteLink = $editLink.siblings(".ajax-delete");
 
       var id = $(this).data("id");
       var url = "/entry/" + id.toString();
@@ -347,7 +347,7 @@ define(['jquery', 'marked'], function ($, marked) {
       $renderedEntry.html(newHtml);
     });
 
-    attachDeleteHandler($());
+    attachDeleteHandler($(document));
 
     $("form.ajax-submit").each(function() {
       form_ajax_submit($(this));

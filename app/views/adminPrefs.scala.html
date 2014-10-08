@@ -155,7 +155,7 @@
       <p>Wählen Sie die Tags aus, die <em>wichtige</em> Wahlversprechen markieren. (Es werden max. 30 angezeigt.)</p>
       <div class="form-group">
 	<label>
-	  <input type="checkbox" id="tags-important-only" class="checkbox form-control" checked />Nur wichtige zeigen</label>
+	  <input type="checkbox" id="tags-important-only" class="checkbox form-control" checked />&nbsp;Nur wichtige zeigen</label>
       </div>
       <div class="form-group">
 	<input id="tags-infix" type="text" class="input inline form-control" placeholder="Wortteil"/>
@@ -164,19 +164,20 @@
 
     <div id="tags-list">Loading …</div>
 
-    <h4>Finde doppelte Tags</h4>
+    <h3>Finde doppelte Tags</h3>
 
     <div id="tags-duplicates">
-      <p>Wie unterschiedlich sollen die Tags sein? 0-3 sind gute Werte (siehe <a href="https://de.wikipedia.org/wiki/Levenshtein-Distanz">Levenshtein-Distanz</a>).</p>
-      <form class="form-group" role="form">
-	<div class="input-group">
-	  <input id="tags-duplicates-max-levenshtein-distance" class="form-control" type="text" value="2" placeholder="Levenshtein Distanz"/>
-	  <span class="input-group-btn">
-	    <button id="tags-duplicates-button" type="submit" class="btn btn-default">Find!</button>
-	  </span>
-	</div>
+      <p>Um wieviele Zeichen dürfen sich ähnliche Tags unterscheiden?</p>
+      <form class="form-inline" role="form">
+	       <div class="form-group">           
+           <select id="tags-duplicates-max-levenshtein-distance" class="form-control">
+              <option value="1" selected>1 Zeichen Unterschied</option>
+              <option value="2">2 Zeichen Unterschied</option>
+           </select>
+	         <button id="tags-duplicates-button" type="submit" class="btn btn-default">Suche</button>
+	       </div>
       </form>
-
+      <p>&nbsp;</p>
       <div id="tags-duplicates-message" class="alert" role="alert"></div>
       <div id="tags-duplicates-list"></div>
     </div>
