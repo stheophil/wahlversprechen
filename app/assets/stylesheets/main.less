@@ -1,12 +1,12 @@
 @import "bootstrap/bootstrap.less";
 
-@header-color: #515295; 
+@header-color: #515295;
 
 @font-weight-h1-h2: 900;
 @font-weight-h3-h4: 700;
 
-body { 
-	padding-top: 70px; 
+body {
+	padding-top: 70px;
 }
 
 
@@ -14,23 +14,23 @@ body {
 h1, h2 {
 	font-weight: @font-weight-h1-h2;
 	color: @header-color;
-	
+
 	a {
 		color: inherit;
 	}
 }
 
-h3, h4 { 
+h3, h4 {
 	font-weight: @font-weight-h3-h4;
 }
 
 small, .label {
 	a {
 		color: inherit;
-		
+
 		&:hover {
 			color: inherit;
-			text-decoration: underline;			
+			text-decoration: underline;
 		}
 	}
 }
@@ -43,28 +43,28 @@ small, .label {
 	  width: 100%;
 	  padding: 0 @padding-base-horizontal/2;
 	}
-	
+
 	.btn {
 		height: @navbar-form-height; // make nav-bar forms vertically compact
 		padding: 0 @padding-base-horizontal/2;
 	}
-	
+
 	span.input-group-btn {
 		line-height: 0px;
 	}
-	
+
 	.navbar-form {
 		padding-left: 30px;
 	}
-	
+
 	@media (min-width: @screen-sm) {
 		.navbar-form {
 			margin-top: (@navbar-height - @navbar-form-height)/2;
-			margin-bottom: (@navbar-height - @navbar-form-height)/2;	
+			margin-bottom: (@navbar-height - @navbar-form-height)/2;
 			padding: 0px;
 		}
 	}
-	
+
 	.input-group {
 		.twitter-typeahead + .input-group-btn {
 			vertical-align: top; // typeahead somehow top-aligns the text-box
@@ -83,26 +83,26 @@ small, .label {
 
 	@scaled-height:	@font-size-base * 2.3;
 	@full-height: @font-size-base * 3.5;
-	
+
 	h1 {
 		display: inline-block;
 		font-size: @scaled-height;
-		
+
 		@media (min-width: @screen-sm-min) {
 			font-size: @full-height;
 		}
 
 		small {
-			font-size: @font-size-base; 
+			font-size: @font-size-base;
 			display: block
 		}
 	}
 
 	img {
-		vertical-align:bottom; 
+		vertical-align:bottom;
 		margin-bottom: (@line-height-computed / 2); // h1 margin-bottom
 		height: @scaled-height;
-		
+
 		@media (min-width: @screen-sm-min) {
 			height: @full-height;
 		}
@@ -110,18 +110,18 @@ small, .label {
 }
 
 .social-media {
-	display:block; 
-	line-height: 15px; 
+	display:block;
+	line-height: 15px;
 	margin-top: -15px;
 	white-space: nowrap;
 	vertical-align: bottom;
-	
+
 	iframe {
 		vertical-align: bottom;
 		margin-left: 3px;
 		margin-right: 3px;
 	}
-	
+
 	div {
 		margin-left: 3px;
 		margin-right: 3px;
@@ -159,7 +159,7 @@ footer .social-media {
 	    -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
 	       -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
 	            box-shadow: 0 5px 10px rgba(0,0,0,.2);
-	            
+
        	.tt-header {
 			margin: 5px;
 			font-size: 18px;
@@ -168,12 +168,12 @@ footer .social-media {
 
 		.tt-suggestion {
 			padding: 3px 20px;
-			
+
 			.tt-cursor {
 				color: #fff;
 				background-color: #0097cf;
 			}
-			
+
 			p {
 				margin: 0;
 			}
@@ -183,10 +183,10 @@ footer .social-media {
 
 .titleprogress-carousel {
 	margin-top: @line-height-computed + 10;
-	
+
 	.titleprogress-header {
 		font-weight: bold;
-		
+
 		a {
 			color: inherit;
 			&:hover {
@@ -194,9 +194,9 @@ footer .social-media {
 			}
 		}
 	}
-	
+
 	.titleprogress {
-		height: 25px;	
+		height: 25px;
 		margin-bottom: 3px;
 		overflow: hidden;
 		background-color: #f5f5f5;
@@ -204,13 +204,13 @@ footer .social-media {
 		-webkit-box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
 		box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
 		display: inline-block;
-		vertical-align: middle;				
+		vertical-align: middle;
 
 		.titleprogress-label {
 			font-size: @font-size-base;
 			font-weight: bold;
 			vertical-align: middle;
-			
+
 			a {
 				color: inherit;
 				&:hover {
@@ -218,21 +218,21 @@ footer .social-media {
 				}
 			}
 		}
-		
+
 		.progress-bar {
 			width: 100%;
-			
+
 			.titleprogress-label {
 				color: white;
 			}
 		}
 	}
-}  
+}
 
 .relatedurl {
     margin-top: 10px;
     padding-left: 0px;
-     
+
 	li {
 	    list-style-type: none;
 	    line-height: 22px;
@@ -245,17 +245,17 @@ footer .social-media {
 
 .stmt-list {
 	 position: relative;
-	 
+
 	 .glyph-column {
-		 position: absolute; 
-		 height: 100%; 
+		 position: absolute;
+		 height: 100%;
 		 width: 25px;
 		 font-size: 20px;
 	}
-	
+
 	.content {
 		padding-left: 28px;
-		
+
 		p {
 			margin-top: 10px;
 		}
@@ -263,7 +263,7 @@ footer .social-media {
 		h4 {
 			margin-bottom: 5px;
 		}
-		
+
 		small {
 			color: grey;
 		}
@@ -271,37 +271,37 @@ footer .social-media {
 		blockquote {
 			padding: 0px 10px;
 			margin: 0px 0px 10px;
-			
+
 			font-size: @font-size-base;
-			font-family: @font-family-serif;	
+			font-family: @font-family-serif;
 			font-style: italic;
 			font-weight: 400
 		}
 	}
-	
+
 	.body {
 		max-height: 80px;
 		overflow: hidden;
 		position: relative;
-		
-		.read-more { 
+
+		.read-more {
 			display: none;
-			position: absolute; 
+			position: absolute;
 			bottom: 0; right: 0;
-			width: 100%; 
-			text-align: right; 
-			margin: 0; 
-			padding-top: 30px; 
-			
-			/* "transparent" only works here because == rgba(0,0,0,0) */ 
+			width: 100%;
+			text-align: right;
+			margin: 0;
+			padding-top: 30px;
+
+			/* "transparent" only works here because == rgba(0,0,0,0) */
 			background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, rgba(255,255,255,0)),color-stop(1, white));
 			background-image: -webkit-linear-gradient(top, rgba(255,255,255,0), white);
-		
+
 		    background-image: -moz-linear-gradient(top, rgba(255,255,255,0), white);
-		    
+
 		    background-image: -ms-linear-gradient(top, rgba(255,255,255,0), white);
 		    background-image: -o-linear-gradient(top, rgba(255,255,255,0), white);
-		
+
 		    background-image: linear-gradient(rgba(255,255,255,0), white);
 		}
 	}
@@ -316,11 +316,11 @@ footer .social-media {
 
 h1.entry-title {
 	margin-top: 0px;
-	
+
 	small {
 		 font-size: 0.5em;
 	}
-	
+
 	@media (max-width: @screen-xs-max) {
 		font-size: @font-size-h1 * @scale-factor-xs;
 	}
@@ -330,11 +330,11 @@ div.entry-rating {
 	vertical-align: middle;
 	font-size: @font-size-h2;
 	font-weight: @font-weight-h1-h2;
-	
+
 	padding-bottom: 0.5em;
 	margin-bottom: 0.5em;
 	border-bottom: @gray-lighter 1px solid;
-	
+
 	@media (max-width: @screen-xs-max) {
 		font-size: @font-size-h2 * @scale-factor-xs;
 	}
@@ -344,7 +344,7 @@ div.entry-rating {
 	font-size: @font-size-large;
 	line-height: 1.6em;
 	vertical-align: middle;
-	
+
 	@media (max-width: @screen-xs-max) {
 		font-size: @font-size-large * @scale-factor-xs;
 	}
@@ -359,28 +359,28 @@ div.entry-rating {
 			display: inline;
 			padding: inherit;
 		}
-		
+
 		.social-media-button {
 			vertical-align: bottom;
-			
+
 			iframe {
 				vertical-align: bottom;
 			}
 		}
-		
+
 		@media (max-width: @screen-md-max) {
 			display: inline-block;
 			vertical-align: top;
 			padding-left: 5px;
 			padding-right: 5px;
-			
+
 			a {
 				padding-left: 3px;
 				padding-right: 3px;
 			}
 		}
-	}		
-		
+	}
+
 	@media (max-width: @screen-md-max) {
 		.tags {
 			display: block;
@@ -392,15 +392,15 @@ div.entry-rating {
 	font-size: 14px;
 
 	h1 {
-		font-size: 1.5em; 
+		font-size: 1.5em;
 
 		@media (min-width: @screen-md) {
-			margin-top: 50px; 
+			margin-top: 50px;
 		}
 	}
-	
+
 	h2 {
-		font-size: 1.2em; 
+		font-size: 1.2em;
 	}
 
 	h3, h4, h5 {
@@ -423,17 +423,17 @@ div.entry-rating {
 }
 
 .entry-quote {
-	font-family: @font-family-serif;	
+	font-family: @font-family-serif;
 	font-style: italic;
 	font-weight: 400
 }
 
 .entry-buttons {
 	color: grey;
-	font-size: 16px;	
+	font-size: 16px;
 	float: right;
 }
-	
+
 .feedicon {
 	font-size: @font-size-h2;
 	color: grey;
@@ -449,22 +449,22 @@ div.entry-rating {
 	@media (min-width: @screen-sm) {
 		font-size: 16px;
 	}
-	
+
 	@media (min-width: @screen-md) {
 		font-size: 18px;
 	}
-	
+
 	:first-child
-	{ 
+	{
 		margin-top: 0px;
 	}
-		
+
 	h1 {
-		font-size: 1.5em; 
+		font-size: 1.5em;
 	}
-	
+
 	h2 {
-		font-size: 1.2em; 
+		font-size: 1.2em;
 	}
 
 	h3, h4, h5 {
@@ -472,9 +472,9 @@ div.entry-rating {
 	}
 
 	p, ul, ol, li {
-		font-size: 1em; 
+		font-size: 1em;
 	}
-	
+
 	img {
 		max-width: 100%;
 	}
@@ -488,4 +488,8 @@ textarea.expand {
 
 .showonclick {
 	display: none;
+}
+
+.inbetween-text-for-list {
+    padding: 1em;
 }
