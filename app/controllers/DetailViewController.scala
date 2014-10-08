@@ -92,17 +92,22 @@ object DetailViewController extends Controller with Secured with Cached {
 				{ case (title, rating, quote, quote_src, linked_id) => {
 					Logger.debug("Update item " + stmt_id + " (" + title + ", " + rating + ", " + quote + ", " + quote_src + ", " + linked_id + ")" )
 
-					DB.withTransaction{ implicit c => 
-						if(!title.map( Statement.setTitle(c, stmt_id, _) ).getOrElse(true) ||
-						!rating.map( r => Statement.setRating(c, stmt_id, Rating(r)) ).getOrElse(true) ||
-						!quote.map( Statement.setQuote(c, stmt_id, _) ).getOrElse(true) ||
-						!quote_src.map( Statement.setQuoteSrc(c, stmt_id, _) ).getOrElse(true) ||
-						!linked_id.map( Statement.setLinkedID(c, stmt_id, _) ).getOrElse(true))
-						{
-							throw new ValidationException()
-						}
-						invalidateCaches(stmt_id)
-						Ok("")						
+					if(user.role==Role.Editor 
+					&& (title.isDefined || quote.isDefined || quote_src.isDefined || linked_id.isDefined)) {
+						Forbidden
+					} else {						
+						DB.withTransaction{ implicit c => 
+							if(!title.map( Statement.setTitle(c, stmt_id, _) ).getOrElse(true) ||
+							!rating.map( r => Statement.setRating(c, stmt_id, Rating(r)) ).getOrElse(true) ||
+							!quote.map( Statement.setQuote(c, stmt_id, _) ).getOrElse(true) ||
+							!quote_src.map( Statement.setQuoteSrc(c, stmt_id, _) ).getOrElse(true) ||
+							!linked_id.map( Statement.setLinkedID(c, stmt_id, _) ).getOrElse(true))
+							{
+								throw new ValidationException()
+							}
+							invalidateCaches(stmt_id)
+							Ok("")						
+						}	
 					}
 				}}
 			)
@@ -129,11 +134,15 @@ object DetailViewController extends Controller with Secured with Cached {
 			formWithErrors => BadRequest(""),
 			{ case (content) => {
 				Entry.load(entry_id) match {
-					case Some(entry) => {						
+					case Some(entry) => {
 						Logger.debug("Update entry with text '"+content+"'")
-						Entry.edit(entry.id, content)
-						invalidateCaches(entry.stmt_id)
-						Ok("")
+						if(user.role==Role.Admin || entry.user==user) {
+							Entry.edit(entry.id, content)
+							invalidateCaches(entry.stmt_id)
+							Ok("")
+						} else {
+							Forbidden
+						}
 					}
 					case None => 
 						NotFound
@@ -142,7 +151,7 @@ object DetailViewController extends Controller with Secured with Cached {
 		)
 	}	
 
-	def deleteEntry(entry_id: Long) = IsEditor { user => implicit request =>
+	def deleteEntry(entry_id: Long) = IsAdmin { user => implicit request =>
 		Entry.load(entry_id) match {
 			case Some(entry) => {
 				Entry.delete(entry_id)

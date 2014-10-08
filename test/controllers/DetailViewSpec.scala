@@ -10,7 +10,7 @@ import helpers.WithTestDatabase
 import org.specs2.specification.Scope
 
 class DetailViewSpec extends Specification with WithTestDatabase {
-  def verifyInvalidUpdate[T](url: (T) => String, load: (T) => T, invalid_args: Map[T, List[(String, Any)]], session: (String, String)) =
+  def verifyInvalidUpdate[T](result: Int, url: (T) => String, load: (T) => T, invalid_args: Map[T, List[(String, Any)]], session: (String, String)) =
     Result.unit(for ((t, args) <- invalid_args) {
       for ((param, value) <- args) {
         val update = route(FakeRequest(PUT, url(t)).
@@ -18,7 +18,7 @@ class DetailViewSpec extends Specification with WithTestDatabase {
           withFormUrlEncodedBody(param -> value.toString)
         ).get
 
-        status(update) aka ("status after setting " + param + " to " + value + " ") must equalTo(BAD_REQUEST)
+        status(update) aka ("status after setting " + param + " to " + value + " ") must equalTo(result)
         load(t) aka ("load(t) after setting " + param + " to " + value + " ") must equalTo(t)
       }
     })
@@ -79,13 +79,24 @@ class DetailViewSpec extends Specification with WithTestDatabase {
 
   trait TestData extends Scope {
     val user = User.create("test@test.de", "test", "password", Role.Admin)
+    val userEditor = User.create("test2@test.de", "test", "password", Role.Editor)
+    val userEditor2 = User.create("test3@test.de", "test", "password", Role.Editor)
+
     val author = Author.create("test author", 1, false, "#ffffff", "#000000")
-    val categoty = Category.create("test category", 1)
-    val stmt = Statement.create("test statement", author, categoty,
+    val category = Category.create("test category", 1)
+
+    val stmt = Statement.create("test statement", author, category,
       Some("some text"), None)
+    val stmtWithTag = Statement.create("test statement 2", author, category,
+      Some("some text"), None)
+    val tag = Tag.create("Only Tag");
+    Tag.add(stmtWithTag.id, tag)
+
+    val entryEditor = Entry.load( Entry.create(stmt.id, "content", new java.util.Date(), userEditor.id) ).get
+    val entryEditor2 = Entry.load( Entry.create(stmt.id, "content", new java.util.Date(), userEditor2.id) ).get
 
     val topAuthor = Author.create("top level test author", 1, true, "#ffffff", "#000000")
-    val topLevelStatement = Statement.create("test statement", topAuthor, categoty,
+    val topLevelStatement = Statement.create("test statement", topAuthor, category,
       Some("some text"), None)
   }
 
@@ -95,6 +106,7 @@ class DetailViewSpec extends Specification with WithTestDatabase {
       val stmtsRated = List(topLevelStatement)
 
       verifyInvalidUpdate[Statement](
+        BAD_REQUEST,
         s => {
           "/item/" + s.id
         },
@@ -116,6 +128,29 @@ class DetailViewSpec extends Specification with WithTestDatabase {
             )
         ),
         "email" -> user.email
+      )
+    }
+    "return FORBIDDEN on when Editor tries to edit Statement data" in new TestData {
+      val stmtsUnrated = List(stmt)
+
+      verifyInvalidUpdate[Statement](
+        FORBIDDEN,
+        s => {
+          "/item/" + s.id
+        },
+        s => {
+          Statement.load(s.id).get
+        },
+        Map(
+          stmtsUnrated.last ->
+            List(
+              "title" -> "Some title",
+              "quote" -> "Some quote",
+              "quote_src" -> "Some quote src",
+              "linked_id" -> 0
+            )
+        ),
+        "email" -> userEditor.email
       )
     }
     "return OK on valid update input and change the statement" in new TestData {
@@ -141,6 +176,172 @@ class DetailViewSpec extends Specification with WithTestDatabase {
         ),
         "email" -> user.email
       )
+    }
+  }
+  // TODO: Remove copy-paste code in following tests
+  "delete" should {
+    "delete statement when called by Admin" in new TestData {
+        val update = route(FakeRequest(DELETE, "/item/"+stmt.id).
+          withSession("email" -> user.email)
+        ).get
+
+        status(update) must equalTo(OK)
+        Statement.load(stmt.id) must beNone
+    }
+    "return FORBIDDEN when called by Editor" in new TestData {
+        val update = route(FakeRequest(DELETE, "/item/"+stmt.id).
+          withSession("email" -> userEditor.email)
+        ).get
+
+        status(update) must equalTo(FORBIDDEN)
+    }
+    "return FORBIDDEN when called without user" in new TestData {
+        val update = route(FakeRequest(DELETE, "/item/"+stmt.id)).get
+        status(update) must equalTo(SEE_OTHER)
+    }
+  }
+  "addEntry" should {
+    "create new Entry when called by Editor" in new TestData {
+        val text = "some content for the new entry"
+        val update = route(FakeRequest(POST, "/item/"+stmt.id).
+            withSession("email" -> userEditor.email).
+            withFormUrlEncodedBody("content" -> text)
+          ).get
+
+        status(update) must equalTo(OK)
+
+        val entries = Entry.loadByStatement(stmt.id)
+        entries.length must equalTo(3)
+        entries.head.content must equalTo(text)
+        entries.head.user must equalTo(userEditor)
+    }
+    "return SEE_OTHER when called without user" in new TestData {
+      val text = "some content for the new entry"
+      val update = route(FakeRequest(POST, "/item/"+stmt.id).
+        withFormUrlEncodedBody("content" -> text)
+      ).get
+
+      status(update) must equalTo(SEE_OTHER)
+      Entry.loadByStatement(stmt.id) must equalTo(List(entryEditor2, entryEditor))
+    }
+  }
+  "updateEntry" should {
+    "edit Entry when called by Admin" in new TestData {
+      val text = "some content for the new entry"
+      val update = route(FakeRequest(PUT, "/entry/"+entryEditor.id).
+          withSession("email" -> user.email).
+          withFormUrlEncodedBody("content" -> text)
+        ).get
+
+      status(update) must equalTo(OK)
+      Entry.load(entryEditor.id).get.content must equalTo(text)
+    }
+    "edit Entry when called by owning Editor" in new TestData {
+      val text = "some content for the new entry"
+      val update = route(FakeRequest(PUT, "/entry/"+entryEditor.id).
+          withSession("email" -> userEditor.email).
+          withFormUrlEncodedBody("content" -> text)
+        ).get
+
+      status(update) must equalTo(OK)
+      Entry.load(entryEditor.id).get.content must equalTo(text)
+    }
+    "return FORBIDDEN when called other Editor" in new TestData {
+      val text = "some content for the new entry"
+      val update = route(FakeRequest(PUT, "/entry/"+entryEditor.id).
+          withSession("email" -> userEditor2.email).
+          withFormUrlEncodedBody("content" -> text)
+        ).get
+
+      status(update) must equalTo(FORBIDDEN)
+      Entry.load(entryEditor.id).get must equalTo(entryEditor)
+    }
+    "return FORBIDDEN when called without user" in new TestData {
+      val text = "some content for the new entry"
+      val update = route(FakeRequest(PUT, "/entry/"+entryEditor.id).
+          withFormUrlEncodedBody("content" -> text)
+        ).get
+
+      status(update) must equalTo(SEE_OTHER)
+      Entry.load(entryEditor.id).get must equalTo(entryEditor)
+    }
+  }
+  "deleteEntry" should {
+    "delete Entry when called by Admin" in new TestData {
+      val update = route(FakeRequest(DELETE, "/entry/"+entryEditor.id).
+          withSession("email" -> user.email)
+        ).get
+
+      status(update) must equalTo(OK)
+      Entry.load(entryEditor.id) must beNone
+    }
+    "return FORBIDDEN when called by Editor" in new TestData {
+      val update = route(FakeRequest(DELETE, "/entry/"+entryEditor.id).
+          withSession("email" -> userEditor.email)
+        ).get
+
+      status(update) must equalTo(FORBIDDEN)
+      Entry.load(entryEditor.id).get must equalTo(entryEditor)
+    }
+    "return SEE_OTHER when called without user" in new TestData {
+      val update = route(FakeRequest(DELETE, "/entry/"+entryEditor.id)).get
+      status(update) must equalTo(SEE_OTHER)
+      Entry.load(entryEditor.id).get must equalTo(entryEditor)
+    }
+  } 
+  "addTag" should {
+    "add tag when called by Admin" in new TestData {
+        val tagNew ="New Tag"
+        val update = route(FakeRequest(POST, "/item/"+stmt.id+"/tag").
+          withSession("email" -> user.email).
+          withFormUrlEncodedBody("name" -> tagNew)
+        ).get
+
+      status(update) must equalTo(OK)
+      Statement.load(stmt.id).get.tags.map(_.name) must containTheSameElementsAs(List(tagNew))
+    }
+    "add tag when called by Editor" in new TestData {
+      val tagNew ="New Tag"
+        val update = route(FakeRequest(POST, "/item/"+stmt.id+"/tag").
+          withSession("email" -> user.email).
+          withFormUrlEncodedBody("name" -> tagNew)
+        ).get
+
+      status(update) must equalTo(OK)
+      Statement.load(stmt.id).get.tags.map(_.name) must containTheSameElementsAs(List(tagNew))
+    }
+    "return SEE_OTHER when called without user" in new TestData {
+      val tagNew ="New Tag"
+        val update = route(FakeRequest(POST, "/item/"+stmt.id+"/tag").
+          withFormUrlEncodedBody("name" -> tagNew)
+        ).get
+
+      status(update) must equalTo(SEE_OTHER)
+      Statement.load(stmt.id).get.tags.size must equalTo(0)
+    }
+  }  
+  "deleteTag" should {
+    "delete tag when called by Admin" in new TestData {
+      val update = route(FakeRequest(DELETE, "/item/"+stmtWithTag.id+"/tag/" + tag.id).
+          withSession("email" -> user.email)
+        ).get
+
+      status(update) must equalTo(OK)
+      Statement.load(stmtWithTag.id).get.tags.size must equalTo(0)
+    }
+    "delete tag when called by Editor" in new TestData {
+      val update = route(FakeRequest(DELETE, "/item/"+stmtWithTag.id+"/tag/" + tag.id).
+          withSession("email" -> user.email)
+        ).get
+
+      status(update) must equalTo(OK)
+      Statement.load(stmtWithTag.id).get.tags.size must equalTo(0)
+    }
+    "return SEE_OTHER when called without user" in new TestData {
+      val update = route(FakeRequest(DELETE, "/item/"+stmtWithTag.id+"/tag/" + tag.id)).get
+
+      status(update) must equalTo(SEE_OTHER)
+      Statement.load(stmtWithTag.id).get.tags.map(_.name) must containTheSameElementsAs(List(tag.name))
     }
   }
 }

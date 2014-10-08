@@ -6,9 +6,10 @@
     Formatter.icon(stmt.rating.getOrElse(Rating.Unrated))
 )){
 @defining(user.isDefined && (user.get.role==Role.Editor || user.get.role==Role.Admin)) { editing =>
+  @defining(user.isDefined && user.get.role==Role.Admin) { editingAdmin =>
 
 <h1 class="entry-title"><small><a href="/category/@stmt.category.name">@stmt.category.name</a>&nbsp;| @stmt.author.name</small><br/>
-@editing match {
+@editingAdmin match {
 	case true => {
 		<span style="white-space: pre-wrap;" class="ajax-update" url="/item/@stmt.id" name="title">@stmt.title</span>
 	}
@@ -61,12 +62,12 @@
 
 <div class="row">
   <!-- item quote -->
-  @editing match {
+  @editingAdmin match {
   	case true => {
       <blockquote class="lead entry-quote"><p style="white-space: pre-wrap;" class="ajax-update" url="/item/@stmt.id" name="quote">@stmt.quote.getOrElse("Gib ein Zitat ein")</p><br/>
 		    <small><p style="white-space: pre-wrap;" class="ajax-update" url="/item/@stmt.id" name="quote_src">@stmt.quote_src.getOrElse("Gib eine Quelle für das Zitat ein")</p></small>
 		  </blockquote>
-	}
+    }
   	case false => {
   		@if(stmt.quote.isDefined) {
   			<blockquote class="lead entry-quote">@Formatter.transformToHTML(stmt.quote.get)
@@ -122,8 +123,10 @@
     <div>
       <a name="@entry.id" id="@entry.id"></a> <!-- TODO: Check if needed, if not remove -->
       <div class="entry-buttons">
-        @if(editing) {
+        @if(editingAdmin) {
           <a href="#" class="ajax-delete collapse text-danger" url="/entry/@entry.id"><span class="glyphicon glyphicon-remove"></span>&nbsp;Löschen</a>
+        }
+        @if(editing && (editingAdmin || entry.user==user.get)) {
           <a href="#" class="ajax-edit text-warning small" data-id="@entry.id"><span class="glyphicon glyphicon-edit"></span>&nbsp;Ändern</a>
         }
       </div>
@@ -164,7 +167,7 @@
 </div>
 </div>
 
-@if(editing && user.get.role==Role.Admin) {
+@if(editingAdmin) {
 	<p>
 	<span class="pull-right">
 		<button type="button" class="btn-danger btn btn-lg" data-toggle="modal" data-target="#modalDeleteItem">Wahlversprechen Löschen</button>
@@ -187,4 +190,4 @@
 	</div><!-- /.modal -->
 }
 
-}}
+}}}
