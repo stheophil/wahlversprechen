@@ -9,7 +9,7 @@
 	@if(editing) {
 		<br><br>
 		<form class="ajax-submit form-inline input-group" data-url="@routes.DetailViewController.addTag(stmt.id).url" data-method="POST" data-action="reload" data-alert-id="formNewTag" role="form">
-  		  <input type="text" name="name" class="form-control input-sm" size="25" placeholder="Neues Tag hinzufügen">
+  		  <input type="text" name="name" class="form-control input-sm typeahead-tags" size="25" placeholder="Neues Tag hinzufügen">
         <span class="input-group-btn">
           <button type="submit" class="btn-default btn btn-sm">OK</button>
         </span>
