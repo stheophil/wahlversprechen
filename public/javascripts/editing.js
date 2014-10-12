@@ -227,7 +227,8 @@ define(['jquery', 'marked'], function ($, marked) {
         textarea.animate({
           height: targetheight
         }, 500);
-        showonclick.fadeIn();
+          showonclick.fadeIn();
+          updatePreview($(this));
       });
 
       var Collapse = function() {
@@ -302,14 +303,17 @@ define(['jquery', 'marked'], function ($, marked) {
         $('<br/><button type="button" class="btn btn-primary btn-sm">Speichern</button>&nbsp;')
           .insertAfter(element)
           .click(saveHandler)
-          .hide();
+            .hide();
 
-        element.focusin(function() { 
+        element.focusin(function() {
+          updatePreview(element);
           element.nextAll("button").fadeIn();
+          element.nextAll(".preview").fadeIn();
         });
 
         element.blur(function() { 
           element.nextAll("button").fadeOut();
+          element.nextAll(".preview").fadeOut();
         });
       }
     });
@@ -337,14 +341,22 @@ define(['jquery', 'marked'], function ($, marked) {
       });
     });
 
-    // Listens for changes and renders them after every keystroke
-    $(document).on("keyup", "textarea.live-markdown", function(e) {
-      var entryId = $(this).data("id");
+    function updatePreview($element) {
+      var entryId = $element.data("id");
       var $renderedEntry = $(".entry-content[data-id=" + entryId + "]");
 
-      var changedText = $(this).val();
+      // Sometimes we're dealing with input elements,
+      // sometimes with .contenteditable text elements.
+      var changedText = ($element.attr("contenteditable") === 'true')
+                      ? $element.text()
+                      : $element.val();
       var newHtml = marked(changedText);
       $renderedEntry.html(newHtml);
+    }
+
+    // Listens for changes and renders them after every keystroke
+    $(document).on("keyup", ".live-markdown", function(e) {
+        updatePreview($(this));
     });
 
     attachDeleteHandler($(document));

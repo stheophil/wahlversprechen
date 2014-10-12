@@ -64,7 +64,10 @@
   <!-- item quote -->
   @editingAdmin match {
   	case true => {
-      <blockquote class="lead entry-quote"><p style="white-space: pre-wrap;" class="ajax-update" url="/item/@stmt.id" name="quote">@stmt.quote.getOrElse("Gib ein Zitat ein")</p><br/>
+      <blockquote class="lead entry-quote"><p data-id="quoteid-new" style="white-space: pre-wrap;" class="ajax-update live-markdown" url="/item/@stmt.id" name="quote">@stmt.quote.getOrElse("Gib ein Zitat ein")</p>
+    <p class="alert alert-warning preview" style="display:none">Vorschau! Der Eintrag wird erst beim Speichern wirklich geändert.</p>
+    <div class="entry-content preview" data-id="quoteid-new"></div>
+    <br/>
 		    <small><p style="white-space: pre-wrap;" class="ajax-update" url="/item/@stmt.id" name="quote_src">@stmt.quote_src.getOrElse("Gib eine Quelle für das Zitat ein")</p></small>
 		  </blockquote>
     }
@@ -89,7 +92,7 @@
           <a data-toggle="collapse" data-target="#collapsible">
           Aktuell in den Medien
           </a>
-        </h1>        
+        </h1>
       </div>
       <div id="collapsible" class="collapse panel-collapse ">
         <div class ="panel-body">
@@ -105,9 +108,11 @@
     case true => {
       <form class="ajax-submit" data-url="@routes.DetailViewController.addEntry(stmt.id).url" data-method="POST" data-action="reload" data-alert-id="formNewEntry" role="form">
         <div class="form-group">
-          <textarea class="expand form-control" name="content" style="width: 100%;" placeholder="Schreibe einen neuen Beitrag ..."></textarea>
+          <textarea class="live-markdown expand form-control" name="content" style="width: 100%;" placeholder="Schreibe einen neuen Beitrag ..." data-id="entryid-new"></textarea>
           <span class="help-block showonclick">(Formatierungen im <a href="http://daringfireball.net/projects/markdown/syntax#block" target="_blank">Markdown-Format</a> werden unterstützt.)<br/><br/></span>
         </div>
+        <p class="alert alert-warning showonclick" style="display:none;">Vorschau! Der Eintrag wird erst beim Speichern wirklich geändert.</p>
+        <div class="entry-content showonclick" data-id="entryid-new"></div>
         <button type="submit" class="btn-primary btn showonclick">Abschicken</button>
         <button type="button" class="btn-default btn cancel showonclick">Abbrechen</button>
       </form>
