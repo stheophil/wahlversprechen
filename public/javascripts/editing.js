@@ -1,6 +1,6 @@
 "use strict";
 
-define(['jquery', 'marked'], function ($, marked) {
+define(['jquery', 'marked', 'app/detailSidebar'], function ($, marked) {
 
   function form_ajax_submit(form) {
     var submit = form.find("button[type='submit']");

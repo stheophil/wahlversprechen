@@ -26,51 +26,19 @@ require.config({
 // three different ones.
 // See https://github.com/jrburke/requirejs/wiki/Patterns-for-separating-config-from-the-main-module
 
-require(['jquery', 'routes', 'moment', 'typeahead', 'bootstrap', 'app/title', 'app/detailView', 'app/editing', 'app/admin/prefs'],
-    function($, jsroutes, moment, client) {
+require(['jquery', 'routes', 'moment', 'app/completion', 'bootstrap', 'app/title', 'app/detailView', 'app/editing', 'app/admin/prefs'],
+    function($, jsroutes, moment, completion) {
 
         // setup typeahead search box
         {
-            // constructs the suggestion engine
-            var tags = new Bloodhound({
-                datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
-                queryTokenizer: Bloodhound.tokenizers.whitespace,
-                prefetch: {
-                    url: jsroutes.controllers.Application.tagsAsJSON().url
-                }
-            });
-
-            tags.initialize();
-
-            var categories = new Bloodhound({
-                datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
-                queryTokenizer: Bloodhound.tokenizers.whitespace,
-                prefetch: {
-                    url: jsroutes.controllers.Application.categoriesAsJSON().url
-                }
-            });
-
-            categories.initialize();
-
             $('.typeahead').typeahead({
                 hint: true,
                 highlight: true,
                 minLength: 1
-            }, {
-                name: 'tags',
-                displayKey: 'name',
-                source: tags.ttAdapter(),
-                templates: {
-                    header: '<h3 class="tt-header">Stichwörter</h3>'
-                }
-            }, {
-                name: 'categories',
-                displayKey: 'name',
-                source: categories.ttAdapter(),
-                templates: {
-                    header: '<h3 class="tt-header">Ressorts</h3>'
-                }
-            });
+            },
+                completion.datasets.getTags(),
+                completion.datasets.getCategories()
+            );
 
             $('.typeahead').on("typeahead:selected typeahead:autocompleted", function(evt, suggestion, dataset) {
                 if (dataset === "tags") {
