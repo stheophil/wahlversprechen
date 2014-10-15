@@ -23,6 +23,7 @@ GET 	/json/tags 					controllers.Application.tagsAsJSON
 GET 	/json/categories 			controllers.Application.categoriesAsJSON
 GET 	/json/authors 				controllers.Application.authorsAsJSON
 GET 	/json/relatedurls 			controllers.Application.relatedUrlsAsJSON(from: java.util.Date, to: Option[java.util.Date])
+GET 	/json/mostActiveCommenters 	controllers.Application.mostActiveCommenters
 
 # RSS
 GET 	/updates/feed 				controllers.Application.updatesAsFeed

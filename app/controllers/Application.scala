@@ -11,6 +11,8 @@ import play.api.mvc._
 import play.api.data.Forms._
 import play.api.Play.current
 
+import play.api.libs.ws._
+
 import models._
 import models.Rating._
 import views._
@@ -108,12 +110,44 @@ object Application extends Controller with Cached {
 	def updatesAsFeed = CachedAction("updatesAsFeed") { implicit request =>
 		Ok(views.xml.entryList("wahlversprechen2013.de: Alle Aktualisierungen", routes.Application.recent.absoluteURL(false), Entry.loadRecent(10)))			
 	}
+
+	def mostActiveCommenters = Action.async { implicit request =>
+		implicit val context = scala.concurrent.ExecutionContext.Implicits.global
+		Play.configuration.getString("application.disqus_api_key") match {
+			case None => 
+				scala.concurrent.Future { 
+					BadRequest("Disqus API key not configured")
+				}				
+			case Some(apikey) => 
+				val forum = Formatter.disqus_shortname
+				val cache = "mostActiveCommenters"
+				Cache.get( cache ) match {
+					case None => {
+						WS.url("http://disqus.com/api/3.0/forums/listMostActiveUsers.json").withQueryString(
+							"api_secret" -> apikey, 
+							"forum" -> forum,
+							"limit" -> "100" 
+						).get().map { response =>
+							Logger.info("Store " + cache + " in cache.")
+							Cache.set( cache, response.json, 2.hours )
+						    Ok(response.json)
+						}
+					}
+					case Some(json) => {
+						scala.concurrent.Future { 
+							Logger.info("Return cached " + cache)
+							Ok(json.toString)
+						}	
+					}
+				}				
+		}
+	}
 	
 	def loader_io = Action {
 		Ok("loaderio-a8c18c9612671703651ea5e79d55623e")
 	}
 
-	def preflight(all: String) = Action { implicit request => 
+	def preflight(all: String) = CachedAction("preflight", 30.days) { implicit request => 
 		Logger.debug("OPTIONS preflight request: " + request.path)
 		Ok("").withHeaders("Access-Control-Allow-Origin" -> "*",
 	      "Allow" -> "*",
@@ -121,7 +155,7 @@ object Application extends Controller with Cached {
 	      "Access-Control-Allow-Headers" -> "Origin, X-Requested-With, Content-Type, Accept, Referer, User-Agent");
 	}
 
-	def javascriptRoutes = CachedAction("javascriptRoutes") { implicit request => 
+	def javascriptRoutes = CachedAction("javascriptRoutes", 7.days) { implicit request => 
 	    import routes.javascript._
 	    Ok(
 	      Routes.javascriptRouter("jsroutes")(
