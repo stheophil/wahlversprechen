@@ -34,11 +34,15 @@ define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtei
             var $list = $('#tags-list');
             var $controls = $('#tags-controls');
             var importantOnly = $controls.find("#tags-important-only").is(':checked');
-            var infix = $controls.find("input[type=text]").val().toLowerCase();
+            var infixInput = $controls.find("input[type=text]");
+            var infix = "";
+            if(0<infixInput.length) {
+                infix = infixInput.val().toLowerCase();
+            }
             var toShow = $list.children().filter(function() {
                 return (
                     (!importantOnly || $(this).find(":checked").size() > 0)
-                       && (infix === "" || $(this).find('[data-tag-name*="' + infix + '"]').size() > 0)
+                       && (infix === "" || $(this).find('[data-tag-name-lower*="' + infix + '"]').size() > 0)
                 );
             });
             toShow.show();
