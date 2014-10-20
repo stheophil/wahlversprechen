@@ -1,5 +1,6 @@
-/*global define */
-define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtein'],
+"use strict";
+
+define(['jquery', 'app/client', 'mustache', 'routes', 'app/editing', 'levenshtein', 'bootstrap'],
     function($, client, mustache, jsroutes, editing, levenshtein) {
         function renderTag(template, tag) {
             tag.lower = tag.name.toLowerCase();
