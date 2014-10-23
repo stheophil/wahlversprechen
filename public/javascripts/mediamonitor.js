@@ -62,27 +62,50 @@ define(['jquery',
                             relatedUrlGroups: relatedUrlGroups
                         }
                     )).appendTo(div);
-
-                    $("ul.relatedurl").each(function() {
-                        var ul = $(this);
-                        var visible = false;
-                        ul.children("li").each(function() {
-                            var li = $(this);
-                            if(li.data("confidence")<confidence) {
-                                li.hide();
-                            } else {
-                                visible = true;
-                            }
-                        });
-
-                        if(!visible) {
-                            ul.parents(".stmt-list").hide();
-                        }
-                    });
+                    updateVisibility(confidence, false);
                 }).
                 fail(function(jqXHR, textStatus, errorThrown) {
                     console.log("Error: " + errorThrown)
                 });
+        }
+
+        function showOrFadeIn(elem, fade) {
+            if(fade) {
+                elem.fadeIn();
+            } else {
+                elem.show();
+            }
+        }
+
+        function hideOrFadeOut(elem, fade) {
+            if(fade) {
+                elem.fadeOut();
+            } else {
+                elem.hide();
+            }
+        }
+
+        function updateVisibility(confidence, fade) {
+            $("ul.relatedurl").each(function() {
+                var ul = $(this);
+                var visible = false;
+                ul.children("li").each(function() {
+                    var li = $(this);
+                    if(li.data("confidence")<confidence) {
+                        hideOrFadeOut(li, fade);
+                    } else {
+                        showOrFadeIn(li, fade);
+                        visible = true;
+                    }
+                });
+
+                var parent = ul.parents(".stmt-list");
+                if(visible) {
+                    showOrFadeIn(parent, fade);
+                } else {
+                    hideOrFadeOut(parent, fade);
+                }
+            });
         }
 
         function createDatePicker(id) {
@@ -109,6 +132,10 @@ define(['jquery',
 
             var slider = $('input[type="range"]');
             slider.rangeslider();
+
+            slider.change(function(evt) {
+                updateVisibility(slider.val(), true);
+            });
 
             // Load all statements and setup event handlers
             client.Statement.loadAll().done( function(stmts) {
