@@ -43,7 +43,7 @@ define(['jquery',
 
                         relatedUrlGroups.push({
                             stmt_id: stmt.id,
-                            stmt_url: stmt.url,
+                            stmt_url: "http://www.wahlversprechen2013.de/item/"+stmt.id,
                             stmt_title: stmt.title,
                             stmt_category: stmt.category,
                             lastSeen: time.format("L"),
