@@ -10,6 +10,7 @@ GET     /search                     controllers.Application.search(query: String
 GET		/aktuell					controllers.Application.recent
 GET		/top						controllers.Application.top
 GET		/alle						controllers.Application.all
+GET 	/media						controllers.Application.media
 GET		/tag/:tag					controllers.Application.tag(tag: String)
 GET		/category/:category			controllers.Application.category(category: String)
 GET		/rating/:rating				controllers.Application.rating(rating: Int)

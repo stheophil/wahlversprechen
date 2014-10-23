@@ -46,6 +46,36 @@
             function(href) {
                 var host = this.parseURL(href).hostname;
                 return "//www.google.com/s2/favicons?domain="+host;
+            },
+            toMap : 
+            function(array, key) {
+                var map = {};
+                array.forEach(function(e) {
+                    map[e[key]] = e;
+                });
+                return map;
+            },
+            max : 
+            function(array, compare) {
+                var maxElement = array[0];
+                array.forEach(function(e) {
+                    if(compare(maxElement, e)===-1) {
+                        maxElement = e;
+                    }
+                });
+                return maxElement;
+            },
+            compareBy:
+            function( fn ) {
+                return function(lhs, rhs) {
+                    return fn(lhs) - fn(rhs);
+                };
+            },
+            reverseCompareBy:
+            function( fn ) {
+                return function(lhs, rhs) {
+                    return fn(rhs) - fn(lhs);
+                }
             }
         },
         Author : {
@@ -62,19 +92,25 @@
                 });
             },
             loadAll : function() {
-                return client.Author.loadAll().done( function( authors ) {
-                    var deferred = authors.map( function( author ) {
-                        return client.Statement.loadForAuthor(author.name);
-                    });
+                var d = $.Deferred();
+                client.Author.loadAll()
+                    .done( function( authors ) {
+                        var deferred = authors.map( function( author ) {
+                            return client.Statement.loadForAuthor(author.name);
+                        });
 
-                    $.when.apply($, deferred).done( function() {
-                        var stmts = [];
-                        for(var i=0; i<arguments.length; ++i) {
-                            stmts.push.apply(stmts, arguments[i][0]);
-                        }
-                        return stmts;
-                    });
-                });
+                        $.when.apply($, deferred)
+                            .done( function() {
+                                var stmts = [];
+                                for(var i=0; i<arguments.length; ++i) {
+                                    stmts.push.apply(stmts, arguments[i][0]);
+                                }
+                                d.resolve(stmts);
+                            })
+                            .fail( d.reject );
+                    })
+                    .fail( d.reject );
+                return d.promise();
             }
         },
         RelatedURLs : {

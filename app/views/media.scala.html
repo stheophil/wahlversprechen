@@ -1,0 +1,25 @@
+@(user: Option[User])(implicit request: play.api.mvc.RequestHeader)
+
+@common.main("Wahlversprechen in den Medien", user){
+
+<link rel="stylesheet" href="@routes.Assets.at("css/pika.css")">
+
+<form class="form-inline mediacontrols" role="form">
+  <div class="form-group">
+    <label for="datepicker_from">Von:</label>
+    <input type="text" class="form-control" id="datepicker_from" placeholder="">
+  </div>
+  <div class="form-group">
+    <label for="datepicker_to">Bis:</label>
+    <input type="type" class="form-control" id="datepicker_to" placeholder="">
+  </div>
+  <div class="form-group">
+    <label for="confidence">Konfidenz:</label>
+    <input type="range" class="form-control" min="4" max="10" step="1" value="8" id="confidence">
+  </div>			  		  
+  <button type="submit" class="btn btn-default" id="gobutton">Los</button>
+  </form>
+
+<div id="relatedurl"></div>
+
+}

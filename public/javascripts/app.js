@@ -26,7 +26,7 @@ require.config({
 // three different ones.
 // See https://github.com/jrburke/requirejs/wiki/Patterns-for-separating-config-from-the-main-module
 
-require(['jquery', 'routes', 'moment', 'app/completion', 'bootstrap', 'app/title', 'app/detailView', 'app/editing', 'app/admin/prefs'],
+require(['jquery', 'routes', 'moment', 'app/completion', 'locale/de', 'bootstrap', 'app/title', 'app/detailView', 'app/editing', 'app/admin/prefs', 'app/mediamonitor'],
     function($, jsroutes, moment, completion) {
 
         // setup typeahead search box

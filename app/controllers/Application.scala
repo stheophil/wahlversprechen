@@ -58,6 +58,10 @@ object Application extends Controller with Cached {
 		Ok(views.html.viewStatementList("Alle Wahlversprechen nach Ressorts", Statement.all(), true, user(request)))
 	}
 
+	def media = CachedAction("media") { implicit request => 
+		Ok(views.html.media(user(request)))
+	}
+
 	def tag(tag: String) = CachedAction("tag." + tag) { implicit request =>
 		Ok(views.html.viewStatementList("Wahlversprechen mit Tag '"+tag+"'", Statement.byTag(tag, None, None).groupBy(_.author), false, user(request)))		
 	}
