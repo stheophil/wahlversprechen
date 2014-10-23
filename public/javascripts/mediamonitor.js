@@ -91,7 +91,15 @@ define(['jquery',
                 firstDay: 1,
                 minDate: new Date('2014-01-01'),
                 maxDate: new Date('2018-12-31'),
-                yearRange: [2014, 2018]
+                yearRange: [2014, 2018],
+                format: 'L',
+                i18n: {
+                    previousMonth : 'Voriger Monat',
+                    nextMonth     : 'Nächster Monat',
+                    months        : ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
+                    weekdays      : ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'],
+                    weekdaysShort : ['So','Mo','Di','Mi','Do','Fr','Sa']
+                }
             });
         }
 
@@ -107,7 +115,8 @@ define(['jquery',
                 console.log("Loaded " + stmts.length + " statements.");
                 var mapStatements = client.Util.toMap(stmts, 'id');
 
-                $("#gobutton").click(function(evt) {
+                var button = $("#gobutton");
+                button.click(function(evt) {
                     evt.preventDefault();
 
                     var from = picker_from.getDate();
@@ -116,6 +125,8 @@ define(['jquery',
 
                     onButtonClick(from, to, confidence, mapStatements);
                 });
+
+                button.removeClass("disabled");
             });
         });
 });
