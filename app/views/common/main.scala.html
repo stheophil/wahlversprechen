@@ -75,9 +75,7 @@
         <li><a href="http://github.com/stheophil/wahlversprechen">Github</a></li>
         @user.map(_.role) match {
           case Some(role) => {
-            @if(role==Role.Admin) {
-              <li><a href="/admin/prefs">Einstellungen</a></li>                
-            }
+            <li><a href="/admin/prefs">Einstellungen</a></li>
             <li><a href="/logout">Logout</a></li>
           }
           case None => {

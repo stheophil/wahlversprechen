@@ -54,9 +54,22 @@ object Admin extends Controller with Secured {
 			"success" -> "Du wurdest erfolgreich ausgeloggt")
 	}
 
-	def prefs = IsAdmin { user => implicit request =>
-		Ok(html.adminPrefs( Author.loadAll(), User.findAll(), user ))
+	def prefs = IsAuthenticated { user => implicit request =>
+		User.load(user) match {
+			case Some(u) =>
+				u.role match {
+					case Role.Admin => 
+						Ok(html.adminPrefs( Author.loadAll(), User.findAll(), u ))
+					case Role.Editor =>
+						Ok(html.userPrefs( u ))
+				}		
+			case None => 
+				Forbidden
+		}		
 	}
+
+	private def validPassword(password: String) = 
+		8<=password.length && password.exists(_.isDigit) && password.exists(!_.isLetterOrDigit)
 
 	def userForm(edit: Boolean) = Form(
 		tuple(
@@ -64,8 +77,7 @@ object Admin extends Controller with Secured {
 			"name" -> nonEmptyText,
 			"password" -> text.verifying(
 				"Das Passwort muss mindestens 8 Stellen, eine Zahl und ein Sonderzeichen enthalten.",
-				password => edit && password.isEmpty
-				 		|| 8<=password.length && password.exists(_.isDigit) && password.exists(!_.isLetterOrDigit)
+				password => edit && password.isEmpty || validPassword(password)
 			),
 			"role" -> number(min=0, max = Role.maxId),
 			"admin_email" -> email,
@@ -92,6 +104,40 @@ object Admin extends Controller with Secured {
 			{ case (email, name, password, role, _, _) => {
 				User.edit(id, email, name, Some(password), Some(Role(role)))
 				Ok("")
+			} }
+		)
+	}
+
+	def editUserSelfForm(user: String) = Form(
+		tuple(
+			"email" -> email.verifying(
+				"Für diese E-Mail Adresse existiert bereits ein Account.",
+				email => email==user || !User.load(email).isDefined
+			),
+			"name" -> nonEmptyText,
+			"password" -> text.verifying(
+				"Das Passwort muss mindestens 8 Stellen, eine Zahl und ein Sonderzeichen enthalten.",
+				password => password.isEmpty || validPassword(password)
+			),
+			"old_password" -> text.verifying(
+				"Das alte Passwort ist ungültig.",
+				old_password => User.authenticate(user, old_password).isDefined
+			)
+		))
+
+	def editUserSelf = IsAuthenticated { user => implicit request =>
+		editUserSelfForm(user).bindFromRequest.fold(
+			formWithErrors => BadRequest(formWithErrors.errors.head.message),
+			{ case (email, name, password, _) => {
+				val u = User.load(user).get				
+				User.edit(
+					u.id, 
+					email,
+					name, 
+					if(password.isEmpty) { None } else { Some(password) },
+					None
+				)
+				Ok("").withSession("email" -> email)
 			} }
 		)
 	}

@@ -59,6 +59,8 @@ POST 	/admin/user					controllers.Admin.newUser
 PUT 	/admin/user/:id				controllers.Admin.editUser(id: Long)
 DELETE 	/admin/user/:id				controllers.Admin.deleteUser(id: Long)
 
+PUT 	/admin/self					controllers.Admin.editUserSelf
+
 POST 	/admin/author				controllers.Admin.newAuthor
 PUT 	/admin/author/:id			controllers.Admin.editAuthor(id: Long)
 # DELETE 	/admin/author/:id		controllers.Admin.deleteAuthor(id: Long)
