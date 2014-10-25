@@ -127,33 +127,35 @@ define(['jquery',
         }
 
         $(document).ready(function() {
-            var picker_from = createDatePicker('datepicker_from');
-            var picker_to = createDatePicker('datepicker_to');
+            if(0<$("#datepicker_from").length) {
+                var picker_from = createDatePicker('datepicker_from');
+                var picker_to = createDatePicker('datepicker_to');
 
-            var slider = $('input[type="range"]');
-            slider.rangeslider();
+                var slider = $('input[type="range"]');
+                slider.rangeslider();
 
-            slider.change(function(evt) {
-                updateVisibility(slider.val(), true);
-            });
-
-            // Load all statements and setup event handlers
-            client.Statement.loadAll().done( function(stmts) {
-                console.log("Loaded " + stmts.length + " statements.");
-                var mapStatements = client.Util.toMap(stmts, 'id');
-
-                var button = $("#gobutton");
-                button.click(function(evt) {
-                    evt.preventDefault();
-
-                    var from = picker_from.getDate();
-                    var to = picker_to.getDate();
-                    var confidence = slider.val();
-
-                    onButtonClick(from, to, confidence, mapStatements);
+                slider.change(function(evt) {
+                    updateVisibility(slider.val(), true);
                 });
 
-                button.removeClass("disabled");
-            });
+                // Load all statements and setup event handlers
+                client.Statement.loadAll().done( function(stmts) {
+                    console.log("Loaded " + stmts.length + " statements.");
+                    var mapStatements = client.Util.toMap(stmts, 'id');
+
+                    var button = $("#gobutton");
+                    button.click(function(evt) {
+                        evt.preventDefault();
+
+                        var from = picker_from.getDate();
+                        var to = picker_to.getDate();
+                        var confidence = slider.val();
+
+                        onButtonClick(from, to, confidence, mapStatements);
+                    });
+
+                    button.removeClass("disabled");
+                });   
+            }
         });
 });
