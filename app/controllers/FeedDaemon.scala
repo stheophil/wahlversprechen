@@ -51,6 +51,10 @@ object FeedDaemon {
     timeStart = new Date().getTime()
 
     def foreachMatch(m: (InputStatement, TextMatch[FeedMatcherCache.AnalyzableItem])): Unit = {
+        Logger.info("FeedDaemon [" + m._1.id + "] vs " + m._2.matched.link + 
+          "=" + m._2.value + 
+          " : " + m._2.words.map(p => p._1 + ":" + p._2).mkString(", ") 
+        )
         RelatedUrl.loadByUrl(m._1.id, m._2.matched.link) match {
           case Some(relatedurl) =>
             RelatedUrl.update(relatedurl.id, new Date())
