@@ -107,11 +107,9 @@
     )
 	</div>
 	<div class="col-sm-6">
-        <h2>Aktuell in den Medien:
-
-        </h2>
+        <h2><a href="@routes.Application.media.url">Aktuell in den Medien:</a></h2>
         @Formatter.mustache( Map("relatedUrlGroups" -> asJavaIterable(relatedurlgrps)), "relatedUrlGroup.html" )
-        <!--<a href="#">Alle Anzeigen ...</a>-->
+        <a href="@routes.Application.media.url">Mehr Anzeigen ...</a>
 	</div>
 </div>
 @common.commentCountScript()
