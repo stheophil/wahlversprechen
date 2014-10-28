@@ -42,6 +42,7 @@ Embedding Images
 The site stylesheets have minimal support for embedding images. At the moment, the site does not support image upload, so you have to store all images yourself, e.g. on Dropbox. Use the following template to get a centered image with caption text:
 
 ::
+
 	<div class="img">
 		<img src="http://linktoyourimagehere.com">
 		<p>Insert caption here</p>
