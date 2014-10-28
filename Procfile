@@ -1,1 +1,1 @@
-web: target/universal/stage/bin/wahlversprechen2013 -Dhttp.port=${PORT} -J-server -DapplyEvolutions.default=true -Ddb.default.driver=org.postgresql.Driver -Ddb.default.url=${DATABASE_URL} -DAPPLICATION_SECRET=${APPLICATION_SECRET}
+web: target/universal/stage/bin/wahlversprechen2013 -Dhttp.port=${PORT} -J-server -Dlogger.file=conf/logger_prod.xml -DapplyEvolutions.default=true -Ddb.default.driver=org.postgresql.Driver -Ddb.default.url=${DATABASE_URL} -DAPPLICATION_SECRET=${APPLICATION_SECRET}
