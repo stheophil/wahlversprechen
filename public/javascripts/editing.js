@@ -1,7 +1,12 @@
 "use strict";
 
-define(['jquery', 'marked', 'app/detailSidebar'], function ($, marked) {
-
+define(['jquery', 
+        'marked', 
+        'mustache', 
+        'text!template/imageTemplate.html',
+        'app/detailSidebar', 
+        's3upload'], function ($, marked, mustache, templateImage) 
+{
   function form_ajax_submit(form) {
     var submit = form.find("button[type='submit']");
     if (0 === submit.length) {
@@ -44,11 +49,14 @@ define(['jquery', 'marked', 'app/detailSidebar'], function ($, marked) {
     });
   }
 
-  function showErrorMessageForOneSecondAfterElement(element) {
-    var errorMessage = "Speichern fehlgeschlagen!";
-    $('<div class="alert alert-danger">' + errorMessage + '</div>')
+  function saveFailedMessage() { 
+    return "Speichern fehlgeschlagen!";
+  }
+
+  function showErrorMessageForOneSecondAfterElement(element, message) {
+    $('<div class="alert alert-danger">' + message + '</div>')
       .insertAfter(element)
-      .delay(1000)
+      .delay(5000)
       .fadeOut();
   }
 
@@ -106,7 +114,7 @@ define(['jquery', 'marked', 'app/detailSidebar'], function ($, marked) {
       },
       error: function() {
         var $renderedEntry = $(".entry-content[data-id=" + entryId + "]");
-        showErrorMessageForOneSecondAfterElement($renderedEntry);
+        showErrorMessageForOneSecondAfterElement($renderedEntry, saveFailedMessage);
       }
     }); // End Ajax
   }
@@ -238,12 +246,6 @@ define(['jquery', 'marked', 'app/detailSidebar'], function ($, marked) {
         showonclick.fadeOut();
       };
 
-      $(this).focusout(function() {
-        if (textarea.val() === "") {
-          Collapse();
-        }
-      });
-
       $(this).parents("form").children(".cancel").click(function() {
         textarea.val("");
         Collapse();
@@ -265,7 +267,7 @@ define(['jquery', 'marked', 'app/detailSidebar'], function ($, marked) {
       var errorHandler = bSelect ? function() {
         element.val(prevValue);
       } : function() {
-        showErrorMessageForOneSecondAfterElement(element);
+        showErrorMessageForOneSecondAfterElement(element, saveFailedMessage);
       };
 
       var saveHandler = function() { 
@@ -363,6 +365,59 @@ define(['jquery', 'marked', 'app/detailSidebar'], function ($, marked) {
 
     $("form.ajax-submit").each(function() {
       form_ajax_submit($(this));
+    });
+
+    $("input#files").change(function(evt) {
+      var target = $(evt.target);
+      var textarea = $(target.data("target"));
+      if(0==textarea.length) {
+        console.error("Target element " + target.data("target") + " not found.");
+        return;
+      }
+
+      var progressbar = $(target.data("progress"));
+      var progress = progressbar.children("[role=progressbar]");
+
+      progressbar.fadeIn();
+      progress.css("width", "0%");
+
+      new S3Upload({
+        file_dom_selector: 'files',
+        s3_sign_put_url: '/signs3put',
+        onProgress: function(percent, message) { // Use this for live upload progress bars
+          console.log('Upload progress: ', percent, message);
+          progress.css("width", percent + "%");
+        },
+        onFinishS3Put: function(public_url) { // Get the URL of the uploaded file
+          console.log('Upload finished: ', public_url);
+
+          var selectionStart = textarea[0].selectionStart;
+          var selectionEnd = textarea[0].selectionEnd;
+
+          selectionStart = (typeof selectionStart === 'undefined') ? 0 : selectionStart;
+          selectionEnd = (typeof selectionEnd === 'undefined') ? 0 : selectionEnd;
+
+          var text = textarea.val();
+
+          textarea.val( 
+            text.slice(0, selectionEnd) +
+            mustache.render(templateImage, { url: public_url }) + 
+            text.slice(selectionEnd) 
+          );
+          textarea[0].focus();
+
+          target.val(null);
+          progressbar.fadeOut();
+        },
+        onError: function(status) {
+          console.log('Upload error: ', status);
+
+          showErrorMessageForOneSecondAfterElement(target, "Hochladen des Bildes fehlgeschlagen. Fehler: " + status);
+
+          target.val(null);
+          progressbar.fadeOut();
+        }
+      });
     });
   });
 

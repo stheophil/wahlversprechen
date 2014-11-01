@@ -159,6 +159,35 @@ object Application extends Controller with Cached {
 	      "Access-Control-Allow-Headers" -> "Origin, X-Requested-With, Content-Type, Accept, Referer, User-Agent");
 	}
 
+	import com.amazonaws._
+	import com.amazonaws.auth.profile._	
+	import com.amazonaws.auth._
+	import com.amazonaws.regions._
+	import com.amazonaws.services.s3._
+	import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest
+	def signs3put(s3_object_name: String, s3_object_type: String) = Action { implicit request => 
+		val S3_BUCKET_NAME = "wahlversprechenimages"
+		val S3_REGION = "eu-central-1"
+
+		val awsCreds = new DefaultAWSCredentialsProviderChain()
+		val s3client = Region.getRegion(Regions.fromName(S3_REGION)).createClient(classOf[AmazonS3Client], awsCreds, null)
+		
+		val expiration = new java.util.Date()
+		val msec = expiration.getTime() + 1000 * 60 * 60 // 1 hour
+		expiration.setTime(msec)
+		             
+		val generatePresignedUrlRequest = 
+		              new GeneratePresignedUrlRequest(S3_BUCKET_NAME, s3_object_name)
+		generatePresignedUrlRequest.setMethod(HttpMethod.PUT)
+		generatePresignedUrlRequest.setExpiration(expiration)
+		generatePresignedUrlRequest.setContentType(s3_object_type)
+		             
+		Ok(s"""{ 
+			"signed_request": "${s3client.generatePresignedUrl(generatePresignedUrlRequest).toString()}",
+			"url": "https://s3.$S3_REGION.amazonaws.com/$S3_BUCKET_NAME/$s3_object_name"
+			}""")
+	}
+
 	def javascriptRoutes = CachedAction("javascriptRoutes", 7.days) { implicit request => 
 	    import routes.javascript._
 	    Ok(

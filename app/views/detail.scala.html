@@ -108,8 +108,15 @@
     case true => {
       <form class="ajax-submit" data-url="@routes.DetailViewController.addEntry(stmt.id).url" data-method="POST" data-action="reload" data-alert-id="formNewEntry" role="form">
         <div class="form-group">
-          <textarea class="live-markdown expand form-control" name="content" style="width: 100%;" placeholder="Schreibe einen neuen Beitrag ..." data-id="entryid-new"></textarea>
-          <span class="help-block showonclick">(Formatierungen im <a href="http://daringfireball.net/projects/markdown/syntax#block" target="_blank">Markdown-Format</a> werden unterstützt.)<br/><br/></span>
+          <textarea class="live-markdown expand form-control" id="newentry" name="content" style="width: 100%;" placeholder="Schreibe einen neuen Beitrag ..." data-id="entryid-new"></textarea>          
+          <p class="help-block showonclick">(Formatierungen im <a href="http://daringfireball.net/projects/markdown/syntax#block" target="_blank">Markdown-Format</a> werden unterstützt.)</p>
+        </div>
+        <div class="form-group showonclick upload">
+        <label for="#files">Lade Bild hoch</label><input type="file" name="files[]" id="files" data-target="#newentry" data-progress="#upload-progress"></input>
+        <div class="progress" id="upload-progress" style="display:none; margin: 0.5em">
+          <div class="progress-bar" role="progressbar" style="width: 0%;">
+          </div>
+        </div>
         </div>
         <p class="alert alert-warning showonclick" style="display:none;">Vorschau! Der Eintrag wird erst beim Speichern wirklich geändert.</p>
         <div class="entry-content showonclick" data-id="entryid-new"></div>

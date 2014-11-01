@@ -18,6 +18,7 @@ GET		/rating/:rating				controllers.Application.rating(rating: Int)
 # JSON
 GET 	/routes.js 					controllers.Application.javascriptRoutes
 OPTIONS  /json/*all  				controllers.Application.preflight(all)
+GET 	/signs3put					controllers.Application.signs3put(s3_object_name: String, s3_object_type: String)
 
 GET 	/json/items/:author 		controllers.Application.itemsByAuthorAsJSON(author: String)
 GET 	/json/tags 					controllers.Application.tagsAsJSON
